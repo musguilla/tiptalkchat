@@ -14,7 +14,10 @@
       "Bash(pnpm prisma:generate)",
       "Bash(DATABASE_URL=file:./prisma/dev.db pnpm prisma migrate dev --name init --skip-seed)",
       "Bash(DATABASE_URL=file:./prisma/dev.db pnpm seed)",
-      "Bash(pnpm typecheck *)"
+      "Bash(pnpm typecheck *)",
+      "Bash(pnpm --filter @tiptalk/api test)",
+      "Bash(pnpm test *)",
+      "Bash(git commit -m 'feat: media worker, infra, tests, docs *)"
     ]
   }
 }

@@ -19,13 +19,16 @@ import { authPlugin } from './plugins/auth.js';
 export async function buildApp(): Promise<FastifyInstance> {
   const env = loadEnv();
   const app = Fastify({
-    logger: {
-      level: env.LOG_LEVEL,
-      transport:
-        env.NODE_ENV === 'development'
-          ? { target: 'pino-pretty', options: { translateTime: 'HH:MM:ss', colorize: true } }
-          : undefined,
-    },
+    logger:
+      env.NODE_ENV === 'test'
+        ? false
+        : {
+            level: env.LOG_LEVEL,
+            transport:
+              env.NODE_ENV === 'development'
+                ? { target: 'pino-pretty', options: { translateTime: 'HH:MM:ss', colorize: true } }
+                : undefined,
+          },
     trustProxy: true,
     // Stripe webhooks require the raw body, so we set rawBody on a per-route basis.
     bodyLimit: env.MAX_MEDIA_BYTES,
