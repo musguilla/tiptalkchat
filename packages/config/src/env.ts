@@ -1,4 +1,27 @@
 import { z } from 'zod';
+import { config as loadDotenv } from 'dotenv';
+import { existsSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+
+/**
+ * Walk up from cwd looking for a .env file at the monorepo root and load it
+ * into process.env. Called once at module load so any app importing from
+ * `@tiptalk/config` gets the root env without remembering to wire dotenv.
+ */
+function loadRootDotenv(): void {
+  let dir = process.cwd();
+  for (let i = 0; i < 8; i += 1) {
+    if (existsSync(resolve(dir, 'pnpm-workspace.yaml'))) {
+      const envPath = resolve(dir, '.env');
+      if (existsSync(envPath)) loadDotenv({ path: envPath });
+      return;
+    }
+    const parent = dirname(dir);
+    if (parent === dir) return;
+    dir = parent;
+  }
+}
+loadRootDotenv();
 
 const baseSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),

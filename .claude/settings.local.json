@@ -21,7 +21,17 @@
       "Bash(xargs -I{} dirname {})",
       "Bash(node --input-type=module -e \"import\\('./src/main.ts'\\).then\\(\\(\\)=>console.log\\('import-ok'\\)\\).catch\\(e=>{console.error\\('FAIL:', e.message\\); process.exit\\(1\\);}\\)\")",
       "Bash(git rm *)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(DATABASE_URL=file:./prisma/dev.db pnpm --filter @tiptalk/db db:push --skip-generate)",
+      "Bash(DATABASE_URL=file:./prisma/dev.db pnpm db:seed)",
+      "Bash(curl -sS -o /dev/null -w \"API healthz: %{http_code}\\\\n\" http://localhost:4000/healthz)",
+      "Bash(curl -sS -X POST http://localhost:4000/auth/login -H 'Content-Type: application/json' -d '{\"email\":\"alice@tiptalk.demo\",\"password\":\"demo1234\"}')",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d.get\\('message',''\\)[:1200]\\)\")",
+      "Bash(pnpm --filter @tiptalk/db db:push --skip-generate)",
+      "Bash(pnpm db:seed)",
+      "Bash(pnpm prisma *)",
+      "Bash(pnpm --filter @tiptalk/db db:push)",
+      "Bash(pnpm --filter @tiptalk/db seed)"
     ]
   }
 }

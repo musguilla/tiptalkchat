@@ -1,3 +1,4 @@
+import '@tiptalk/config'; // side-effect: load monorepo-root .env before Prisma reads DATABASE_URL
 import { PrismaClient, Prisma } from '@prisma/client';
 
 declare global {

@@ -1,13 +1,12 @@
+import '@tiptalk/config'; // side-effect: load monorepo-root .env
 import { PrismaClient } from '@prisma/client';
-import { createHash, randomBytes } from 'node:crypto';
+import { randomBytes } from 'node:crypto';
+import argon2 from 'argon2';
 
 const prisma = new PrismaClient();
 
-function hashPassword(plain: string): string {
-  // NOTE: this is a deterministic demo hash used only for seeding. The real
-  // auth flow in apps/api uses argon2. Production seeds should use the same.
-  const salt = 'demo-salt';
-  return createHash('sha256').update(salt + plain).digest('hex');
+async function hashPassword(plain: string): Promise<string> {
+  return argon2.hash(plain, { type: argon2.argon2id });
 }
 
 async function main(): Promise<void> {
@@ -18,7 +17,7 @@ async function main(): Promise<void> {
     create: {
       email: 'alice@tiptalk.demo',
       emailVerified: true,
-      passwordHash: hashPassword('demo1234'),
+      passwordHash: await hashPassword('demo1234'),
       displayName: 'Alice',
       avatarUrl: 'https://api.dicebear.com/9.x/notionists/svg?seed=alice',
       wallet: { create: {} },
@@ -31,7 +30,7 @@ async function main(): Promise<void> {
     create: {
       email: 'bob@tiptalk.demo',
       emailVerified: true,
-      passwordHash: hashPassword('demo1234'),
+      passwordHash: await hashPassword('demo1234'),
       displayName: 'Bob',
       avatarUrl: 'https://api.dicebear.com/9.x/notionists/svg?seed=bob',
       wallet: { create: { balance: 80 } },
