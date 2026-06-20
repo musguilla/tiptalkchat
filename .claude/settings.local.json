@@ -9,7 +9,11 @@
       "Bash(pnpm install *)",
       "Bash(pnpm --filter @tiptalk/economy test)",
       "Bash(git add *)",
-      "Bash(git commit -m 'feat: scaffolding + economy package fully tested *)"
+      "Bash(git commit -m 'feat: scaffolding + economy package fully tested *)",
+      "Bash(DATABASE_URL=file:./prisma/dev.db pnpm prisma:generate)",
+      "Bash(pnpm prisma:generate)",
+      "Bash(DATABASE_URL=file:./prisma/dev.db pnpm prisma migrate dev --name init --skip-seed)",
+      "Bash(DATABASE_URL=file:./prisma/dev.db pnpm seed)"
     ]
   }
 }

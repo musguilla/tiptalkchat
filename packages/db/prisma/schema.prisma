@@ -1,0 +1,329 @@
+// TipTalk DB schema
+//
+// Uses SQLite by default for fast local dev and CI tests; the production
+// docker-compose mounts Postgres at $DATABASE_URL. The schema is provider-
+// agnostic (no Postgres-only features used) so the same migrations work for
+// both. For Postgres in prod, set DATABASE_URL=postgresql://... and run
+// `prisma migrate deploy`.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// -----------------------------------------------------------------------------
+// Users & auth
+// -----------------------------------------------------------------------------
+
+model User {
+  id              String          @id @default(cuid())
+  email           String          @unique
+  emailVerified   Boolean         @default(false)
+  passwordHash    String
+  displayName     String
+  avatarUrl       String?
+  locale          String          @default("es")
+  role            String          @default("user") // user | mod | admin
+  kycStatus       String          @default("none") // none | pending | verified | rejected
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  wallet          Wallet?
+  rooms           Room[]          @relation("RoomCreator")
+  memberships     RoomMembership[]
+  messages        Message[]
+  tipsSent        Tip[]           @relation("TipsSent")
+  tipsReceived    Tip[]           @relation("TipsReceived")
+  purchases       Purchase[]
+  payouts         PayoutRequest[]
+  connect         ConnectAccount?
+  reports         Report[]        @relation("Reporter")
+  reported        Report[]        @relation("Reported")
+  refreshTokens   RefreshToken[]
+}
+
+model GuestSession {
+  id          String   @id @default(cuid())
+  displayName String
+  avatarUrl   String?
+  fingerprint String   @unique
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime
+
+  memberships RoomMembership[]
+  messages    Message[]
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// -----------------------------------------------------------------------------
+// Rooms & memberships
+// -----------------------------------------------------------------------------
+
+model Room {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  name            String
+  creatorId       String
+  pinHash         String?
+  inviteOnly      Boolean  @default(false)
+  maxParticipants Int?
+  expiresAt       DateTime?
+  closedAt        DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  creator         User             @relation("RoomCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  memberships     RoomMembership[]
+  messages        Message[]
+  callSessions    CallSession[]
+  tips            Tip[]
+  auditLogs       AuditLog[]
+
+  @@index([creatorId])
+  @@index([slug])
+}
+
+model RoomMembership {
+  id          String   @id @default(cuid())
+  roomId      String
+  userId      String?
+  guestId     String?
+  role        String   @default("member") // member | mod | creator
+  status      String   @default("active") // active | banned | left
+  mutedUntil  DateTime?
+  joinedAt    DateTime @default(now())
+
+  room        Room          @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user        User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  guest       GuestSession? @relation(fields: [guestId], references: [id], onDelete: Cascade)
+
+  @@unique([roomId, userId])
+  @@unique([roomId, guestId])
+  @@index([roomId])
+}
+
+// -----------------------------------------------------------------------------
+// Messages & media
+// -----------------------------------------------------------------------------
+
+model Message {
+  id          String      @id @default(cuid())
+  roomId      String
+  authorId    String?
+  guestId     String?
+  kind        String      // text | image | video | system
+  body        String?     // text content
+  mediaId     String?
+  createdAt   DateTime    @default(now())
+  editedAt    DateTime?
+  deletedAt   DateTime?
+
+  room        Room        @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  author      User?       @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  guest       GuestSession? @relation(fields: [guestId], references: [id], onDelete: SetNull)
+  media       MediaAsset? @relation(fields: [mediaId], references: [id], onDelete: SetNull)
+
+  @@index([roomId, createdAt])
+  @@index([authorId])
+}
+
+model MediaAsset {
+  id              String   @id @default(cuid())
+  ownerId         String?
+  kind            String   // image | video
+  status          String   @default("uploaded") // uploaded | processing | ready | failed
+  originalKey     String   // S3 key of original
+  hlsManifestKey  String?  // S3 key of HLS .m3u8 (video only)
+  thumbnailKey    String?  // S3 key of thumbnail
+  durationMs      Int?
+  bytes           Int
+  mimeType        String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  messages        Message[]
+}
+
+// -----------------------------------------------------------------------------
+// Calls (WebRTC)
+// -----------------------------------------------------------------------------
+
+model CallSession {
+  id          String   @id @default(cuid())
+  roomId      String
+  startedAt   DateTime @default(now())
+  endedAt     DateTime?
+  sfuMode     String   @default("p2p") // p2p | mediasoup | livekit
+
+  room        Room              @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  participants CallParticipant[]
+
+  @@index([roomId])
+}
+
+model CallParticipant {
+  id           String      @id @default(cuid())
+  callId       String
+  userId       String?
+  guestId      String?
+  joinedAt     DateTime    @default(now())
+  leftAt       DateTime?
+
+  call         CallSession @relation(fields: [callId], references: [id], onDelete: Cascade)
+
+  @@index([callId])
+}
+
+// -----------------------------------------------------------------------------
+// Economy: wallet, ledger, tips, purchases, payouts
+// -----------------------------------------------------------------------------
+
+model Wallet {
+  id        String        @id @default(cuid())
+  userId    String        @unique
+  balance   Int           @default(0) // Tipsys (cache; canonical = sum of ledger)
+  version   Int           @default(0) // optimistic lock
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ledger    LedgerEntry[]
+}
+
+model LedgerEntry {
+  id             String   @id @default(cuid())
+  walletId       String
+  kind           String   // PURCHASE_CREDIT | TIP_SENT | TIP_RECEIVED | PAYOUT_DEBIT | PAYOUT_REFUND | ADJUSTMENT
+  amount         Int      // signed delta (Tipsys)
+  balanceAfter   Int
+  idempotencyKey String   @unique
+  refType        String?  // tip | purchase | payout | adjustment
+  refId          String?
+  createdAt      DateTime @default(now())
+
+  wallet         Wallet   @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@index([walletId, createdAt])
+  @@index([refType, refId])
+}
+
+model Tip {
+  id             String   @id @default(cuid())
+  senderId       String
+  receiverId     String
+  roomId         String
+  amount         Int      // Tipsys
+  // Polymorphic target. We deliberately do NOT enforce a FK here because the
+  // referenced row may live in Message, MediaAsset, or Room. The API layer
+  // validates targetType→targetId on write.
+  targetType     String   // message | media | room
+  targetId       String
+  note           String?
+  idempotencyKey String   @unique
+  createdAt      DateTime @default(now())
+
+  sender         User     @relation("TipsSent", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver       User     @relation("TipsReceived", fields: [receiverId], references: [id], onDelete: Cascade)
+  room           Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([roomId, createdAt])
+  @@index([targetType, targetId])
+}
+
+model Purchase {
+  id                 String   @id @default(cuid())
+  userId             String
+  stripeSessionId    String   @unique
+  stripePaymentIntent String?
+  eurCents           Int
+  tipsys             Int
+  status             String   @default("pending") // pending | paid | failed | refunded
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model PayoutRequest {
+  id               String   @id @default(cuid())
+  userId           String
+  tipsys           Int
+  grossEurCents    Int
+  feeEurCents      Int
+  netEurCents      Int
+  feePct           Float
+  status           String   @default("requested") // requested | in_review | paid | failed | refunded
+  stripeTransferId String?
+  failureReason    String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  paidAt           DateTime?
+
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+}
+
+model ConnectAccount {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  stripeAccountId String   @unique
+  status          String   @default("onboarding") // onboarding | verified | rejected
+  payoutsEnabled  Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// -----------------------------------------------------------------------------
+// Moderation / audit
+// -----------------------------------------------------------------------------
+
+model Report {
+  id           String   @id @default(cuid())
+  reporterId   String
+  reportedId   String?
+  targetType   String   // user | message | media | room
+  targetId     String
+  reason       String
+  status       String   @default("open") // open | reviewed | dismissed
+  createdAt    DateTime @default(now())
+
+  reporter     User     @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  reportedUser User?    @relation("Reported", fields: [reportedId], references: [id], onDelete: SetNull)
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?
+  roomId    String?
+  action    String
+  meta      String?  // JSON-encoded metadata
+  createdAt DateTime @default(now())
+
+  room      Room?    @relation(fields: [roomId], references: [id], onDelete: SetNull)
+
+  @@index([roomId, createdAt])
+}
