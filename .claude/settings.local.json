@@ -13,7 +13,8 @@
       "Bash(DATABASE_URL=file:./prisma/dev.db pnpm prisma:generate)",
       "Bash(pnpm prisma:generate)",
       "Bash(DATABASE_URL=file:./prisma/dev.db pnpm prisma migrate dev --name init --skip-seed)",
-      "Bash(DATABASE_URL=file:./prisma/dev.db pnpm seed)"
+      "Bash(DATABASE_URL=file:./prisma/dev.db pnpm seed)",
+      "Bash(pnpm typecheck *)"
     ]
   }
 }
