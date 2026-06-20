@@ -17,7 +17,9 @@
       "Bash(pnpm typecheck *)",
       "Bash(pnpm --filter @tiptalk/api test)",
       "Bash(pnpm test *)",
-      "Bash(git commit -m 'feat: media worker, infra, tests, docs *)"
+      "Bash(git commit -m 'feat: media worker, infra, tests, docs *)",
+      "Bash(xargs -I{} dirname {})",
+      "Bash(node --input-type=module -e \"import\\('./src/main.ts'\\).then\\(\\(\\)=>console.log\\('import-ok'\\)\\).catch\\(e=>{console.error\\('FAIL:', e.message\\); process.exit\\(1\\);}\\)\")"
     ]
   }
 }
