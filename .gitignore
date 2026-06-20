@@ -32,8 +32,9 @@ test-results
 tmp
 *.sqlite
 *.sqlite-journal
-prisma/dev.db*
-prisma/test.db*
+**/prisma/dev.db*
+**/prisma/test.db*
+**/next-env.d.ts
 
 # media uploads (local dev)
 uploads/
