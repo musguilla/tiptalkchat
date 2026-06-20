@@ -5,7 +5,28 @@ import { prisma } from '@tiptalk/db';
 import { processVideoJob, processImageJob } from './transcoder.js';
 
 const env = loadEnv();
-const connection = new Redis(env.REDIS_URL, { maxRetriesPerRequest: null });
+const connection = new Redis(env.REDIS_URL, {
+  maxRetriesPerRequest: null, // required by BullMQ
+  // Reconnect with exponential backoff capped at 30s instead of hammering.
+  retryStrategy(times) {
+    return Math.min(1000 * 2 ** Math.min(times, 5), 30_000);
+  },
+});
+
+// Print Redis-down warnings once per minute instead of every reconnect attempt.
+let lastWarn = 0;
+connection.on('error', (err) => {
+  const now = Date.now();
+  if (now - lastWarn > 60_000) {
+    lastWarn = now;
+    // eslint-disable-next-line no-console
+    console.warn(
+      `[worker] Redis unreachable at ${env.REDIS_URL} (${err.message}). ` +
+        `Start it with: docker compose up -d redis  (or brew services start redis). ` +
+        `Will keep retrying silently…`,
+    );
+  }
+});
 
 export const mediaQueue = new Queue('media', { connection });
 
@@ -56,6 +77,18 @@ worker.on('failed', (job, err) => {
 worker.on('completed', (job) => {
   // eslint-disable-next-line no-console
   console.info(`[worker] job ${job.id} done`);
+});
+
+// BullMQ duplicates the Redis connection internally; that duplicate doesn't
+// inherit our error listener, so the worker.on('error') hook below catches
+// connection-level errors (ECONNREFUSED, etc.) and the same throttle applies.
+worker.on('error', (err) => {
+  const now = Date.now();
+  if (now - lastWarn > 60_000) {
+    lastWarn = now;
+    // eslint-disable-next-line no-console
+    console.warn(`[worker] connection error (will retry): ${err.message}`);
+  }
 });
 
 // eslint-disable-next-line no-console
