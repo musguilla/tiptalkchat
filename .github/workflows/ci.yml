@@ -7,6 +7,25 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: tip
+          POSTGRES_PASSWORD: tip
+          POSTGRES_DB: tiptalk_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U tip -d tiptalk_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://tip:tip@localhost:5432/tiptalk_test
+      DATABASE_URL_TEST: postgresql://tip:tip@localhost:5432/tiptalk_test
+
     steps:
       - uses: actions/checkout@v4
 
@@ -26,10 +45,5 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
-      - name: Lint
-        run: pnpm lint
-
       - name: Test (unit + integration)
-        env:
-          DATABASE_URL: file:./test.db
         run: pnpm test

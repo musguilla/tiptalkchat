@@ -14,6 +14,9 @@ import { purchaseRoutes } from './routes/purchases.js';
 import { payoutRoutes } from './routes/payouts.js';
 import { connectRoutes } from './routes/connect.js';
 import { stripeWebhookRoute } from './routes/stripe-webhook.js';
+import { muxWebhookRoute } from './routes/mux-webhook.js';
+import { mediaRoutes } from './routes/media.js';
+import { callTokenRoutes } from './routes/calls.js';
 import { authPlugin } from './plugins/auth.js';
 
 export async function buildApp(): Promise<FastifyInstance> {
@@ -52,10 +55,13 @@ export async function buildApp(): Promise<FastifyInstance> {
   app.get('/healthz', async () => ({ ok: true, ts: Date.now() }));
 
   await app.register(stripeWebhookRoute, { prefix: '/webhooks/stripe' });
+  await app.register(muxWebhookRoute, { prefix: '/webhooks/mux' });
 
   await app.register(authRoutes, { prefix: '/auth' });
   await app.register(roomRoutes, { prefix: '/rooms' });
   await app.register(messageRoutes, { prefix: '/messages' });
+  await app.register(mediaRoutes, { prefix: '/media' });
+  await app.register(callTokenRoutes, { prefix: '/calls' });
   await app.register(walletRoutes, { prefix: '/wallet' });
   await app.register(tipRoutes, { prefix: '/tips' });
   await app.register(purchaseRoutes, { prefix: '/purchases' });

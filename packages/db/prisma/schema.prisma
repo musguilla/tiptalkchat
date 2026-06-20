@@ -1,17 +1,17 @@
-// TipTalk DB schema
+// TipTalk DB schema.
 //
-// Uses SQLite by default for fast local dev and CI tests; the production
-// docker-compose mounts Postgres at $DATABASE_URL. The schema is provider-
-// agnostic (no Postgres-only features used) so the same migrations work for
-// both. For Postgres in prod, set DATABASE_URL=postgresql://... and run
-// `prisma migrate deploy`.
+// Provider is PostgreSQL — production target is Supabase / Neon / Railway.
+// For local dev without docker, run `docker compose up postgres` (or use
+// Supabase's pooled connection string directly).
+//
+// Tests use Supabase pooled URL or a local Postgres set via DATABASE_URL.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 

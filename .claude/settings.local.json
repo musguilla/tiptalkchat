@@ -31,7 +31,10 @@
       "Bash(pnpm db:seed)",
       "Bash(pnpm prisma *)",
       "Bash(pnpm --filter @tiptalk/db db:push)",
-      "Bash(pnpm --filter @tiptalk/db seed)"
+      "Bash(pnpm --filter @tiptalk/db seed)",
+      "Bash(grep -E '\\(\\\\.env$|\\\\.env\\\\.|\\\\.key|credentials|secret\\)')",
+      "Bash(git remote *)",
+      "Bash(git push *)"
     ]
   }
 }

@@ -39,6 +39,17 @@ const baseSchema = z.object({
   JWT_ACCESS_TTL: z.string().default('15m'),
   JWT_REFRESH_TTL: z.string().default('30d'),
 
+  // --- Storage (for images) ---
+  // Provider is auto-selected: 'supabase' if SUPABASE_URL+SUPABASE_SERVICE_KEY,
+  // else 'r2' if R2 creds, else 's3' (MinIO-compatible) by default.
+  STORAGE_PROVIDER: z.enum(['supabase', 'r2', 's3']).optional(),
+
+  // Supabase Storage
+  SUPABASE_URL: z.string().optional(),
+  SUPABASE_SERVICE_KEY: z.string().optional(),
+  SUPABASE_BUCKET: z.string().default('tiptalk-media'),
+
+  // S3 / R2 / MinIO (S3-compatible)
   S3_ENDPOINT: z.string().default('http://localhost:9000'),
   S3_REGION: z.string().default('us-east-1'),
   S3_BUCKET: z.string().default('tiptalk-media'),
@@ -46,6 +57,23 @@ const baseSchema = z.object({
   S3_SECRET_KEY: z.string().default('minioadmin'),
   S3_PUBLIC_URL: z.string().default('http://localhost:9000/tiptalk-media'),
 
+  // --- Video pipeline ---
+  // 'mux' uses Mux Direct Upload + webhooks (production).
+  // 'local' uses the apps/worker ffmpeg pipeline (dev fallback).
+  VIDEO_PROVIDER: z.enum(['mux', 'local']).default('local'),
+  MUX_TOKEN_ID: z.string().optional(),
+  MUX_TOKEN_SECRET: z.string().optional(),
+  MUX_WEBHOOK_SECRET: z.string().optional(),
+
+  // --- WebRTC SFU ---
+  // 'p2p' (default) uses signaling-only with browser RTCPeerConnection + coturn.
+  // 'livekit' issues access tokens for a LiveKit Cloud room (group calls + TURN).
+  SFU_PROVIDER: z.enum(['p2p', 'livekit']).default('p2p'),
+  LIVEKIT_URL: z.string().optional(),
+  LIVEKIT_API_KEY: z.string().optional(),
+  LIVEKIT_API_SECRET: z.string().optional(),
+
+  // --- Stripe ---
   STRIPE_SECRET_KEY: z.string().default('sk_test_placeholder'),
   STRIPE_WEBHOOK_SECRET: z.string().default('whsec_placeholder'),
   STRIPE_CONNECT_CLIENT_ID: z.string().default('ca_placeholder'),
