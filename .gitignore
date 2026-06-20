@@ -1,0 +1,39 @@
+node_modules
+.pnpm-store
+.turbo
+dist
+build
+.next
+out
+coverage
+*.tsbuildinfo
+
+# env
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# logs
+*.log
+pnpm-debug.log*
+npm-debug.log*
+
+# OS / IDE
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea
+
+# test / temp
+playwright-report
+test-results
+.cache
+tmp
+*.sqlite
+*.sqlite-journal
+prisma/dev.db*
+prisma/test.db*
+
+# media uploads (local dev)
+uploads/

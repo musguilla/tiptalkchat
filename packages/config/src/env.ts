@@ -1,0 +1,61 @@
+import { z } from 'zod';
+
+const baseSchema = z.object({
+  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+
+  WEB_URL: z.string().url().default('http://localhost:3000'),
+  API_URL: z.string().url().default('http://localhost:4000'),
+  REALTIME_URL: z.string().url().default('http://localhost:4001'),
+  PUBLIC_BASE_URL: z.string().url().default('http://localhost:3000'),
+
+  DATABASE_URL: z.string().default('file:./prisma/dev.db'),
+  REDIS_URL: z.string().default('redis://localhost:6379'),
+
+  JWT_ACCESS_SECRET: z.string().min(16).default('dev_access_secret_change_me_please'),
+  JWT_REFRESH_SECRET: z.string().min(16).default('dev_refresh_secret_change_me_please'),
+  JWT_ACCESS_TTL: z.string().default('15m'),
+  JWT_REFRESH_TTL: z.string().default('30d'),
+
+  S3_ENDPOINT: z.string().default('http://localhost:9000'),
+  S3_REGION: z.string().default('us-east-1'),
+  S3_BUCKET: z.string().default('tiptalk-media'),
+  S3_ACCESS_KEY: z.string().default('minioadmin'),
+  S3_SECRET_KEY: z.string().default('minioadmin'),
+  S3_PUBLIC_URL: z.string().default('http://localhost:9000/tiptalk-media'),
+
+  STRIPE_SECRET_KEY: z.string().default('sk_test_placeholder'),
+  STRIPE_WEBHOOK_SECRET: z.string().default('whsec_placeholder'),
+  STRIPE_CONNECT_CLIENT_ID: z.string().default('ca_placeholder'),
+
+  PLATFORM_FEE_PCT: z.coerce.number().min(0).max(1).default(0.3),
+  PAYOUT_MIN_TIPSYS: z.coerce.number().int().positive().default(300),
+
+  TURN_URL: z.string().default('turn:localhost:3478'),
+  TURN_USERNAME: z.string().default('tiptalk'),
+  TURN_CREDENTIAL: z.string().default('tiptalkpass'),
+  STUN_URL: z.string().default('stun:stun.l.google.com:19302'),
+
+  LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
+  RATE_LIMIT_PER_MIN: z.coerce.number().int().positive().default(120),
+  MAX_MEDIA_BYTES: z.coerce.number().int().positive().default(50 * 1024 * 1024),
+});
+
+export type Env = z.infer<typeof baseSchema>;
+
+let cached: Env | null = null;
+
+export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
+  if (cached) return cached;
+  const parsed = baseSchema.safeParse(source);
+  if (!parsed.success) {
+    // eslint-disable-next-line no-console
+    console.error('Invalid environment variables:\n', parsed.error.flatten().fieldErrors);
+    throw new Error('Invalid environment variables');
+  }
+  cached = parsed.data;
+  return cached;
+}
+
+export function resetEnvCache(): void {
+  cached = null;
+}

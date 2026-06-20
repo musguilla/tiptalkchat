@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm --version)",
+      "Bash(corepack enable *)",
+      "Bash(corepack prepare *)",
+      "Bash(git init *)",
+      "Bash(git config *)",
+      "Bash(pnpm install *)",
+      "Bash(pnpm --filter @tiptalk/economy test)",
+      "Bash(git add *)",
+      "Bash(git commit -m 'feat: scaffolding + economy package fully tested *)"
+    ]
+  }
+}
