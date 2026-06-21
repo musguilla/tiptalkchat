@@ -7,7 +7,12 @@
 // Tests use Supabase pooled URL or a local Postgres set via DATABASE_URL.
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  // 'native' for local dev; 'debian-openssl-3.0.x' for the Railway / Docker
+  // runtime (node:22-slim is Debian 12 Bookworm with OpenSSL 3.x). Without
+  // this Prisma defaults to openssl-1.1.x which doesn't exist on Bookworm
+  // and the API crashes at startup with 'libssl.so.1.1: cannot open ...'.
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
 datasource db {

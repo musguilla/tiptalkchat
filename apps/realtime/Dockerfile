@@ -4,6 +4,9 @@
 FROM node:22-slim AS base
 ENV PNPM_HOME="/pnpm" \
     PATH="$PNPM_HOME:$PATH"
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends openssl ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
 RUN corepack enable && corepack prepare pnpm@9.12.0 --activate
 WORKDIR /app
 
