@@ -3,12 +3,12 @@
 
 FROM node:22-slim AS base
 ENV PNPM_HOME="/pnpm" \
-    PATH="$PNPM_HOME:$PATH" \
-    NODE_ENV=production
+    PATH="$PNPM_HOME:$PATH"
 RUN corepack enable && corepack prepare pnpm@9.12.0 --activate
 WORKDIR /app
 
-# --- deps (cacheable) ---
+# --- deps (cacheable). NODE_ENV stays unset so devDeps install (we need
+#     `prisma` and `tsx` which are devDependencies of packages/db and apps/api).
 FROM base AS deps
 COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
 COPY apps/api/package.json ./apps/api/
@@ -25,7 +25,7 @@ RUN pnpm --filter @tiptalk/db prisma:generate
 
 # --- runtime ---
 FROM base AS runtime
-ENV PORT=4000 HOST=0.0.0.0
+ENV NODE_ENV=production PORT=4000 HOST=0.0.0.0
 COPY --from=build /app /app
 WORKDIR /app/apps/api
 EXPOSE 4000

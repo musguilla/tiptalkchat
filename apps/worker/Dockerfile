@@ -4,8 +4,7 @@
 
 FROM node:22-slim AS base
 ENV PNPM_HOME="/pnpm" \
-    PATH="$PNPM_HOME:$PATH" \
-    NODE_ENV=production
+    PATH="$PNPM_HOME:$PATH"
 RUN apt-get update \
  && apt-get install -y --no-install-recommends ffmpeg ca-certificates \
  && rm -rf /var/lib/apt/lists/*
@@ -25,6 +24,7 @@ COPY apps/worker ./apps/worker
 RUN pnpm --filter @tiptalk/db prisma:generate
 
 FROM base AS runtime
+ENV NODE_ENV=production
 COPY --from=build /app /app
 WORKDIR /app/apps/worker
 CMD ["pnpm", "tsx", "src/main.ts"]

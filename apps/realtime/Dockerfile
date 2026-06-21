@@ -3,8 +3,7 @@
 
 FROM node:22-slim AS base
 ENV PNPM_HOME="/pnpm" \
-    PATH="$PNPM_HOME:$PATH" \
-    NODE_ENV=production
+    PATH="$PNPM_HOME:$PATH"
 RUN corepack enable && corepack prepare pnpm@9.12.0 --activate
 WORKDIR /app
 
@@ -21,7 +20,7 @@ COPY apps/realtime ./apps/realtime
 RUN pnpm --filter @tiptalk/db prisma:generate
 
 FROM base AS runtime
-ENV PORT=4001 HOST=0.0.0.0
+ENV NODE_ENV=production PORT=4001 HOST=0.0.0.0
 COPY --from=build /app /app
 WORKDIR /app/apps/realtime
 EXPOSE 4001
