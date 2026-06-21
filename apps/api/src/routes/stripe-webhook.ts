@@ -42,6 +42,61 @@ export async function stripeWebhookRoute(app: FastifyInstance): Promise<void> {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
+        const kind = session.metadata?.kind ?? 'purchase';
+
+        if (kind === 'guest-tip') {
+          const receiverId = session.metadata?.receiverId;
+          const tipsys = Number(session.metadata?.tipsys);
+          const roomId = session.metadata?.roomId;
+          const targetType = session.metadata?.targetType;
+          const targetId = session.metadata?.targetId;
+          const senderEmail = session.metadata?.senderEmail ?? null;
+          const note = session.metadata?.note || null;
+          if (
+            !receiverId ||
+            !Number.isInteger(tipsys) ||
+            tipsys <= 0 ||
+            !roomId ||
+            !targetType ||
+            !targetId
+          )
+            break;
+
+          await prisma.$transaction(async (tx) => {
+            const wallet = await tx.wallet.upsert({
+              where: { userId: receiverId },
+              create: { userId: receiverId },
+              update: {},
+            });
+            // The receiver gets a TIP_RECEIVED entry (no sender wallet exists)
+            await appendLedgerEntry({
+              walletId: wallet.id,
+              kind: 'TIP_RECEIVED',
+              amount: tipsys,
+              idempotencyKey: `stripe-guest-tip:${session.id}`,
+              refType: 'tip',
+              refId: session.id,
+              tx,
+            });
+            await tx.tip.create({
+              data: {
+                senderId: null,
+                senderGuestId: null,
+                senderEmail,
+                receiverId,
+                roomId,
+                amount: tipsys,
+                targetType,
+                targetId,
+                note,
+                idempotencyKey: `stripe-guest-tip:${session.id}`,
+              },
+            });
+          });
+          break;
+        }
+
+        // Default: regular Tipsys purchase
         const userId = session.metadata?.userId;
         const tipsys = Number(session.metadata?.tipsys);
         if (!userId || !Number.isInteger(tipsys) || tipsys <= 0) break;

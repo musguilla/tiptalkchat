@@ -233,24 +233,29 @@ model LedgerEntry {
 
 model Tip {
   id             String   @id @default(cuid())
-  senderId       String
+  // One of senderId / senderGuestId is set (mutually exclusive):
+  //   senderId:      tip from an authenticated user (debits their wallet)
+  //   senderGuestId: tip from a guest (paid directly via Stripe, no wallet)
+  senderId       String?
+  senderGuestId  String?
+  senderEmail    String?  // for guest tips: receipt + minimal audit trail
   receiverId     String
   roomId         String
-  amount         Int      // Tipsys
-  // Polymorphic target. We deliberately do NOT enforce a FK here because the
-  // referenced row may live in Message, MediaAsset, or Room. The API layer
-  // validates targetType→targetId on write.
-  targetType     String   // message | media | room
+  amount         Int      // Tipsys credited to the receiver
+  // Polymorphic target. No FK because the row may live in Message, MediaAsset
+  // or Room — validated at the API layer.
+  targetType     String
   targetId       String
   note           String?
   idempotencyKey String   @unique
   createdAt      DateTime @default(now())
 
-  sender         User     @relation("TipsSent", fields: [senderId], references: [id], onDelete: Cascade)
+  sender         User?    @relation("TipsSent", fields: [senderId], references: [id], onDelete: Cascade)
   receiver       User     @relation("TipsReceived", fields: [receiverId], references: [id], onDelete: Cascade)
   room           Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
 
   @@index([senderId])
+  @@index([senderGuestId])
   @@index([receiverId])
   @@index([roomId, createdAt])
   @@index([targetType, targetId])

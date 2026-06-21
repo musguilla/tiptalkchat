@@ -40,6 +40,9 @@ export default function RoomPage() {
   const [tipAnimations, setTipAnimations] = useState<Array<{ id: string; emoji: string }>>([]);
   const [tipTarget, setTipTarget] = useState<{ kind: 'message' | 'room'; id: string } | null>(null);
   const [tipAmount, setTipAmount] = useState(5);
+  const [guestTipEur, setGuestTipEur] = useState<number>(500); // 5€ in cents
+  const [guestTipEmail, setGuestTipEmail] = useState('');
+  const [guestTipBusy, setGuestTipBusy] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [activeCall, setActiveCall] = useState<'audio' | 'video' | null>(null);
   const socketRef = useRef<Socket | null>(null);
@@ -222,6 +225,50 @@ export default function RoomPage() {
     }
   }, [tipAmount, tipTarget, room, token]);
 
+  const sendGuestTip = useCallback(async () => {
+    if (!tipTarget || !room || !guestTipEmail) return;
+    setGuestTipBusy(true);
+    try {
+      const res = await api<{ url: string }>('/tips/guest-checkout', {
+        method: 'POST',
+        body: JSON.stringify({
+          eurCents: guestTipEur,
+          targetType: tipTarget.kind,
+          targetId: tipTarget.id,
+          roomId: room.id,
+          email: guestTipEmail,
+        }),
+      });
+      window.location.href = res.url;
+    } catch (err) {
+      alert('No se pudo iniciar el pago: ' + (err instanceof Error ? err.message : 'error'));
+      setGuestTipBusy(false);
+    }
+  }, [tipTarget, room, guestTipEur, guestTipEmail]);
+
+  // Show "tip sent" toast after returning from Stripe Checkout.
+  const [tipToast, setTipToast] = useState<string | null>(null);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const url = new URL(window.location.href);
+    const tip = url.searchParams.get('tip');
+    if (tip === 'success') {
+      setTipToast('✅ ¡Propina enviada! Gracias.');
+      url.searchParams.delete('tip');
+      url.searchParams.delete('session');
+      window.history.replaceState({}, '', url.toString());
+      const t = setTimeout(() => setTipToast(null), 4000);
+      return () => clearTimeout(t);
+    }
+    if (tip === 'cancelled') {
+      setTipToast('Pago cancelado.');
+      url.searchParams.delete('tip');
+      window.history.replaceState({}, '', url.toString());
+      const t = setTimeout(() => setTipToast(null), 3000);
+      return () => clearTimeout(t);
+    }
+  }, []);
+
   if (!room) {
     return (
       <main className="grid min-h-screen place-items-center">
@@ -373,27 +420,95 @@ export default function RoomPage() {
         {/* Tip dialog */}
         {tipTarget && (
           <div className="absolute inset-0 grid place-items-center bg-black/40 p-4">
-            <div className="w-full max-w-sm space-y-3 rounded-xl bg-white p-5 dark:bg-zinc-900">
+            <div className="w-full max-w-sm space-y-4 rounded-xl bg-white p-5 dark:bg-zinc-900">
               <h3 className="text-lg font-bold">{t('es', 'tip.send')}</h3>
-              <label className="block space-y-1 text-sm">
-                <span className="font-medium">Cantidad (Tipsys)</span>
-                <input
-                  type="number"
-                  min={1}
-                  value={tipAmount}
-                  onChange={(e) => setTipAmount(Number(e.target.value))}
-                  className="w-full rounded-md border border-zinc-300 bg-white p-2 dark:border-zinc-700 dark:bg-zinc-800"
-                />
-              </label>
-              <div className="flex justify-end gap-2">
-                <button onClick={() => setTipTarget(null)} className="rounded-md px-3 py-2 text-sm">
-                  Cancelar
-                </button>
-                <button onClick={sendTip} className="rounded-md bg-amber-500 px-4 py-2 text-sm font-semibold text-white">
-                  Enviar
-                </button>
-              </div>
+
+              {token ? (
+                <>
+                  <label className="block space-y-1 text-sm">
+                    <span className="font-medium">Cantidad (Tipsys)</span>
+                    <input
+                      type="number"
+                      min={1}
+                      value={tipAmount}
+                      onChange={(e) => setTipAmount(Number(e.target.value))}
+                      className="w-full rounded-md border border-zinc-300 bg-white p-2 dark:border-zinc-700 dark:bg-zinc-800"
+                    />
+                  </label>
+                  <div className="flex justify-end gap-2">
+                    <button onClick={() => setTipTarget(null)} className="rounded-md px-3 py-2 text-sm">
+                      Cancelar
+                    </button>
+                    <button onClick={sendTip} className="rounded-md bg-amber-500 px-4 py-2 text-sm font-semibold text-white">
+                      Enviar
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                    Pagas con tarjeta vía Stripe. La propina se acredita al instante.
+                  </p>
+                  <div>
+                    <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                      Importe
+                    </div>
+                    <div className="grid grid-cols-4 gap-2">
+                      {[
+                        { eur: 100, tipsys: 8 },
+                        { eur: 500, tipsys: 40 },
+                        { eur: 1000, tipsys: 80 },
+                        { eur: 2000, tipsys: 160 },
+                      ].map((p) => (
+                        <button
+                          key={p.eur}
+                          type="button"
+                          onClick={() => setGuestTipEur(p.eur)}
+                          className={`rounded-md border p-2 text-sm transition ${
+                            guestTipEur === p.eur
+                              ? 'border-amber-500 bg-amber-50 font-bold text-amber-900 dark:bg-amber-900/40 dark:text-amber-100'
+                              : 'border-zinc-300 bg-white hover:border-zinc-400 dark:border-zinc-700 dark:bg-zinc-800'
+                          }`}
+                        >
+                          <div className="text-base font-bold">{p.eur / 100} €</div>
+                          <div className="text-[10px] text-zinc-500">{p.tipsys} Tipsys</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <label className="block space-y-1 text-sm">
+                    <span className="font-medium">Tu email (para el recibo)</span>
+                    <input
+                      type="email"
+                      required
+                      value={guestTipEmail}
+                      onChange={(e) => setGuestTipEmail(e.target.value)}
+                      placeholder="tu@email.com"
+                      className="w-full rounded-md border border-zinc-300 bg-white p-2 dark:border-zinc-700 dark:bg-zinc-800"
+                    />
+                  </label>
+                  <div className="flex justify-end gap-2">
+                    <button onClick={() => setTipTarget(null)} className="rounded-md px-3 py-2 text-sm">
+                      Cancelar
+                    </button>
+                    <button
+                      onClick={sendGuestTip}
+                      disabled={guestTipBusy || !guestTipEmail}
+                      className="rounded-md bg-amber-500 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                    >
+                      {guestTipBusy ? 'Redirigiendo…' : `Pagar ${guestTipEur / 100} €`}
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
+          </div>
+        )}
+
+        {/* Tip success / cancel toast */}
+        {tipToast && (
+          <div className="absolute left-1/2 top-4 -translate-x-1/2 rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-lg">
+            {tipToast}
           </div>
         )}
 
