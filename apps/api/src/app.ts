@@ -19,6 +19,34 @@ import { mediaRoutes } from './routes/media.js';
 import { callTokenRoutes } from './routes/calls.js';
 import { authPlugin } from './plugins/auth.js';
 
+/**
+ * Build the allow-list of CORS origins from the configured WEB_URL plus its
+ * www/apex sibling, optionally extended via ALLOWED_ORIGINS (comma-separated).
+ *
+ *   buildAllowedOrigins("https://tiptalk.chat") -> ["https://tiptalk.chat", "https://www.tiptalk.chat"]
+ *   buildAllowedOrigins("https://www.tiptalk.chat") -> ["https://www.tiptalk.chat", "https://tiptalk.chat"]
+ */
+function buildAllowedOrigins(webUrl: string, extra?: string): string[] {
+  const out = new Set<string>();
+  out.add(webUrl);
+  try {
+    const u = new URL(webUrl);
+    if (u.hostname.startsWith('www.')) {
+      u.hostname = u.hostname.replace(/^www\./, '');
+      out.add(u.toString().replace(/\/$/, ''));
+    } else {
+      u.hostname = `www.${u.hostname}`;
+      out.add(u.toString().replace(/\/$/, ''));
+    }
+  } catch {
+    /* keep webUrl only */
+  }
+  if (extra) {
+    for (const o of extra.split(',').map((s) => s.trim()).filter(Boolean)) out.add(o);
+  }
+  return [...out];
+}
+
 export async function buildApp(): Promise<FastifyInstance> {
   const env = loadEnv();
   const app = Fastify({
@@ -39,8 +67,13 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   await app.register(sensible);
   await app.register(helmet, { contentSecurityPolicy: false });
+  // Accept the configured WEB_URL plus its www / apex sibling so the API
+  // works whether the canonical domain has the 'www.' prefix or not. Extra
+  // origins (e.g. preview deploys) can be added via the comma-separated
+  // ALLOWED_ORIGINS env var.
+  const allowedOrigins = buildAllowedOrigins(env.WEB_URL, process.env.ALLOWED_ORIGINS);
   await app.register(cors, {
-    origin: [env.WEB_URL],
+    origin: allowedOrigins,
     credentials: true,
   });
   await app.register(rateLimit, {
