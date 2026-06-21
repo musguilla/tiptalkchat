@@ -7,6 +7,8 @@ async function start(): Promise<void> {
   const app = await buildApp();
   try {
     await app.listen({ port: PORT, host: HOST });
+    // eslint-disable-next-line no-console
+    console.info(`[api] listening on ${HOST}:${PORT}`);
   } catch (err) {
     app.log.error(err);
     process.exit(1);
