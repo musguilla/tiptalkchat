@@ -73,8 +73,9 @@ function buildSupabaseProvider(): StorageProvider {
         throw new Error(`Supabase signed upload failed (${res.status}): ${body}`);
       }
       const { url, token } = (await res.json()) as { url: string; token: string };
-      // Some Supabase versions return a relative URL; normalize.
-      const uploadUrl = url.startsWith('http') ? url : `${base}${url}`;
+      // Supabase returns a relative path like "/object/upload/sign/BUCKET/KEY?token=..."
+      // which needs the "/storage/v1" prefix when joined with the project host.
+      const uploadUrl = url.startsWith('http') ? url : `${base}/storage/v1${url}`;
 
       return {
         uploadUrl,
