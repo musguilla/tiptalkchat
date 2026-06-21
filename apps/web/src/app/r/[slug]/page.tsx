@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { io, type Socket } from 'socket.io-client';
-import { Send, Coins, Phone, Video } from 'lucide-react';
+import { Send, Coins, Phone, Video, X as XIcon } from 'lucide-react';
 import { REALTIME_BASE, api } from '@/lib/api';
 import { TIP_BUTTONS, eurCentsToTipsys, formatEur, formatTipsysAsEur } from '@/lib/money';
 import { useAuth } from '@/lib/auth-store';
@@ -249,6 +249,17 @@ export default function RoomPage() {
     }
   }, [tipEurCents, tipTarget, room, chatAuth, refreshWallet]);
 
+  const closeRoom = useCallback(async () => {
+    if (!room || !token) return;
+    if (!confirm('¿Cerrar la sala?')) return;
+    try {
+      await api(`/rooms/${room.id}/close`, { method: 'POST', token });
+      router.push('/');
+    } catch (err) {
+      alert('No se pudo cerrar: ' + (err instanceof Error ? err.message : 'error'));
+    }
+  }, [room, token, router]);
+
   const startGuestTopup = useCallback(async () => {
     if (!room || !topupEmail || !guestToken) return;
     setTopupBusy(true);
@@ -365,6 +376,16 @@ export default function RoomPage() {
           <Link href="/wallet" className="rounded-md bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-900 hover:bg-amber-200 dark:bg-amber-900 dark:text-amber-100">
             Monedero
           </Link>
+          {user && room.creator.id === user.id && (
+            <button
+              onClick={closeRoom}
+              className="flex items-center gap-1 rounded-md bg-red-100 px-3 py-1 text-sm font-semibold text-red-900 hover:bg-red-200 dark:bg-red-950 dark:text-red-200"
+              title="Cerrar sala"
+            >
+              <XIcon className="h-3.5 w-3.5" />
+              Cerrar sala
+            </button>
+          )}
           {token && (
             <button
               onClick={() => {
