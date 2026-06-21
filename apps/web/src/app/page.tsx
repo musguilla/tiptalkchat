@@ -9,7 +9,6 @@ import {
   Zap,
   ArrowRight,
   Mic,
-  Sparkles,
 } from 'lucide-react';
 import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
@@ -27,31 +26,19 @@ export default function HomePage() {
         <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 py-16 sm:py-20 lg:grid-cols-2 lg:gap-16 lg:py-24">
           {/* LEFT */}
           <div>
-            <div className="label-mono inline-flex items-center gap-2 rounded-full border border-primary-200 bg-primary-50 px-3 py-1.5 text-primary-700">
-              <Sparkles className="h-3.5 w-3.5" />
-              Nuevo: salas de video HD
-            </div>
-            <h1 className="mt-6 font-display text-5xl font-extrabold leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl">
-              Conecta, Chatea
-              <br />
-              y <span className="text-primary-500">Gana Propinas</span>
+            <h1 className="font-display text-5xl font-extrabold leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl">
+              Salas de chats <span className="text-primary-500">privadas</span> uno a uno
             </h1>
             <p className="mt-6 max-w-md text-lg leading-relaxed text-ink-muted">
-              Tu espacio privado 1-on-1 para conectar con tu audiencia. Sin intermediarios,
-              con chat de voz, video y monetización instantánea.
+              Chat con videollamada, voz y propinas.
             </p>
-            <div className="mt-8 flex flex-wrap items-center gap-4">
+            <div className="mt-10">
               <Link
                 href="/create"
-                className="btn-tactile inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-7 py-3.5 text-base font-bold text-white shadow-vivid transition hover:shadow-vivid-strong"
+                className="btn-tactile inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-10 py-5 text-lg font-bold text-white shadow-vivid transition hover:shadow-vivid-strong"
               >
                 Crea tu Sala Gratis
               </Link>
-              <div className="label-mono flex items-center gap-2 rounded-full border border-surface-container bg-white px-4 py-2.5 text-ink-soft">
-                <span className="text-primary-500">🔗</span>
-                tiptalk.chat/
-                <span className="text-ink/30">tu-nombre</span>
-              </div>
             </div>
           </div>
 
