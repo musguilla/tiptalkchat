@@ -21,7 +21,7 @@ export function ChatMessageItem({
         ) : (
           <span
             className={`mt-1 grid h-8 w-8 shrink-0 place-items-center rounded-full text-xs font-bold text-white ${
-              isGuest ? 'bg-zinc-500' : 'bg-brand-600'
+              isGuest ? 'bg-zinc-500' : 'bg-primary-500'
             }`}
           >
             {who?.displayName[0]?.toUpperCase() ?? '?'}

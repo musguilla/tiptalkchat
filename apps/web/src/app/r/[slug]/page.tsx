@@ -341,7 +341,7 @@ export default function RoomPage() {
               <input type="password" required value={pin} onChange={(e) => setPin(e.target.value)} className="w-full rounded-md border border-zinc-300 bg-white p-2 dark:border-zinc-700 dark:bg-zinc-800" />
             </label>
           )}
-          <button className="w-full rounded-md bg-brand-600 px-4 py-2 font-semibold text-white">Entrar</button>
+          <button className="w-full rounded-md bg-primary-500 px-4 py-2 font-semibold text-white">Entrar</button>
         </form>
       </main>
     );
@@ -449,7 +449,7 @@ export default function RoomPage() {
               className="flex-1 rounded-md border border-zinc-300 bg-white p-2 dark:border-zinc-700 dark:bg-zinc-800"
               disabled={!chatAuth}
             />
-            <button type="submit" disabled={!chatAuth || !input.trim()} className="grid h-10 w-10 place-items-center rounded-md bg-brand-600 text-white disabled:opacity-50">
+            <button type="submit" disabled={!chatAuth || !input.trim()} className="grid h-10 w-10 place-items-center rounded-md bg-primary-500 text-white disabled:opacity-50">
               <Send className="h-4 w-4" />
             </button>
           </form>

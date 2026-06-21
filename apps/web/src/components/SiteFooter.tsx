@@ -3,12 +3,12 @@ import { Logo } from './Logo';
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900">
-      <div className="mx-auto max-w-6xl px-6 py-12">
+    <footer className="border-t border-surface-container bg-surface-soft">
+      <div className="mx-auto max-w-7xl px-6 py-16">
         <div className="grid grid-cols-2 gap-8 md:grid-cols-5">
           <div className="col-span-2">
             <Logo className="text-2xl" />
-            <p className="mt-3 max-w-xs text-sm text-zinc-600 dark:text-zinc-400">
+            <p className="mt-3 max-w-xs text-sm leading-relaxed text-ink-muted">
               Salas privadas para conversaciones uno a uno. Comparte el enlace, chatea y recibe propinas.
             </p>
           </div>
@@ -34,20 +34,20 @@ export function SiteFooter() {
         </div>
       </div>
 
-      <div className="border-t border-zinc-200 dark:border-zinc-800">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-6 py-4 text-xs text-zinc-600 dark:text-zinc-400">
-          <span>© {new Date().getFullYear()} tiptalk.chat — Todos los derechos reservados.</span>
-          <nav className="flex flex-wrap gap-4">
-            <Link href="/legal/privacidad" className="hover:text-zinc-900 dark:hover:text-white">
+      <div className="border-t border-surface-container">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-6 py-5 text-xs text-ink-muted">
+          <span className="label-mono">© {new Date().getFullYear()} tiptalk.chat</span>
+          <nav className="flex flex-wrap gap-5">
+            <Link href="/legal/privacidad" className="transition hover:text-ink">
               Política de privacidad
             </Link>
-            <Link href="/legal/terminos" className="hover:text-zinc-900 dark:hover:text-white">
+            <Link href="/legal/terminos" className="transition hover:text-ink">
               Términos y condiciones
             </Link>
-            <Link href="/legal/cookies" className="hover:text-zinc-900 dark:hover:text-white">
+            <Link href="/legal/cookies" className="transition hover:text-ink">
               Cookies
             </Link>
-            <Link href="/legal/aviso-legal" className="hover:text-zinc-900 dark:hover:text-white">
+            <Link href="/legal/aviso-legal" className="transition hover:text-ink">
               Aviso legal
             </Link>
           </nav>
@@ -60,10 +60,8 @@ export function SiteFooter() {
 function FooterColumn({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <h4 className="mb-3 text-sm font-bold uppercase tracking-wider text-zinc-900 dark:text-zinc-100">
-        {title}
-      </h4>
-      <ul className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">{children}</ul>
+      <h4 className="label-mono mb-4 text-ink">{title}</h4>
+      <ul className="space-y-2.5 text-sm text-ink-muted">{children}</ul>
     </div>
   );
 }
@@ -73,7 +71,7 @@ function FooterLink({ href, children }: { href: string; children: React.ReactNod
   if (isExternal) {
     return (
       <li>
-        <a href={href} className="hover:text-zinc-900 dark:hover:text-white">
+        <a href={href} className="transition hover:text-ink">
           {children}
         </a>
       </li>
@@ -81,7 +79,7 @@ function FooterLink({ href, children }: { href: string; children: React.ReactNod
   }
   return (
     <li>
-      <Link href={href} className="hover:text-zinc-900 dark:hover:text-white">
+      <Link href={href} className="transition hover:text-ink">
         {children}
       </Link>
     </li>

@@ -15,55 +15,60 @@ import { SiteFooter } from '@/components/SiteFooter';
 
 export default function HomePage() {
   return (
-    <div className="flex min-h-screen flex-col bg-white dark:bg-zinc-950">
+    <div className="flex min-h-screen flex-col bg-canvas text-ink">
       <SiteHeader />
 
       {/* HERO */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 -z-10 bg-gradient-to-br from-orange-50 via-white to-pink-50 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-900" />
-        <div className="absolute inset-x-0 -top-10 -z-10 h-72 bg-[radial-gradient(closest-side,rgba(249,115,22,0.18),transparent)] dark:bg-[radial-gradient(closest-side,rgba(249,115,22,0.12),transparent)]" />
-        <div className="mx-auto max-w-5xl px-6 py-20 text-center sm:py-28 lg:py-32">
-          <div className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-700 dark:border-orange-900/40 dark:bg-orange-950/40 dark:text-orange-300">
-            <Sparkles className="h-3.5 w-3.5" />
-            Sin instalaciones · Comparte un enlace y ya
+        <div className="absolute inset-x-0 -top-32 -z-10 h-[420px] bg-[radial-gradient(closest-side,rgba(255,92,0,0.18),transparent)]" />
+        <div className="absolute right-0 top-20 -z-10 h-72 w-72 rounded-full bg-[radial-gradient(closest-side,rgba(255,0,122,0.18),transparent)]" />
+        <div className="mx-auto max-w-7xl px-6 py-20 sm:py-28 lg:py-32">
+          <div className="text-center">
+            <div className="label-mono inline-flex items-center gap-2 rounded-full border border-primary-200 bg-primary-50 px-3 py-1.5 text-primary-700">
+              <Sparkles className="h-3.5 w-3.5" />
+              Sin instalaciones · Solo un enlace
+            </div>
+            <Logo className="mt-8 text-6xl sm:text-8xl lg:text-9xl" />
+            <h1 className="mx-auto mt-10 max-w-3xl font-display text-[44px] font-extrabold leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl">
+              {t('es', 'landing.title')}
+            </h1>
+            <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-ink-muted sm:text-xl">
+              {t('es', 'landing.subtitle')}
+            </p>
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+              <Link
+                href="/create"
+                className="btn-tactile rounded-md bg-primary-500 px-8 py-3.5 text-base font-semibold text-white shadow-vivid transition hover:bg-primary-600 hover:shadow-vivid-strong"
+              >
+                {t('es', 'landing.cta.create')}
+              </Link>
+              <Link
+                href="/login"
+                className="btn-tactile rounded-md border-2 border-primary-500 bg-white px-8 py-3 text-base font-semibold text-primary-500 transition hover:bg-primary-50"
+              >
+                {t('es', 'auth.login')}
+              </Link>
+            </div>
+            <p className="label-mono mt-8 text-ink-soft">
+              Gratis · Sin tarjeta · Sin instalar nada
+            </p>
           </div>
-          <Logo className="mt-6 text-5xl sm:text-7xl lg:text-8xl" />
-          <h1 className="mx-auto mt-8 max-w-3xl text-4xl font-bold tracking-tight text-zinc-900 sm:text-5xl lg:text-6xl dark:text-white">
-            {t('es', 'landing.title')}
-          </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-zinc-600 sm:text-xl dark:text-zinc-400">
-            {t('es', 'landing.subtitle')}
-          </p>
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-            <Link
-              href="/create"
-              className="rounded-lg bg-orange-500 px-8 py-3.5 text-base font-semibold text-white shadow-md transition hover:bg-orange-600 hover:shadow-lg"
-            >
-              {t('es', 'landing.cta.create')}
-            </Link>
-            <Link
-              href="/login"
-              className="rounded-lg border border-zinc-300 bg-white px-8 py-3.5 text-base font-semibold text-zinc-900 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
-            >
-              {t('es', 'auth.login')}
-            </Link>
-          </div>
-          <p className="mt-6 text-sm text-zinc-500">Gratis para empezar · Sin tarjeta · Sin instalar nada</p>
         </div>
       </section>
 
       {/* FEATURES */}
-      <section id="caracteristicas" className="border-t border-zinc-100 bg-white py-20 dark:border-zinc-900 dark:bg-zinc-950">
-        <div className="mx-auto max-w-6xl px-6">
+      <section id="caracteristicas" className="border-t border-surface-container bg-surface py-24">
+        <div className="mx-auto max-w-7xl px-6">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl dark:text-white">
-              Todo lo que necesitas para un chat privado
+            <span className="label-mono text-primary-500">Características</span>
+            <h2 className="mt-3 font-display text-4xl font-extrabold tracking-tight sm:text-5xl">
+              Todo para un chat privado
             </h2>
-            <p className="mt-4 text-base text-zinc-600 dark:text-zinc-400">
-              Pensado para conversaciones uno a uno, con opciones simples para los anfitriones.
+            <p className="mt-5 text-lg text-ink-muted">
+              Pensado para conversaciones uno a uno con opciones simples para los anfitriones.
             </p>
           </div>
-          <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             <Feature
               icon={<Link2 className="h-6 w-6" />}
               title="URLs cortas"
@@ -89,17 +94,18 @@ export default function HomePage() {
       </section>
 
       {/* HOW IT WORKS */}
-      <section id="como-funciona" className="bg-zinc-50 py-20 dark:bg-zinc-900/60">
-        <div className="mx-auto max-w-6xl px-6">
+      <section id="como-funciona" className="bg-surface-soft py-24">
+        <div className="mx-auto max-w-7xl px-6">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl dark:text-white">
-              Cómo funciona
+            <span className="label-mono text-secondary-500">Cómo funciona</span>
+            <h2 className="mt-3 font-display text-4xl font-extrabold tracking-tight sm:text-5xl">
+              En menos de un minuto
             </h2>
-            <p className="mt-4 text-base text-zinc-600 dark:text-zinc-400">
-              En menos de un minuto tienes tu sala lista y compartida.
+            <p className="mt-5 text-lg text-ink-muted">
+              Crea, comparte, conversa. Así de fácil.
             </p>
           </div>
-          <div className="mt-14 grid gap-8 md:grid-cols-3">
+          <div className="mt-16 grid gap-8 md:grid-cols-3">
             <Step
               n={1}
               title="Crea tu sala"
@@ -120,9 +126,9 @@ export default function HomePage() {
       </section>
 
       {/* TRUST */}
-      <section className="border-t border-zinc-100 bg-white py-16 dark:border-zinc-900 dark:bg-zinc-950">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="grid gap-6 md:grid-cols-3">
+      <section className="border-t border-surface-container bg-surface py-20">
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="grid gap-10 md:grid-cols-3">
             <TrustCard
               icon={<ShieldCheck className="h-5 w-5" />}
               title="Privado por diseño"
@@ -143,17 +149,17 @@ export default function HomePage() {
       </section>
 
       {/* FINAL CTA */}
-      <section className="relative overflow-hidden bg-gradient-to-r from-orange-500 to-pink-500 py-16">
+      <section className="relative overflow-hidden bg-gradient-to-r from-secondary-500 to-primary-500 py-20">
         <div className="mx-auto max-w-4xl px-6 text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            Empieza tu primera sala ahora
+          <h2 className="font-display text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
+            Empieza tu primera sala
           </h2>
-          <p className="mt-3 text-lg text-white/90">
+          <p className="mt-4 text-lg text-white/90">
             Sin instalar nada. Sin tarjeta. Cierra cuando quieras.
           </p>
           <Link
             href="/create"
-            className="mt-8 inline-block rounded-lg bg-white px-8 py-3.5 text-base font-bold text-orange-600 shadow-lg transition hover:bg-zinc-50"
+            className="btn-tactile mt-10 inline-block rounded-md bg-white px-10 py-4 text-base font-bold text-primary-500 shadow-vivid-strong transition hover:bg-canvas"
           >
             Crear una sala gratis
           </Link>
@@ -167,24 +173,24 @@ export default function HomePage() {
 
 function Feature({ icon, title, body }: { icon: React.ReactNode; title: string; body: string }) {
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white p-6 transition hover:border-orange-200 hover:shadow-sm dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-orange-900/40">
-      <div className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-orange-100 text-orange-600 dark:bg-orange-950/60 dark:text-orange-400">
+    <div className="group rounded-lg border border-surface-container bg-white p-7 shadow-soft transition hover:border-primary-200 hover:shadow-vivid">
+      <div className="inline-flex h-12 w-12 items-center justify-center rounded-md bg-primary-50 text-primary-500 transition group-hover:bg-primary-500 group-hover:text-white">
         {icon}
       </div>
-      <h3 className="mt-4 text-base font-bold text-zinc-900 dark:text-white">{title}</h3>
-      <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{body}</p>
+      <h3 className="mt-5 font-display text-lg font-bold text-ink">{title}</h3>
+      <p className="mt-2 text-sm leading-relaxed text-ink-muted">{body}</p>
     </div>
   );
 }
 
 function Step({ n, title, body }: { n: number; title: string; body: string }) {
   return (
-    <div className="relative rounded-xl bg-white p-6 shadow-sm dark:bg-zinc-900">
-      <div className="absolute -top-4 left-6 grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-orange-500 to-pink-500 text-base font-bold text-white shadow">
+    <div className="relative rounded-lg bg-white p-8 shadow-card">
+      <div className="absolute -top-5 left-7 grid h-11 w-11 place-items-center rounded-full bg-gradient-to-br from-secondary-500 to-primary-500 font-display text-base font-extrabold text-white shadow-vivid">
         {n}
       </div>
-      <h3 className="mt-4 text-lg font-bold text-zinc-900 dark:text-white">{title}</h3>
-      <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{body}</p>
+      <h3 className="mt-4 font-display text-xl font-bold text-ink">{title}</h3>
+      <p className="mt-3 text-sm leading-relaxed text-ink-muted">{body}</p>
     </div>
   );
 }
@@ -200,12 +206,12 @@ function TrustCard({
 }) {
   return (
     <div className="flex gap-4">
-      <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-pink-100 text-pink-600 dark:bg-pink-950/60 dark:text-pink-400">
+      <div className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-secondary-50 text-secondary-500">
         {icon}
       </div>
       <div>
-        <h4 className="text-sm font-bold text-zinc-900 dark:text-white">{title}</h4>
-        <p className="mt-1 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{body}</p>
+        <h4 className="font-display text-base font-bold text-ink">{title}</h4>
+        <p className="mt-1.5 text-sm leading-relaxed text-ink-muted">{body}</p>
       </div>
     </div>
   );

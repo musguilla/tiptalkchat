@@ -15,7 +15,7 @@ export function Sidebar({ members }: { members: Identity[] }) {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={m.avatarUrl} alt="" className="h-7 w-7 rounded-full" />
               ) : (
-                <span className="grid h-7 w-7 place-items-center rounded-full bg-brand-600 text-xs font-bold text-white">
+                <span className="grid h-7 w-7 place-items-center rounded-full bg-primary-500 text-xs font-bold text-white">
                   {m.displayName[0]?.toUpperCase()}
                 </span>
               )}

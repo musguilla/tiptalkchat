@@ -34,26 +34,26 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="grid min-h-screen place-items-center bg-gradient-to-br from-orange-50 via-white to-pink-50 p-6 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-900">
+    <main className="grid min-h-screen place-items-center bg-canvas p-6">
       <div className="w-full max-w-sm space-y-6">
         <Link href="/" className="flex justify-center">
           <Logo className="text-3xl" />
         </Link>
-      <form onSubmit={submit} className="w-full max-w-sm space-y-4 rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-        <h1 className="text-2xl font-bold">{t('es', 'auth.login')}</h1>
+      <form onSubmit={submit} className="w-full max-w-sm space-y-5 rounded-lg border border-surface-container bg-white p-7 shadow-soft">
+        <h1 className="font-display text-2xl font-extrabold tracking-tight">{t('es', 'auth.login')}</h1>
         <Field label={t('es', 'auth.email')}>
-          <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full rounded-md border border-zinc-300 bg-white p-2 dark:border-zinc-700 dark:bg-zinc-800" />
+          <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full rounded-md border border-transparent bg-surface-soft p-2.5 outline-none transition focus:border-primary-500 focus:bg-white" />
         </Field>
         <Field label={t('es', 'auth.password')}>
-          <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="w-full rounded-md border border-zinc-300 bg-white p-2 dark:border-zinc-700 dark:bg-zinc-800" />
+          <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="w-full rounded-md border border-transparent bg-surface-soft p-2.5 outline-none transition focus:border-primary-500 focus:bg-white" />
         </Field>
         {error && <p className="text-sm text-red-600">{error}</p>}
-        <button disabled={loading} className="w-full rounded-md bg-brand-600 px-4 py-2 font-semibold text-white disabled:opacity-60">
+        <button disabled={loading} className="btn-tactile w-full rounded-md bg-primary-500 px-4 py-2.5 font-semibold text-white shadow-soft hover:bg-primary-600 disabled:opacity-60">
           {loading ? '…' : t('es', 'auth.login')}
         </button>
-        <p className="text-center text-sm text-zinc-600 dark:text-zinc-400">
+        <p className="text-center text-sm text-ink-muted">
           ¿Sin cuenta?{' '}
-          <Link href="/signup" className="font-semibold text-orange-600 hover:underline">
+          <Link href="/signup" className="font-semibold text-primary-500 hover:underline">
             {t('es', 'auth.signup')}
           </Link>
         </p>

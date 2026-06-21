@@ -87,7 +87,7 @@ export default function WalletPage() {
   if (!token) {
     return (
       <main className="grid min-h-screen place-items-center">
-        <Link className="text-brand-600 underline" href="/login">Inicia sesión</Link>
+        <Link className="text-primary-500 underline" href="/login">Inicia sesión</Link>
       </main>
     );
   }
@@ -98,7 +98,7 @@ export default function WalletPage() {
         <Link href="/" className="flex items-center">
           <Logo className="text-xl" />
         </Link>
-        <Link href="/create" className="text-sm font-semibold text-orange-600 hover:underline">+ Crear sala</Link>
+        <Link href="/create" className="text-sm font-semibold text-primary-500 hover:underline">+ Crear sala</Link>
       </header>
       <h1 className="text-2xl font-bold">{t('es', 'wallet.title')}</h1>
 
@@ -124,11 +124,11 @@ export default function WalletPage() {
               key={p.eurCents}
               onClick={() => buy(p.eurCents)}
               disabled={busy}
-              className="rounded-lg border border-zinc-200 bg-white p-3 text-left transition hover:border-brand-600 disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-900"
+              className="rounded-lg border border-zinc-200 bg-white p-3 text-left transition hover:border-primary-500 disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-900"
             >
               <div className="text-xl font-bold">{p.tipsys}</div>
               <div className="text-xs text-zinc-500">Tipsys</div>
-              <div className="mt-1 text-sm font-semibold text-brand-600">
+              <div className="mt-1 text-sm font-semibold text-primary-500">
                 {(p.eurCents / 100).toFixed(2)} €
               </div>
             </button>
