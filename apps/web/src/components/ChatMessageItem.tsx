@@ -65,7 +65,7 @@ function MediaVideo({ msg }: { msg: ChatMessage }) {
     return (
       <div className="mt-1 flex items-center gap-2 rounded-lg border border-dashed border-zinc-300 bg-zinc-50 px-3 py-4 text-sm text-zinc-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300">
         <Loader2 className="h-4 w-4 animate-spin" />
-        Procesando vídeo… (Mux suele tardar 30-60s)
+        Procesando vídeo… (suele tardar 30-60s)
       </div>
     );
   }
