@@ -9,6 +9,7 @@ import { TIP_BUTTONS, eurCentsToTipsys, formatEur, formatTipsysAsEur } from '@/l
 import { useAuth } from '@/lib/auth-store';
 import { Sidebar } from '@/components/Sidebar';
 import { Logo } from '@/components/Logo';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { ChatMessageItem } from '@/components/ChatMessageItem';
 import { AttachButton } from '@/components/AttachButton';
 import { CallPanel } from '@/components/CallPanel';
@@ -47,6 +48,8 @@ export default function RoomPage() {
   const [topupEurCents, setTopupEurCents] = useState(500); // 5€ default
   const [topupBusy, setTopupBusy] = useState(false);
   const [showTopup, setShowTopup] = useState(false);
+  const [showCloseConfirm, setShowCloseConfirm] = useState(false);
+  const [closingRoom, setClosingRoom] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [activeCall, setActiveCall] = useState<'audio' | 'video' | null>(null);
   const socketRef = useRef<Socket | null>(null);
@@ -250,13 +253,15 @@ export default function RoomPage() {
     }
   }, [tipEurCents, tipTarget, room, chatAuth, refreshWallet]);
 
-  const closeRoom = useCallback(async () => {
+  const confirmCloseRoom = useCallback(async () => {
     if (!room || !token) return;
-    if (!confirm('¿Cerrar la sala?')) return;
+    setClosingRoom(true);
     try {
       await api(`/rooms/${room.id}/close`, { method: 'POST', token });
       router.push('/');
     } catch (err) {
+      setClosingRoom(false);
+      setShowCloseConfirm(false);
       alert('No se pudo cerrar: ' + (err instanceof Error ? err.message : 'error'));
     }
   }, [room, token, router]);
@@ -381,7 +386,7 @@ export default function RoomPage() {
           </Link>
           {user && room.creator.id === user.id && (
             <button
-              onClick={closeRoom}
+              onClick={() => setShowCloseConfirm(true)}
               className="flex items-center gap-1 rounded-md bg-red-100 px-3 py-1 text-sm font-semibold text-red-900 hover:bg-red-200 dark:bg-red-950 dark:text-red-200"
               title="Cerrar sala"
             >
@@ -602,6 +607,18 @@ export default function RoomPage() {
           />
         )}
       </div>
+
+      <ConfirmDialog
+        open={showCloseConfirm}
+        title="¿Cerrar esta sala?"
+        description="Se cerrará para todos los participantes y se eliminarán los mensajes, fotos y vídeos del chat. Esta acción no se puede deshacer."
+        confirmLabel="Cerrar sala"
+        cancelLabel="Cancelar"
+        tone="danger"
+        busy={closingRoom}
+        onConfirm={confirmCloseRoom}
+        onCancel={() => setShowCloseConfirm(false)}
+      />
     </main>
   );
 }

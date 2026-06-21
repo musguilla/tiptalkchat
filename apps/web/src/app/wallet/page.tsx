@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { X as XIcon } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-store';
 import { PAYOUT_MIN_TIPSYS, formatTipsysAsEur, listPackages } from '@tiptalk/economy';
@@ -23,6 +25,7 @@ interface WalletState {
 }
 
 export default function WalletPage() {
+  const router = useRouter();
   const { token } = useAuth();
   const [wallet, setWallet] = useState<WalletState | null>(null);
   const [entries, setEntries] = useState<LedgerEntry[]>([]);
@@ -98,7 +101,21 @@ export default function WalletPage() {
         <Link href="/" className="flex items-center">
           <Logo className="text-xl" />
         </Link>
-        <Link href="/create" className="text-sm font-semibold text-primary-500 hover:underline">+ Crear sala</Link>
+        <div className="flex items-center gap-2">
+          <Link href="/create" className="text-sm font-semibold text-primary-500 hover:underline">+ Crear sala</Link>
+          <button
+            type="button"
+            onClick={() => {
+              if (window.history.length > 1) router.back();
+              else router.push('/');
+            }}
+            className="grid h-9 w-9 place-items-center rounded-md bg-surface-container text-ink-muted transition hover:bg-surface-high hover:text-ink"
+            title="Volver"
+            aria-label="Volver al chat"
+          >
+            <XIcon className="h-4 w-4" />
+          </button>
+        </div>
       </header>
       <h1 className="text-2xl font-bold">{t('es', 'wallet.title')}</h1>
 
