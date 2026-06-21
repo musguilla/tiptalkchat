@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { prisma } from '@tiptalk/db';
+import { formatMediaForClient } from '../lib/media-urls.js';
 
 const createBody = z.object({
   roomId: z.string(),
@@ -44,7 +45,7 @@ export async function messageRoutes(app: FastifyInstance): Promise<void> {
       },
     });
     reply.code(201);
-    return msg;
+    return { ...msg, media: msg.media ? formatMediaForClient(msg.media) : null };
   });
 
   app.get('/', async (req) => {
@@ -65,6 +66,11 @@ export async function messageRoutes(app: FastifyInstance): Promise<void> {
       const last = messages.pop()!;
       nextCursor = last.id;
     }
-    return { messages: messages.reverse(), nextCursor };
+    return {
+      messages: messages
+        .reverse()
+        .map((m) => ({ ...m, media: m.media ? formatMediaForClient(m.media) : null })),
+      nextCursor,
+    };
   });
 }

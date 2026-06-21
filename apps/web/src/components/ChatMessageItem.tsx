@@ -1,6 +1,7 @@
 'use client';
-import { Coins } from 'lucide-react';
+import { Coins, Loader2 } from 'lucide-react';
 import type { ChatMessage } from './types';
+import { HlsPlayer } from './HlsPlayer';
 
 export function ChatMessageItem({
   msg,
@@ -27,13 +28,8 @@ export function ChatMessageItem({
           </span>
         </div>
         {msg.kind === 'text' && <p className="break-words text-sm">{msg.body}</p>}
-        {msg.kind === 'image' && msg.mediaId && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img alt="" src={`/api/media/${msg.mediaId}`} className="mt-1 max-h-72 rounded-lg" />
-        )}
-        {msg.kind === 'video' && msg.mediaId && (
-          <video controls src={`/api/media/${msg.mediaId}/master.m3u8`} className="mt-1 max-h-72 rounded-lg" />
-        )}
+        {msg.kind === 'image' && <MediaImage msg={msg} />}
+        {msg.kind === 'video' && <MediaVideo msg={msg} />}
       </div>
       <button
         onClick={() => onTip(msg)}
@@ -43,6 +39,39 @@ export function ChatMessageItem({
       >
         <Coins className="h-5 w-5 text-amber-500 hover:text-amber-600" />
       </button>
+    </div>
+  );
+}
+
+function MediaImage({ msg }: { msg: ChatMessage }) {
+  const url = msg.media?.publicUrl;
+  if (!url) return <span className="text-xs text-zinc-500">[imagen no disponible]</span>;
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={url}
+      alt={msg.body ?? 'imagen'}
+      className="mt-1 max-h-72 cursor-zoom-in rounded-lg"
+      onClick={() => window.open(url, '_blank', 'noopener,noreferrer')}
+    />
+  );
+}
+
+function MediaVideo({ msg }: { msg: ChatMessage }) {
+  if (!msg.media) {
+    return <span className="text-xs text-zinc-500">[vídeo]</span>;
+  }
+  if (msg.media.status !== 'ready' || !msg.media.hlsUrl) {
+    return (
+      <div className="mt-1 flex items-center gap-2 rounded-lg border border-dashed border-zinc-300 bg-zinc-50 px-3 py-4 text-sm text-zinc-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300">
+        <Loader2 className="h-4 w-4 animate-spin" />
+        Procesando vídeo… (Mux suele tardar 30-60s)
+      </div>
+    );
+  }
+  return (
+    <div className="mt-1">
+      <HlsPlayer src={msg.media.hlsUrl} poster={msg.media.thumbnailUrl ?? undefined} />
     </div>
   );
 }

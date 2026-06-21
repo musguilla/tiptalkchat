@@ -3,11 +3,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { io, type Socket } from 'socket.io-client';
-import { Send, Coins } from 'lucide-react';
-import { API_BASE, REALTIME_BASE, api } from '@/lib/api';
+import { Send, Coins, Phone, Video } from 'lucide-react';
+import { REALTIME_BASE, api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-store';
 import { Sidebar } from '@/components/Sidebar';
 import { ChatMessageItem } from '@/components/ChatMessageItem';
+import { AttachButton } from '@/components/AttachButton';
+import { CallPanel } from '@/components/CallPanel';
 import type { ChatMessage, Identity } from '@/components/types';
 import { t } from '@/i18n';
 
@@ -23,7 +25,7 @@ interface RoomData {
 export default function RoomPage() {
   const params = useParams<{ slug: string }>();
   const router = useRouter();
-  const { token, user, setSession } = useAuth();
+  const { token, user, clear } = useAuth();
   const [room, setRoom] = useState<RoomData | null>(null);
   const [needsName, setNeedsName] = useState(false);
   const [guestName, setGuestName] = useState('');
@@ -35,6 +37,8 @@ export default function RoomPage() {
   const [tipAnimations, setTipAnimations] = useState<Array<{ id: string; emoji: string }>>([]);
   const [tipTarget, setTipTarget] = useState<{ kind: 'message' | 'room'; id: string } | null>(null);
   const [tipAmount, setTipAmount] = useState(5);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [activeCall, setActiveCall] = useState<'audio' | 'video' | null>(null);
   const socketRef = useRef<Socket | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
@@ -44,7 +48,6 @@ export default function RoomPage() {
     return null;
   }, [user, guestName]);
 
-  // Load room
   useEffect(() => {
     api<RoomData>(`/rooms/${params.slug}`)
       .then((r) => {
@@ -55,7 +58,6 @@ export default function RoomPage() {
       .catch(() => setRoom(null));
   }, [params.slug, pin, user, guestName]);
 
-  // Join + history once we have room + identity
   useEffect(() => {
     if (!room || !identity || needsName || needsPin) return;
 
@@ -105,7 +107,6 @@ export default function RoomPage() {
           setTimeout(() => setTipAnimations((prev) => prev.filter((a) => a.id !== id)), 1500);
         });
       } catch (err) {
-        // join failed — likely bad PIN
         // eslint-disable-next-line no-console
         console.error(err);
       }
@@ -118,10 +119,51 @@ export default function RoomPage() {
     };
   }, [room, identity, needsName, needsPin, pin, params.slug, token, user, guestName]);
 
-  // Auto-scroll on new messages
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages.length]);
+
+  // Poll any in-flight video messages until they're 'ready' (Mux webhook
+  // updates the row asynchronously; we refresh just those messages).
+  useEffect(() => {
+    const processing = messages.filter(
+      (m) => m.kind === 'video' && m.media && m.media.status !== 'ready' && m.media.status !== 'failed',
+    );
+    if (processing.length === 0) return;
+    const t = setInterval(async () => {
+      for (const msg of processing) {
+        if (!msg.media) continue;
+        try {
+          const updated = await api<{
+            id: string;
+            status: string;
+            hlsUrl: string | null;
+            thumbnailUrl: string | null;
+          }>(`/media/${msg.media.id}`);
+          if (updated.status === 'ready') {
+            setMessages((prev) =>
+              prev.map((p) =>
+                p.id === msg.id && p.media
+                  ? {
+                      ...p,
+                      media: {
+                        ...p.media,
+                        status: 'ready',
+                        hlsUrl: updated.hlsUrl,
+                        thumbnailUrl: updated.thumbnailUrl,
+                      },
+                    }
+                  : p,
+              ),
+            );
+          }
+        } catch {
+          /* ignore — keep polling */
+        }
+      }
+    }, 5000);
+    return () => clearInterval(t);
+  }, [messages]);
 
   const sendMessage = useCallback(async () => {
     if (!input.trim() || !room || !token) return;
@@ -134,6 +176,20 @@ export default function RoomPage() {
     setMessages((prev) => [...prev, msg]);
     setInput('');
   }, [input, room, token]);
+
+  const sendMediaMessage = useCallback(
+    async (kind: 'image' | 'video', mediaId: string) => {
+      if (!room || !token) return;
+      const msg = await api<ChatMessage>('/messages', {
+        method: 'POST',
+        token,
+        body: JSON.stringify({ roomId: room.id, kind, mediaId }),
+      });
+      socketRef.current?.emit('message:send', msg, () => undefined);
+      setMessages((prev) => [...prev, msg]);
+    },
+    [room, token],
+  );
 
   const sendTip = useCallback(async () => {
     if (!tipTarget || !room || !token || !tipAmount) return;
@@ -149,7 +205,7 @@ export default function RoomPage() {
         }),
       });
       setTipTarget(null);
-    } catch (e) {
+    } catch {
       alert('No se pudo enviar la propina (¿saldo insuficiente?)');
     }
   }, [tipAmount, tipTarget, room, token]);
@@ -201,13 +257,31 @@ export default function RoomPage() {
           <span className="hidden text-sm text-zinc-500 sm:inline">— {room.name}</span>
         </div>
         <div className="flex items-center gap-2">
+          {token && (
+            <>
+              <button
+                onClick={() => setActiveCall('audio')}
+                className="grid h-9 w-9 place-items-center rounded-md bg-emerald-100 text-emerald-900 hover:bg-emerald-200 dark:bg-emerald-900 dark:text-emerald-100"
+                title="Llamada de voz"
+              >
+                <Phone className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => setActiveCall('video')}
+                className="grid h-9 w-9 place-items-center rounded-md bg-emerald-100 text-emerald-900 hover:bg-emerald-200 dark:bg-emerald-900 dark:text-emerald-100"
+                title="Videollamada"
+              >
+                <Video className="h-4 w-4" />
+              </button>
+            </>
+          )}
           <Link href="/wallet" className="rounded-md bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-900 hover:bg-amber-200 dark:bg-amber-900 dark:text-amber-100">
             Monedero
           </Link>
           {token && (
             <button
               onClick={() => {
-                setSession('', { id: '', email: '', displayName: '', role: '' });
+                clear();
                 router.push('/');
               }}
               className="rounded-md px-3 py-1 text-sm text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
@@ -229,6 +303,12 @@ export default function RoomPage() {
               />
             ))}
           </div>
+          {uploadError && (
+            <div className="border-t border-red-200 bg-red-50 px-3 py-1 text-xs text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+              {uploadError}
+              <button onClick={() => setUploadError(null)} className="ml-2 underline">cerrar</button>
+            </div>
+          )}
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -239,11 +319,18 @@ export default function RoomPage() {
             <button
               type="button"
               onClick={() => setTipTarget({ kind: 'room', id: room.id })}
-              className="rounded-md bg-amber-100 p-2 text-amber-900 hover:bg-amber-200 dark:bg-amber-900 dark:text-amber-100"
+              className="grid h-10 w-10 place-items-center rounded-md bg-amber-100 text-amber-900 hover:bg-amber-200 dark:bg-amber-900 dark:text-amber-100"
               title="Propina al chat"
             >
               <Coins className="h-5 w-5" />
             </button>
+            {token && (
+              <AttachButton
+                token={token}
+                onUploaded={(kind, mediaId) => void sendMediaMessage(kind, mediaId)}
+                onError={setUploadError}
+              />
+            )}
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -263,7 +350,7 @@ export default function RoomPage() {
           {tipAnimations.map((a) => (
             <span
               key={a.id}
-              className="absolute left-1/2 top-2/3 -translate-x-1/2 animate-tipfly select-none text-4xl"
+              className="absolute top-2/3 -translate-x-1/2 animate-tipfly select-none text-4xl"
               style={{ left: `${30 + Math.random() * 40}%` }}
             >
               {a.emoji}
@@ -297,10 +384,17 @@ export default function RoomPage() {
             </div>
           </div>
         )}
+
+        {/* Call panel */}
+        {activeCall && token && (
+          <CallPanel
+            roomId={room.id}
+            token={token}
+            mode={activeCall}
+            onClose={() => setActiveCall(null)}
+          />
+        )}
       </div>
     </main>
   );
 }
-
-/* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-const _apiBase = API_BASE; // referenced for completeness

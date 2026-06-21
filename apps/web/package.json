@@ -14,6 +14,8 @@
   "dependencies": {
     "@tiptalk/economy": "workspace:*",
     "clsx": "2.1.1",
+    "hls.js": "1.5.17",
+    "livekit-client": "2.7.5",
     "lucide-react": "0.453.0",
     "next": "14.2.35",
     "react": "18.3.1",
