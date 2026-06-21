@@ -64,6 +64,7 @@ model GuestSession {
 
   memberships RoomMembership[]
   messages    Message[]
+  wallet      Wallet?
 }
 
 model RefreshToken {
@@ -204,13 +205,17 @@ model CallParticipant {
 
 model Wallet {
   id        String        @id @default(cuid())
-  userId    String        @unique
+  // Exactly one of userId / guestId is set. Guest wallets live until the
+  // GuestSession expires (12h) — they are ephemeral by design.
+  userId    String?       @unique
+  guestId   String?       @unique
   balance   Int           @default(0) // Tipsys (cache; canonical = sum of ledger)
   version   Int           @default(0) // optimistic lock
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
 
-  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  guest     GuestSession? @relation(fields: [guestId], references: [id], onDelete: Cascade)
   ledger    LedgerEntry[]
 }
 

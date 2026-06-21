@@ -18,16 +18,13 @@ const sendBody = z.object({
 
 const GUEST_TIP_PACKAGES = [100, 500, 1000, 2000] as const; // 1€/5€/10€/20€ in cents
 
-const guestCheckoutBody = z.object({
+const guestTopupBody = z.object({
   eurCents: z.number().int().refine(
     (v) => GUEST_TIP_PACKAGES.includes(v as (typeof GUEST_TIP_PACKAGES)[number]),
     { message: 'Allowed amounts: 100, 500, 1000, 2000 cents' },
   ),
-  targetType: z.enum(['message', 'media', 'room']),
-  targetId: z.string(),
   roomId: z.string(),
   email: z.string().email(),
-  note: z.string().max(280).optional(),
 });
 
 async function resolveTipTarget(
@@ -58,12 +55,19 @@ export async function tipRoutes(app: FastifyInstance): Promise<void> {
   const env = loadEnv();
   const stripe = new Stripe(env.STRIPE_SECRET_KEY);
 
-  // Guest tip: opens a Stripe Checkout that charges the guest directly in €
-  // (1€/5€/10€/20€). On payment success the webhook creates the Tip record
-  // and credits the receiver's wallet with the equivalent Tipsys (8 per €).
-  app.post('/guest-checkout', async (req, reply) => {
-    const body = guestCheckoutBody.parse(req.body);
-    const { receiverId } = await resolveTipTarget(app, body.targetType, body.targetId, body.roomId);
+  // Guest wallet top-up: opens a Stripe Checkout that charges the guest in €
+  // (1€/5€/10€/20€). On payment success the webhook credits the guest's
+  // ephemeral wallet with the equivalent Tipsys (8 per €). The guest can then
+  // tip however they like via POST /tips, just like a regular user.
+  app.post('/guest-topup', async (req, reply) => {
+    const actor = await app.requireActor(req);
+    if (actor.kind !== 'guest') {
+      throw app.httpErrors.badRequest('Top-up is for guest sessions; users should use /purchases');
+    }
+    const body = guestTopupBody.parse(req.body);
+    if (body.roomId !== actor.roomId) {
+      throw app.httpErrors.forbidden('Guest token does not match room');
+    }
 
     const room = await prisma.room.findUniqueOrThrow({ where: { id: body.roomId } });
     const tipsys = eurCentsToTipsys(body.eurCents);
@@ -77,25 +81,22 @@ export async function tipRoutes(app: FastifyInstance): Promise<void> {
             currency: 'eur',
             unit_amount: body.eurCents,
             product_data: {
-              name: `Propina en TipTalk (${tipsys} Tipsys)`,
-              description: `Propina para sala /r/${room.slug}`,
+              name: `${tipsys} Tipsys para TipTalk`,
+              description: `Recarga de saldo para /r/${room.slug}`,
             },
           },
           quantity: 1,
         },
       ],
-      success_url: `${env.PUBLIC_BASE_URL}/r/${room.slug}?tip=success&session={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${env.PUBLIC_BASE_URL}/r/${room.slug}?tip=cancelled`,
+      success_url: `${env.PUBLIC_BASE_URL}/r/${room.slug}?topup=success&session={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${env.PUBLIC_BASE_URL}/r/${room.slug}?topup=cancelled`,
       metadata: {
-        kind: 'guest-tip',
+        kind: 'guest-topup',
+        guestId: actor.guestId,
         roomId: body.roomId,
-        receiverId,
-        targetType: body.targetType,
-        targetId: body.targetId,
         tipsys: String(tipsys),
         eurCents: String(body.eurCents),
         senderEmail: body.email,
-        note: body.note ?? '',
       },
     });
 
@@ -104,30 +105,23 @@ export async function tipRoutes(app: FastifyInstance): Promise<void> {
   });
 
   app.post('/', async (req, reply) => {
-    const { userId } = await app.requireUser(req);
+    const actor = await app.requireActor(req);
     const body = sendBody.parse(req.body);
     const idempotencyKey = body.idempotencyKey ?? randomUUID();
 
-    // Resolve receiver based on target
-    let receiverId: string | null = null;
-    if (body.targetType === 'message') {
-      const msg = await prisma.message.findUnique({ where: { id: body.targetId } });
-      if (!msg) throw app.httpErrors.notFound('Target message not found');
-      if (msg.roomId !== body.roomId) throw app.httpErrors.badRequest('Target/room mismatch');
-      receiverId = msg.authorId;
-    } else if (body.targetType === 'media') {
-      const media = await prisma.mediaAsset.findUnique({ where: { id: body.targetId } });
-      if (!media) throw app.httpErrors.notFound('Target media not found');
-      receiverId = media.ownerId;
-    } else {
-      // tip-the-room → creator gets it
-      const room = await prisma.room.findUnique({ where: { id: body.targetId } });
-      if (!room) throw app.httpErrors.notFound('Target room not found');
-      receiverId = room.creatorId;
+    if (actor.kind === 'guest' && actor.roomId !== body.roomId) {
+      throw app.httpErrors.forbidden('Guest token does not match room');
     }
 
-    if (!receiverId) throw app.httpErrors.badRequest('Target has no claimable receiver');
-    if (receiverId === userId) throw app.httpErrors.badRequest('Cannot tip yourself');
+    const { receiverId } = await resolveTipTarget(
+      app,
+      body.targetType,
+      body.targetId,
+      body.roomId,
+    );
+    if (actor.kind === 'user' && receiverId === actor.userId) {
+      throw app.httpErrors.badRequest('Cannot tip yourself');
+    }
 
     // Existing tip with same idempotency key → return it
     const existing = await prisma.tip.findUnique({ where: { idempotencyKey } });
@@ -137,25 +131,25 @@ export async function tipRoutes(app: FastifyInstance): Promise<void> {
     }
 
     try {
-      const tip = await prisma.$transaction(async (tx) => {
-        const created = await tx.tip.create({
-          data: {
-            senderId: userId,
-            receiverId: receiverId!,
-            roomId: body.roomId,
-            amount: body.amount,
-            targetType: body.targetType,
-            targetId: body.targetId,
-            note: body.note,
-            idempotencyKey,
-          },
-        });
-        return created;
+      const tip = await prisma.tip.create({
+        data: {
+          senderId: actor.kind === 'user' ? actor.userId : null,
+          senderGuestId: actor.kind === 'guest' ? actor.guestId : null,
+          receiverId,
+          roomId: body.roomId,
+          amount: body.amount,
+          targetType: body.targetType,
+          targetId: body.targetId,
+          note: body.note,
+          idempotencyKey,
+        },
       });
 
-      // Now run the ledger transfer (separate transaction, idempotent via key)
       await transferTipsys({
-        senderUserId: userId,
+        sender:
+          actor.kind === 'user'
+            ? { kind: 'user', userId: actor.userId }
+            : { kind: 'guest', guestId: actor.guestId },
         receiverUserId: receiverId,
         amount: body.amount,
         refType: 'tip',

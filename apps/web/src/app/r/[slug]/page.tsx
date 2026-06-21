@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { io, type Socket } from 'socket.io-client';
 import { Send, Coins, Phone, Video } from 'lucide-react';
 import { REALTIME_BASE, api } from '@/lib/api';
+import { TIP_BUTTONS, eurCentsToTipsys, formatEur, formatTipsysAsEur } from '@/lib/money';
 import { useAuth } from '@/lib/auth-store';
 import { Sidebar } from '@/components/Sidebar';
 import { ChatMessageItem } from '@/components/ChatMessageItem';
@@ -39,10 +40,12 @@ export default function RoomPage() {
   const [members, setMembers] = useState<Identity[]>([]);
   const [tipAnimations, setTipAnimations] = useState<Array<{ id: string; emoji: string }>>([]);
   const [tipTarget, setTipTarget] = useState<{ kind: 'message' | 'room'; id: string } | null>(null);
-  const [tipAmount, setTipAmount] = useState(5);
-  const [guestTipEur, setGuestTipEur] = useState<number>(500); // 5€ in cents
-  const [guestTipEmail, setGuestTipEmail] = useState('');
-  const [guestTipBusy, setGuestTipBusy] = useState(false);
+  const [tipEurCents, setTipEurCents] = useState<number>(100); // 1€ default
+  const [walletBalance, setWalletBalance] = useState<number | null>(null);
+  const [topupEmail, setTopupEmail] = useState('');
+  const [topupEurCents, setTopupEurCents] = useState(500); // 5€ default
+  const [topupBusy, setTopupBusy] = useState(false);
+  const [showTopup, setShowTopup] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [activeCall, setActiveCall] = useState<'audio' | 'video' | null>(null);
   const socketRef = useRef<Socket | null>(null);
@@ -180,6 +183,20 @@ export default function RoomPage() {
   // guest JWT issued at join time.
   const chatAuth = token ?? guestToken;
 
+  // Keep wallet balance in sync (used for the tip dialog + the header chip).
+  const refreshWallet = useCallback(async () => {
+    if (!chatAuth) return;
+    try {
+      const w = await api<{ balance: number }>('/wallet', { token: chatAuth });
+      setWalletBalance(w.balance);
+    } catch {
+      /* ignore — likely token expired */
+    }
+  }, [chatAuth]);
+  useEffect(() => {
+    void refreshWallet();
+  }, [refreshWallet]);
+
   const sendMessage = useCallback(async () => {
     if (!input.trim() || !room || !chatAuth) return;
     const msg = await api<ChatMessage>('/messages', {
@@ -207,44 +224,50 @@ export default function RoomPage() {
   );
 
   const sendTip = useCallback(async () => {
-    if (!tipTarget || !room || !token || !tipAmount) return;
+    if (!tipTarget || !room || !chatAuth) return;
+    const tipsysAmount = eurCentsToTipsys(tipEurCents);
     try {
       await api('/tips', {
         method: 'POST',
-        token,
+        token: chatAuth,
         body: JSON.stringify({
-          amount: tipAmount,
+          amount: tipsysAmount,
           targetType: tipTarget.kind,
           targetId: tipTarget.id,
           roomId: room.id,
         }),
       });
       setTipTarget(null);
-    } catch {
-      alert('No se pudo enviar la propina (¿saldo insuficiente?)');
+      void refreshWallet();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'error';
+      if (msg.includes('402')) {
+        setShowTopup(true);
+      } else {
+        alert('No se pudo enviar la propina: ' + msg);
+      }
     }
-  }, [tipAmount, tipTarget, room, token]);
+  }, [tipEurCents, tipTarget, room, chatAuth, refreshWallet]);
 
-  const sendGuestTip = useCallback(async () => {
-    if (!tipTarget || !room || !guestTipEmail) return;
-    setGuestTipBusy(true);
+  const startGuestTopup = useCallback(async () => {
+    if (!room || !topupEmail || !guestToken) return;
+    setTopupBusy(true);
     try {
-      const res = await api<{ url: string }>('/tips/guest-checkout', {
+      const res = await api<{ url: string }>('/tips/guest-topup', {
         method: 'POST',
+        token: guestToken,
         body: JSON.stringify({
-          eurCents: guestTipEur,
-          targetType: tipTarget.kind,
-          targetId: tipTarget.id,
+          eurCents: topupEurCents,
           roomId: room.id,
-          email: guestTipEmail,
+          email: topupEmail,
         }),
       });
       window.location.href = res.url;
     } catch (err) {
       alert('No se pudo iniciar el pago: ' + (err instanceof Error ? err.message : 'error'));
-      setGuestTipBusy(false);
+      setTopupBusy(false);
     }
-  }, [tipTarget, room, guestTipEur, guestTipEmail]);
+  }, [room, topupEmail, topupEurCents, guestToken]);
 
   // Show "tip sent" toast after returning from Stripe Checkout.
   const [tipToast, setTipToast] = useState<string | null>(null);
@@ -252,21 +275,26 @@ export default function RoomPage() {
     if (typeof window === 'undefined') return;
     const url = new URL(window.location.href);
     const tip = url.searchParams.get('tip');
-    if (tip === 'success') {
-      setTipToast('✅ ¡Propina enviada! Gracias.');
+    const topup = url.searchParams.get('topup');
+    if (tip === 'success' || topup === 'success') {
+      setTipToast(topup ? '✅ ¡Saldo recargado! Ya puedes enviar propinas.' : '✅ ¡Propina enviada!');
       url.searchParams.delete('tip');
+      url.searchParams.delete('topup');
       url.searchParams.delete('session');
       window.history.replaceState({}, '', url.toString());
       const t = setTimeout(() => setTipToast(null), 4000);
+      void refreshWallet();
       return () => clearTimeout(t);
     }
-    if (tip === 'cancelled') {
+    if (tip === 'cancelled' || topup === 'cancelled') {
       setTipToast('Pago cancelado.');
       url.searchParams.delete('tip');
+      url.searchParams.delete('topup');
       window.history.replaceState({}, '', url.toString());
       const t = setTimeout(() => setTipToast(null), 3000);
       return () => clearTimeout(t);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (!room) {
@@ -421,56 +449,84 @@ export default function RoomPage() {
         {tipTarget && (
           <div className="absolute inset-0 grid place-items-center bg-black/40 p-4">
             <div className="w-full max-w-sm space-y-4 rounded-xl bg-white p-5 dark:bg-zinc-900">
-              <h3 className="text-lg font-bold">{t('es', 'tip.send')}</h3>
+              <div className="flex items-baseline justify-between">
+                <h3 className="text-lg font-bold">Enviar propina</h3>
+                <span className="text-xs text-zinc-500">
+                  Saldo: <strong className="text-zinc-900 dark:text-zinc-100">
+                    {walletBalance !== null ? formatTipsysAsEur(walletBalance) : '…'}
+                  </strong>
+                </span>
+              </div>
 
-              {token ? (
+              {!showTopup ? (
                 <>
-                  <label className="block space-y-1 text-sm">
-                    <span className="font-medium">Cantidad (Tipsys)</span>
-                    <input
-                      type="number"
-                      min={1}
-                      value={tipAmount}
-                      onChange={(e) => setTipAmount(Number(e.target.value))}
-                      className="w-full rounded-md border border-zinc-300 bg-white p-2 dark:border-zinc-700 dark:bg-zinc-800"
-                    />
-                  </label>
+                  <div>
+                    <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                      Cantidad
+                    </div>
+                    <div className="grid grid-cols-4 gap-2">
+                      {TIP_BUTTONS.map((p) => (
+                        <button
+                          key={p.eurCents}
+                          type="button"
+                          onClick={() => setTipEurCents(p.eurCents)}
+                          className={`rounded-md border p-2 text-sm transition ${
+                            tipEurCents === p.eurCents
+                              ? 'border-amber-500 bg-amber-50 font-bold text-amber-900 dark:bg-amber-900/40 dark:text-amber-100'
+                              : 'border-zinc-300 bg-white hover:border-zinc-400 dark:border-zinc-700 dark:bg-zinc-800'
+                          }`}
+                        >
+                          <div className="text-base font-bold">{formatEur(p.eurCents)}</div>
+                          <div className="text-[10px] text-zinc-500">{p.tipsys} Tipsys</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {walletBalance !== null && walletBalance < eurCentsToTipsys(tipEurCents) ? (
+                    <div className="rounded-md bg-amber-50 p-3 text-sm text-amber-900 dark:bg-amber-900/30 dark:text-amber-100">
+                      Saldo insuficiente para esta propina.{' '}
+                      <button onClick={() => setShowTopup(true)} className="font-bold underline">
+                        Recargar saldo
+                      </button>
+                    </div>
+                  ) : null}
+
                   <div className="flex justify-end gap-2">
                     <button onClick={() => setTipTarget(null)} className="rounded-md px-3 py-2 text-sm">
                       Cancelar
                     </button>
-                    <button onClick={sendTip} className="rounded-md bg-amber-500 px-4 py-2 text-sm font-semibold text-white">
-                      Enviar
+                    <button
+                      onClick={sendTip}
+                      disabled={walletBalance === null || walletBalance < eurCentsToTipsys(tipEurCents)}
+                      className="rounded-md bg-amber-500 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                    >
+                      Enviar {formatEur(tipEurCents)}
                     </button>
                   </div>
                 </>
               ) : (
                 <>
                   <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                    Pagas con tarjeta vía Stripe. La propina se acredita al instante.
+                    Pagas con tarjeta vía Stripe. El saldo queda en tu sesión (12h).
                   </p>
                   <div>
                     <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">
-                      Importe
+                      Importe a recargar
                     </div>
                     <div className="grid grid-cols-4 gap-2">
-                      {[
-                        { eur: 100, tipsys: 8 },
-                        { eur: 500, tipsys: 40 },
-                        { eur: 1000, tipsys: 80 },
-                        { eur: 2000, tipsys: 160 },
-                      ].map((p) => (
+                      {TIP_BUTTONS.map((p) => (
                         <button
-                          key={p.eur}
+                          key={p.eurCents}
                           type="button"
-                          onClick={() => setGuestTipEur(p.eur)}
+                          onClick={() => setTopupEurCents(p.eurCents)}
                           className={`rounded-md border p-2 text-sm transition ${
-                            guestTipEur === p.eur
+                            topupEurCents === p.eurCents
                               ? 'border-amber-500 bg-amber-50 font-bold text-amber-900 dark:bg-amber-900/40 dark:text-amber-100'
                               : 'border-zinc-300 bg-white hover:border-zinc-400 dark:border-zinc-700 dark:bg-zinc-800'
                           }`}
                         >
-                          <div className="text-base font-bold">{p.eur / 100} €</div>
+                          <div className="text-base font-bold">{formatEur(p.eurCents)}</div>
                           <div className="text-[10px] text-zinc-500">{p.tipsys} Tipsys</div>
                         </button>
                       ))}
@@ -481,22 +537,22 @@ export default function RoomPage() {
                     <input
                       type="email"
                       required
-                      value={guestTipEmail}
-                      onChange={(e) => setGuestTipEmail(e.target.value)}
+                      value={topupEmail}
+                      onChange={(e) => setTopupEmail(e.target.value)}
                       placeholder="tu@email.com"
                       className="w-full rounded-md border border-zinc-300 bg-white p-2 dark:border-zinc-700 dark:bg-zinc-800"
                     />
                   </label>
                   <div className="flex justify-end gap-2">
-                    <button onClick={() => setTipTarget(null)} className="rounded-md px-3 py-2 text-sm">
-                      Cancelar
+                    <button onClick={() => setShowTopup(false)} className="rounded-md px-3 py-2 text-sm">
+                      Volver
                     </button>
                     <button
-                      onClick={sendGuestTip}
-                      disabled={guestTipBusy || !guestTipEmail}
+                      onClick={startGuestTopup}
+                      disabled={topupBusy || !topupEmail || !guestToken}
                       className="rounded-md bg-amber-500 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
                     >
-                      {guestTipBusy ? 'Redirigiendo…' : `Pagar ${guestTipEur / 100} €`}
+                      {topupBusy ? 'Redirigiendo…' : `Pagar ${formatEur(topupEurCents)}`}
                     </button>
                   </div>
                 </>

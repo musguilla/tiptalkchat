@@ -17,6 +17,17 @@ export async function getOrCreateWallet(userId: string): Promise<{ id: string; b
   return { id: w.id, balance: w.balance };
 }
 
+export async function getOrCreateGuestWallet(
+  guestId: string,
+): Promise<{ id: string; balance: number }> {
+  const w = await prisma.wallet.upsert({
+    where: { guestId },
+    create: { guestId },
+    update: {},
+  });
+  return { id: w.id, balance: w.balance };
+}
+
 export interface AppendEntryInput {
   walletId: string;
   kind: LedgerKind;
@@ -73,27 +84,42 @@ export async function appendLedgerEntry(input: AppendEntryInput): Promise<{ bala
   return { balanceAfter: updated.balance };
 }
 
+export type TransferSender =
+  | { kind: 'user'; userId: string }
+  | { kind: 'guest'; guestId: string };
+
 /**
  * Atomic transfer of `amount` Tipsys from sender to receiver. Both ledger
  * entries are written in a single DB transaction with optimistic locking,
  * so concurrent tips cannot produce a negative balance or a torn write.
+ *
+ * The sender can be a registered user OR a guest with an ephemeral wallet.
+ * The receiver is always a registered user (only verified users can cash out).
  */
 export async function transferTipsys(opts: {
-  senderUserId: string;
+  sender: TransferSender;
   receiverUserId: string;
   amount: number;
   refType: string;
   refId: string;
   idempotencyKey: string;
 }): Promise<{ senderBalance: number; receiverBalance: number }> {
-  const transfer = buildTransferEntries(opts.senderUserId, opts.receiverUserId, opts.amount);
+  const senderId = opts.sender.kind === 'user' ? opts.sender.userId : opts.sender.guestId;
+  const transfer = buildTransferEntries(senderId, opts.receiverUserId, opts.amount);
 
   return prisma.$transaction(async (tx) => {
-    const senderWallet = await tx.wallet.upsert({
-      where: { userId: opts.senderUserId },
-      create: { userId: opts.senderUserId },
-      update: {},
-    });
+    const senderWallet =
+      opts.sender.kind === 'user'
+        ? await tx.wallet.upsert({
+            where: { userId: opts.sender.userId },
+            create: { userId: opts.sender.userId },
+            update: {},
+          })
+        : await tx.wallet.upsert({
+            where: { guestId: opts.sender.guestId },
+            create: { guestId: opts.sender.guestId },
+            update: {},
+          });
     const receiverWallet = await tx.wallet.upsert({
       where: { userId: opts.receiverUserId },
       create: { userId: opts.receiverUserId },

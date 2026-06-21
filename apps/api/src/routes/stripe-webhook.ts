@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import Stripe from 'stripe';
 import { prisma } from '@tiptalk/db';
 import { loadEnv } from '@tiptalk/config';
-import { appendLedgerEntry, getOrCreateWallet } from '../lib/wallet.js';
+import { appendLedgerEntry, getOrCreateGuestWallet, getOrCreateWallet } from '../lib/wallet.js';
 
 export async function stripeWebhookRoute(app: FastifyInstance): Promise<void> {
   const env = loadEnv();
@@ -44,54 +44,19 @@ export async function stripeWebhookRoute(app: FastifyInstance): Promise<void> {
         const session = event.data.object as Stripe.Checkout.Session;
         const kind = session.metadata?.kind ?? 'purchase';
 
-        if (kind === 'guest-tip') {
-          const receiverId = session.metadata?.receiverId;
+        if (kind === 'guest-topup') {
+          const guestId = session.metadata?.guestId;
           const tipsys = Number(session.metadata?.tipsys);
-          const roomId = session.metadata?.roomId;
-          const targetType = session.metadata?.targetType;
-          const targetId = session.metadata?.targetId;
-          const senderEmail = session.metadata?.senderEmail ?? null;
-          const note = session.metadata?.note || null;
-          if (
-            !receiverId ||
-            !Number.isInteger(tipsys) ||
-            tipsys <= 0 ||
-            !roomId ||
-            !targetType ||
-            !targetId
-          )
-            break;
+          if (!guestId || !Number.isInteger(tipsys) || tipsys <= 0) break;
 
-          await prisma.$transaction(async (tx) => {
-            const wallet = await tx.wallet.upsert({
-              where: { userId: receiverId },
-              create: { userId: receiverId },
-              update: {},
-            });
-            // The receiver gets a TIP_RECEIVED entry (no sender wallet exists)
-            await appendLedgerEntry({
-              walletId: wallet.id,
-              kind: 'TIP_RECEIVED',
-              amount: tipsys,
-              idempotencyKey: `stripe-guest-tip:${session.id}`,
-              refType: 'tip',
-              refId: session.id,
-              tx,
-            });
-            await tx.tip.create({
-              data: {
-                senderId: null,
-                senderGuestId: null,
-                senderEmail,
-                receiverId,
-                roomId,
-                amount: tipsys,
-                targetType,
-                targetId,
-                note,
-                idempotencyKey: `stripe-guest-tip:${session.id}`,
-              },
-            });
+          const wallet = await getOrCreateGuestWallet(guestId);
+          await appendLedgerEntry({
+            walletId: wallet.id,
+            kind: 'PURCHASE_CREDIT',
+            amount: tipsys,
+            idempotencyKey: `stripe-guest-topup:${session.id}`,
+            refType: 'purchase',
+            refId: session.id,
           });
           break;
         }
