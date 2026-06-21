@@ -22,14 +22,9 @@ export async function messageRoutes(app: FastifyInstance): Promise<void> {
     const body = createBody.parse(req.body);
 
     if (actor.kind === 'guest') {
-      // Guest tokens are room-scoped at issuance time; only allow sending into
-      // the same room the token was minted for. Also disallow media uploads
-      // for guests until we have a guest media flow.
+      // Guest tokens are room-scoped at issuance; only allow into the same room.
       if (actor.roomId !== body.roomId) {
         throw app.httpErrors.forbidden('Guest token does not match room');
-      }
-      if (body.kind !== 'text') {
-        throw app.httpErrors.forbidden('Guests can only send text messages');
       }
       const membership = await prisma.roomMembership.findUnique({
         where: { roomId_guestId: { roomId: body.roomId, guestId: actor.guestId } },
@@ -44,15 +39,17 @@ export async function messageRoutes(app: FastifyInstance): Promise<void> {
         data: {
           roomId: body.roomId,
           guestId: actor.guestId,
-          kind: 'text',
+          kind: body.kind,
           body: body.body,
+          mediaId: body.mediaId,
         },
         include: {
           guest: { select: { id: true, displayName: true, avatarUrl: true } },
+          media: true,
         },
       });
       reply.code(201);
-      return { ...msg, media: null };
+      return { ...msg, media: msg.media ? formatMediaForClient(msg.media) : null };
     }
 
     // user path

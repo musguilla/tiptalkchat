@@ -191,16 +191,16 @@ export default function RoomPage() {
 
   const sendMediaMessage = useCallback(
     async (kind: 'image' | 'video', mediaId: string) => {
-      if (!room || !token) return;
+      if (!room || !chatAuth) return;
       const msg = await api<ChatMessage>('/messages', {
         method: 'POST',
-        token,
+        token: chatAuth,
         body: JSON.stringify({ roomId: room.id, kind, mediaId }),
       });
       socketRef.current?.emit('message:send', msg, () => undefined);
       setMessages((prev) => [...prev, msg]);
     },
-    [room, token],
+    [room, chatAuth],
   );
 
   const sendTip = useCallback(async () => {
@@ -269,7 +269,7 @@ export default function RoomPage() {
           <span className="hidden text-sm text-zinc-500 sm:inline">— {room.name}</span>
         </div>
         <div className="flex items-center gap-2">
-          {token && (
+          {chatAuth && (
             <>
               <button
                 onClick={() => setActiveCall('audio')}
@@ -336,9 +336,9 @@ export default function RoomPage() {
             >
               <Coins className="h-5 w-5" />
             </button>
-            {token && (
+            {chatAuth && (
               <AttachButton
-                token={token}
+                token={chatAuth}
                 onUploaded={(kind, mediaId) => void sendMediaMessage(kind, mediaId)}
                 onError={setUploadError}
               />
@@ -398,10 +398,10 @@ export default function RoomPage() {
         )}
 
         {/* Call panel */}
-        {activeCall && token && (
+        {activeCall && chatAuth && (
           <CallPanel
             roomId={room.id}
-            token={token}
+            token={chatAuth}
             mode={activeCall}
             onClose={() => setActiveCall(null)}
           />

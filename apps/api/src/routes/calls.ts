@@ -32,7 +32,7 @@ export async function callTokenRoutes(app: FastifyInstance): Promise<void> {
   }));
 
   app.post('/token', async (req) => {
-    const { userId } = await app.requireUser(req);
+    const actor = await app.requireActor(req);
     const body = tokenBody.parse(req.body);
 
     if (env.SFU_PROVIDER !== 'livekit') {
@@ -42,23 +42,39 @@ export async function callTokenRoutes(app: FastifyInstance): Promise<void> {
       throw app.httpErrors.internalServerError('LiveKit credentials missing');
     }
 
-    const user = await prisma.user.findUniqueOrThrow({
-      where: { id: userId },
-      select: { id: true, displayName: true },
-    });
     const room = await prisma.room.findUniqueOrThrow({ where: { id: body.roomId } });
 
-    // Persist a CallSession marker so the schema reflects mode in use.
+    let identity: string;
+    let displayName: string;
+    if (actor.kind === 'user') {
+      const u = await prisma.user.findUniqueOrThrow({
+        where: { id: actor.userId },
+        select: { id: true, displayName: true },
+      });
+      identity = u.id;
+      displayName = u.displayName;
+    } else {
+      if (actor.roomId !== room.id) {
+        throw app.httpErrors.forbidden('Guest token does not match room');
+      }
+      const g = await prisma.guestSession.findUniqueOrThrow({
+        where: { id: actor.guestId },
+        select: { id: true, displayName: true },
+      });
+      identity = `guest:${g.id}`;
+      displayName = g.displayName;
+    }
+
     await prisma.callSession.upsert({
-      where: { id: room.id }, // 1 CallSession per room for simplicity
+      where: { id: room.id },
       create: { id: room.id, roomId: room.id, sfuMode: 'livekit' },
       update: { sfuMode: 'livekit', endedAt: null },
     });
 
     const at = new AccessToken(env.LIVEKIT_API_KEY, env.LIVEKIT_API_SECRET, {
-      identity: user.id,
-      name: user.displayName,
-      ttl: 60 * 60, // 1h
+      identity,
+      name: displayName,
+      ttl: 60 * 60,
     });
     at.addGrant({
       roomJoin: true,
@@ -73,7 +89,7 @@ export async function callTokenRoutes(app: FastifyInstance): Promise<void> {
       token,
       url: env.LIVEKIT_URL,
       roomName: `tiptalk:${room.slug}`,
-      identity: user.id,
+      identity,
     };
   });
 }

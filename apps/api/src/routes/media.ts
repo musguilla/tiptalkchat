@@ -19,7 +19,7 @@ const completeImageBody = z.object({
 
 export async function mediaRoutes(app: FastifyInstance): Promise<void> {
   app.post('/image/upload', async (req, reply) => {
-    const { userId } = await app.requireUser(req);
+    const actor = await app.requireActor(req);
     const body = imageBody.parse(req.body);
 
     const storage = getStorage();
@@ -30,9 +30,9 @@ export async function mediaRoutes(app: FastifyInstance): Promise<void> {
 
     const asset = await prisma.mediaAsset.create({
       data: {
-        ownerId: userId,
+        ownerId: actor.kind === 'user' ? actor.userId : null,
         kind: 'image',
-        status: 'uploaded', // client will mark complete after upload
+        status: 'uploaded',
         originalKey: ticket.storageKey,
         bytes: body.bytes,
         mimeType: body.contentType,
@@ -53,11 +53,14 @@ export async function mediaRoutes(app: FastifyInstance): Promise<void> {
   });
 
   app.post('/image/complete', async (req) => {
-    const { userId } = await app.requireUser(req);
+    const actor = await app.requireActor(req);
     const body = completeImageBody.parse(req.body);
     const asset = await prisma.mediaAsset.findUnique({ where: { id: body.mediaId } });
-    if (!asset || asset.ownerId !== userId) {
-      throw app.httpErrors.notFound('Media not found');
+    if (!asset) throw app.httpErrors.notFound('Media not found');
+    // For owned media, only the owner can complete it. Guest-uploaded media
+    // has ownerId=null and is verified by the asset existence + status.
+    if (asset.ownerId && actor.kind === 'user' && asset.ownerId !== actor.userId) {
+      throw app.httpErrors.forbidden('Not your media');
     }
     const updated = await prisma.mediaAsset.update({
       where: { id: body.mediaId },
@@ -67,13 +70,13 @@ export async function mediaRoutes(app: FastifyInstance): Promise<void> {
   });
 
   app.post('/video/upload', async (req, reply) => {
-    const { userId } = await app.requireUser(req);
+    const actor = await app.requireActor(req);
     videoBody.parse(req.body);
 
     const ticket = await createVideoUploadTicket();
     const asset = await prisma.mediaAsset.create({
       data: {
-        ownerId: userId,
+        ownerId: actor.kind === 'user' ? actor.userId : null,
         kind: 'video',
         status: 'uploaded',
         originalKey: ticket.providerRef,
