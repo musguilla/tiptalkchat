@@ -5,6 +5,7 @@ import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-store';
 import { PAYOUT_MIN_TIPSYS, formatTipsysAsEur, listPackages } from '@tiptalk/economy';
 import { t } from '@/i18n';
+import { Logo } from '@/components/Logo';
 
 interface LedgerEntry {
   id: string;
@@ -93,10 +94,13 @@ export default function WalletPage() {
 
   return (
     <main className="mx-auto max-w-3xl space-y-6 p-6">
-      <header className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{t('es', 'wallet.title')}</h1>
-        <Link href="/create" className="text-sm text-brand-600 hover:underline">+ Crear sala</Link>
+      <header className="flex items-center justify-between border-b border-zinc-200 pb-4 dark:border-zinc-800">
+        <Link href="/" className="flex items-center">
+          <Logo className="text-xl" />
+        </Link>
+        <Link href="/create" className="text-sm font-semibold text-orange-600 hover:underline">+ Crear sala</Link>
       </header>
+      <h1 className="text-2xl font-bold">{t('es', 'wallet.title')}</h1>
 
       <section className="rounded-xl border border-zinc-200 bg-gradient-to-br from-amber-50 to-amber-100 p-5 dark:border-zinc-800 dark:from-amber-900/30 dark:to-amber-700/20">
         <div className="text-xs font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-300">

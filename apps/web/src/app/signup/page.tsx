@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-store';
 import { t } from '@/i18n';
+import { Logo } from '@/components/Logo';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -34,7 +35,11 @@ export default function SignupPage() {
   }
 
   return (
-    <main className="grid min-h-screen place-items-center bg-zinc-50 p-6 dark:bg-zinc-950">
+    <main className="grid min-h-screen place-items-center bg-gradient-to-br from-orange-50 via-white to-pink-50 p-6 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-900">
+      <div className="w-full max-w-sm space-y-6">
+        <Link href="/" className="flex justify-center">
+          <Logo className="text-3xl" />
+        </Link>
       <form onSubmit={submit} className="w-full max-w-sm space-y-4 rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
         <h1 className="text-2xl font-bold">{t('es', 'auth.signup')}</h1>
         <label className="block space-y-1 text-sm">
@@ -55,11 +60,12 @@ export default function SignupPage() {
         </button>
         <p className="text-center text-sm text-zinc-600 dark:text-zinc-400">
           ¿Ya tienes cuenta?{' '}
-          <Link href="/login" className="font-semibold text-brand-600 hover:underline">
+          <Link href="/login" className="font-semibold text-orange-600 hover:underline">
             {t('es', 'auth.login')}
           </Link>
         </p>
       </form>
+      </div>
     </main>
   );
 }

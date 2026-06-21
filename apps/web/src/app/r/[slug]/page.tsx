@@ -8,6 +8,7 @@ import { REALTIME_BASE, api } from '@/lib/api';
 import { TIP_BUTTONS, eurCentsToTipsys, formatEur, formatTipsysAsEur } from '@/lib/money';
 import { useAuth } from '@/lib/auth-store';
 import { Sidebar } from '@/components/Sidebar';
+import { Logo } from '@/components/Logo';
 import { ChatMessageItem } from '@/components/ChatMessageItem';
 import { AttachButton } from '@/components/AttachButton';
 import { CallPanel } from '@/components/CallPanel';
@@ -350,7 +351,9 @@ export default function RoomPage() {
     <main className="flex h-screen flex-col">
       <header className="flex items-center justify-between border-b border-zinc-200 bg-white px-4 py-2 dark:border-zinc-800 dark:bg-zinc-900">
         <div className="flex items-center gap-3">
-          <Link href="/" className="text-sm font-bold text-brand-600">TipTalk</Link>
+          <Link href="/" className="flex items-center">
+            <Logo className="text-lg" />
+          </Link>
           <span className="text-sm font-semibold">/r/{room.slug}</span>
           <span className="hidden text-sm text-zinc-500 sm:inline">— {room.name}</span>
         </div>
