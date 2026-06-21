@@ -17,8 +17,7 @@ COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
 COPY apps/worker/package.json ./apps/worker/
 COPY packages/config/package.json ./packages/config/
 COPY packages/db/package.json ./packages/db/
-RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
-    pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile
 
 FROM deps AS build
 COPY packages ./packages
