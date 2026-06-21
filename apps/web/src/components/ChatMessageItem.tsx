@@ -12,17 +12,32 @@ export function ChatMessageItem({
 }) {
   return (
     <div className="group flex items-start gap-3 rounded-lg p-2 hover:bg-zinc-50 dark:hover:bg-zinc-900">
-      {msg.author?.avatarUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={msg.author.avatarUrl} alt="" className="mt-1 h-8 w-8 shrink-0 rounded-full" />
-      ) : (
-        <span className="mt-1 grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand-600 text-xs font-bold text-white">
-          {msg.author?.displayName[0]?.toUpperCase() ?? '?'}
-        </span>
-      )}
+      {(() => {
+        const who = msg.author ?? msg.guest;
+        const isGuest = !msg.author && !!msg.guest;
+        return who?.avatarUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={who.avatarUrl} alt="" className="mt-1 h-8 w-8 shrink-0 rounded-full" />
+        ) : (
+          <span
+            className={`mt-1 grid h-8 w-8 shrink-0 place-items-center rounded-full text-xs font-bold text-white ${
+              isGuest ? 'bg-zinc-500' : 'bg-brand-600'
+            }`}
+          >
+            {who?.displayName[0]?.toUpperCase() ?? '?'}
+          </span>
+        );
+      })()}
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline gap-2">
-          <span className="text-sm font-semibold">{msg.author?.displayName ?? 'Anónimo'}</span>
+          <span className="text-sm font-semibold">
+            {(msg.author ?? msg.guest)?.displayName ?? 'Anónimo'}
+          </span>
+          {!msg.author && msg.guest && (
+            <span className="rounded bg-zinc-200 px-1 text-[10px] font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+              invitado
+            </span>
+          )}
           <span className="text-[11px] text-zinc-500">
             {new Date(msg.createdAt).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
           </span>

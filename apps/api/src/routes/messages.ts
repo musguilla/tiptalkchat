@@ -18,9 +18,45 @@ const listQuery = z.object({
 
 export async function messageRoutes(app: FastifyInstance): Promise<void> {
   app.post('/', async (req, reply) => {
-    const { userId } = await app.requireUser(req);
+    const actor = await app.requireActor(req);
     const body = createBody.parse(req.body);
 
+    if (actor.kind === 'guest') {
+      // Guest tokens are room-scoped at issuance time; only allow sending into
+      // the same room the token was minted for. Also disallow media uploads
+      // for guests until we have a guest media flow.
+      if (actor.roomId !== body.roomId) {
+        throw app.httpErrors.forbidden('Guest token does not match room');
+      }
+      if (body.kind !== 'text') {
+        throw app.httpErrors.forbidden('Guests can only send text messages');
+      }
+      const membership = await prisma.roomMembership.findUnique({
+        where: { roomId_guestId: { roomId: body.roomId, guestId: actor.guestId } },
+      });
+      if (!membership || membership.status !== 'active') {
+        throw app.httpErrors.forbidden('Not a member of this room');
+      }
+      if (membership.mutedUntil && membership.mutedUntil > new Date()) {
+        throw app.httpErrors.forbidden('You are muted in this room');
+      }
+      const msg = await prisma.message.create({
+        data: {
+          roomId: body.roomId,
+          guestId: actor.guestId,
+          kind: 'text',
+          body: body.body,
+        },
+        include: {
+          guest: { select: { id: true, displayName: true, avatarUrl: true } },
+        },
+      });
+      reply.code(201);
+      return { ...msg, media: null };
+    }
+
+    // user path
+    const userId = actor.userId;
     const membership = await prisma.roomMembership.findUnique({
       where: { roomId_userId: { roomId: body.roomId, userId } },
     });

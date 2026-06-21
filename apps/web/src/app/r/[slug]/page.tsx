@@ -29,6 +29,9 @@ export default function RoomPage() {
   const [room, setRoom] = useState<RoomData | null>(null);
   const [needsName, setNeedsName] = useState(false);
   const [guestName, setGuestName] = useState('');
+  // Guest JWT issued by the API on join. Lives in component state only
+  // (ephemeral; refreshed on every page load).
+  const [guestToken, setGuestToken] = useState<string | null>(null);
   const [pin, setPin] = useState('');
   const [needsPin, setNeedsPin] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -64,7 +67,11 @@ export default function RoomPage() {
     let cancelled = false;
     (async () => {
       try {
-        const join = await api<{ membershipId: string; asGuest: boolean }>(`/rooms/${params.slug}/join`, {
+        const join = await api<{
+          membershipId: string;
+          asGuest: boolean;
+          guestToken?: string;
+        }>(`/rooms/${params.slug}/join`, {
           method: 'POST',
           token: token ?? undefined,
           body: JSON.stringify({
@@ -72,6 +79,7 @@ export default function RoomPage() {
             ...(!user ? { displayName: guestName } : {}),
           }),
         });
+        if (join.asGuest && join.guestToken) setGuestToken(join.guestToken);
 
         const hist = await api<{ messages: ChatMessage[]; nextCursor: string | null }>(
           `/messages?roomId=${room.id}`,
@@ -165,17 +173,21 @@ export default function RoomPage() {
     return () => clearInterval(t);
   }, [messages]);
 
+  // The token used for chat actions: user JWT if logged in, otherwise the
+  // guest JWT issued at join time.
+  const chatAuth = token ?? guestToken;
+
   const sendMessage = useCallback(async () => {
-    if (!input.trim() || !room || !token) return;
+    if (!input.trim() || !room || !chatAuth) return;
     const msg = await api<ChatMessage>('/messages', {
       method: 'POST',
-      token,
+      token: chatAuth,
       body: JSON.stringify({ roomId: room.id, kind: 'text', body: input.trim() }),
     });
     socketRef.current?.emit('message:send', msg, () => undefined);
     setMessages((prev) => [...prev, msg]);
     setInput('');
-  }, [input, room, token]);
+  }, [input, room, chatAuth]);
 
   const sendMediaMessage = useCallback(
     async (kind: 'image' | 'video', mediaId: string) => {
@@ -336,9 +348,9 @@ export default function RoomPage() {
               onChange={(e) => setInput(e.target.value)}
               placeholder={t('es', 'chat.placeholder')}
               className="flex-1 rounded-md border border-zinc-300 bg-white p-2 dark:border-zinc-700 dark:bg-zinc-800"
-              disabled={!token}
+              disabled={!chatAuth}
             />
-            <button type="submit" disabled={!token || !input.trim()} className="grid h-10 w-10 place-items-center rounded-md bg-brand-600 text-white disabled:opacity-50">
+            <button type="submit" disabled={!chatAuth || !input.trim()} className="grid h-10 w-10 place-items-center rounded-md bg-brand-600 text-white disabled:opacity-50">
               <Send className="h-4 w-4" />
             </button>
           </form>

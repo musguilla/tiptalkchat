@@ -1,42 +1,77 @@
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import fp from 'fastify-plugin';
 
-export interface SessionUser {
-  userId: string;
-  role: string;
-}
+export type SessionActor =
+  | { kind: 'user'; userId: string; role: string }
+  | { kind: 'guest'; guestId: string; roomId: string };
 
 declare module 'fastify' {
   interface FastifyInstance {
-    requireUser: (req: FastifyRequest) => Promise<SessionUser>;
+    /** Throws unless the request is authenticated as a real user. */
+    requireUser: (req: FastifyRequest) => Promise<{ userId: string; role: string }>;
+    /** Throws unless the request is authenticated as user OR guest. */
+    requireActor: (req: FastifyRequest) => Promise<SessionActor>;
   }
   interface FastifyRequest {
-    sessionUser: SessionUser | null;
+    sessionUser: { userId: string; role: string } | null;
+    sessionActor: SessionActor | null;
   }
+}
+
+interface UserJwt {
+  sub: string;
+  role: string;
+  kind?: 'user';
+}
+interface GuestJwt {
+  sub: string;
+  kind: 'guest';
+  roomId: string;
 }
 
 async function plugin(app: FastifyInstance): Promise<void> {
   app.decorateRequest('sessionUser', null);
+  app.decorateRequest('sessionActor', null);
 
   app.addHook('onRequest', async (req) => {
-    (req as FastifyRequest & { sessionUser: SessionUser | null }).sessionUser = null;
+    type Augmented = FastifyRequest & {
+      sessionUser: { userId: string; role: string } | null;
+      sessionActor: SessionActor | null;
+    };
+    const r = req as Augmented;
+    r.sessionUser = null;
+    r.sessionActor = null;
+
+    const token = req.headers.authorization?.replace(/^Bearer\s+/i, '');
+    if (!token) return;
     try {
-      const token = req.headers.authorization?.replace(/^Bearer\s+/i, '');
-      if (!token) return;
-      const decoded = app.jwt.verify<{ sub: string; role: string }>(token);
-      (req as FastifyRequest & { sessionUser: SessionUser | null }).sessionUser = {
-        userId: decoded.sub,
-        role: decoded.role,
-      };
+      const decoded = app.jwt.verify<UserJwt | GuestJwt>(token);
+      if ('kind' in decoded && decoded.kind === 'guest') {
+        r.sessionActor = { kind: 'guest', guestId: decoded.sub, roomId: decoded.roomId };
+      } else {
+        const user = decoded as UserJwt;
+        r.sessionUser = { userId: user.sub, role: user.role };
+        r.sessionActor = { kind: 'user', userId: user.sub, role: user.role };
+      }
     } catch {
-      // keep as null
+      /* invalid token — leave sessionActor=null */
     }
   });
 
   app.decorate('requireUser', async (req: FastifyRequest) => {
-    const u = (req as FastifyRequest & { sessionUser: SessionUser | null }).sessionUser;
+    type Augmented = FastifyRequest & {
+      sessionUser: { userId: string; role: string } | null;
+    };
+    const u = (req as Augmented).sessionUser;
     if (!u) throw app.httpErrors.unauthorized('Authentication required');
     return u;
+  });
+
+  app.decorate('requireActor', async (req: FastifyRequest) => {
+    type Augmented = FastifyRequest & { sessionActor: SessionActor | null };
+    const a = (req as Augmented).sessionActor;
+    if (!a) throw app.httpErrors.unauthorized('Authentication required');
+    return a;
   });
 }
 

@@ -25,5 +25,6 @@ export interface ChatMessage {
   mediaId: string | null;
   media: ChatMedia | null;
   author: Identity | null;
+  guest: Identity | null;
   createdAt: string;
 }

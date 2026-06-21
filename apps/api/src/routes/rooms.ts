@@ -124,7 +124,8 @@ export async function roomRoutes(app: FastifyInstance): Promise<void> {
       return { membershipId: m.id, asGuest: false };
     }
 
-    // Guest join: ephemeral session
+    // Guest join: ephemeral session + guest-scoped JWT so they can send
+    // messages (but not tips / payouts / media uploads).
     const guest = await prisma.guestSession.create({
       data: {
         displayName: body.displayName ?? 'Invitado',
@@ -136,7 +137,17 @@ export async function roomRoutes(app: FastifyInstance): Promise<void> {
     const m = await prisma.roomMembership.create({
       data: { roomId: room.id, guestId: guest.id, role: 'member' },
     });
-    return { membershipId: m.id, asGuest: true, guestId: guest.id };
+    const guestToken = app.jwt.sign(
+      { sub: guest.id, kind: 'guest', roomId: room.id },
+      { expiresIn: '12h' },
+    );
+    return {
+      membershipId: m.id,
+      asGuest: true,
+      guestId: guest.id,
+      guestToken,
+      displayName: guest.displayName,
+    };
   });
 
   app.post('/:id/close', async (req) => {
