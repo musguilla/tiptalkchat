@@ -12,14 +12,14 @@ export function SiteHeader({ variant = 'landing' }: { variant?: 'landing' | 'min
         {variant === 'landing' ? (
           <>
             <nav className="hidden items-center gap-10 text-sm font-medium text-ink-muted md:flex">
+              <Link href="/create" className="transition hover:text-primary-500">
+                Crear chat
+              </Link>
               <a href="#como-funciona" className="transition hover:text-primary-500">
-                How it Works
+                Cómo funciona
               </a>
               <a href="#caracteristicas" className="transition hover:text-primary-500">
-                Features
-              </a>
-              <a href="#precios" className="transition hover:text-primary-500">
-                Pricing
+                Características
               </a>
             </nav>
             <div className="flex items-center gap-4">
@@ -27,13 +27,13 @@ export function SiteHeader({ variant = 'landing' }: { variant?: 'landing' | 'min
                 href="/login"
                 className="text-sm font-medium text-ink-muted transition hover:text-ink"
               >
-                Login
+                Iniciar sesión
               </Link>
               <Link
                 href="/create"
                 className="btn-tactile rounded-full bg-primary-500 px-5 py-2.5 text-sm font-semibold text-white shadow-soft transition hover:bg-primary-600"
               >
-                Create Room
+                Crear chat
               </Link>
             </div>
           </>

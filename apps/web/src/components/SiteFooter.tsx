@@ -31,30 +31,30 @@ export function SiteFooter() {
           </div>
 
           <FooterColumn title="Plataforma">
-            <FooterLink href="#como-funciona">How it Works</FooterLink>
-            <FooterLink href="#caracteristicas">Features</FooterLink>
-            <FooterLink href="#precios">Pricing</FooterLink>
+            <FooterLink href="/create">Crear chat</FooterLink>
+            <FooterLink href="#como-funciona">Cómo funciona</FooterLink>
+            <FooterLink href="#caracteristicas">Características</FooterLink>
           </FooterColumn>
 
           <FooterColumn title="Legal">
-            <FooterLink href="/legal/terminos">Terms of Service</FooterLink>
-            <FooterLink href="/legal/privacidad">Privacy Policy</FooterLink>
-            <FooterLink href="/legal/aviso-legal">Creator Guidelines</FooterLink>
+            <FooterLink href="/legal/terminos">Términos del servicio</FooterLink>
+            <FooterLink href="/legal/privacidad">Política de privacidad</FooterLink>
+            <FooterLink href="/legal/aviso-legal">Guía para creadores</FooterLink>
           </FooterColumn>
 
           <FooterColumn title="Soporte">
-            <FooterLink href="mailto:hola@tiptalk.chat">Support</FooterLink>
-            <FooterLink href="/ayuda">Help Center</FooterLink>
-            <FooterLink href="/contacto">Contact Us</FooterLink>
+            <FooterLink href="mailto:hola@tiptalk.chat">Atención al cliente</FooterLink>
+            <FooterLink href="/ayuda">Centro de ayuda</FooterLink>
+            <FooterLink href="/contacto">Contacto</FooterLink>
           </FooterColumn>
         </div>
       </div>
 
       <div className="border-t border-surface-container">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-6 py-5 text-xs text-ink-muted">
-          <span>© {new Date().getFullYear()} TipTalk. All rights reserved.</span>
+          <span>© {new Date().getFullYear()} tiptalk.chat — Todos los derechos reservados.</span>
           <span className="flex items-center gap-1">
-            Made with <span className="text-secondary-500">❤</span> for Creators
+            Hecho con <span className="text-secondary-500">❤</span> para creadores
           </span>
         </div>
       </div>
