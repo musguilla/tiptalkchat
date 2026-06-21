@@ -257,12 +257,14 @@ export default function RoomPage() {
     if (!room || !token) return;
     setClosingRoom(true);
     try {
-      await api(`/rooms/${room.id}/close`, { method: 'POST', token });
+      await api(`/rooms/${room.id}/close`, { method: 'POST', token, body: '{}' });
       router.push('/');
     } catch (err) {
       setClosingRoom(false);
       setShowCloseConfirm(false);
-      alert('No se pudo cerrar: ' + (err instanceof Error ? err.message : 'error'));
+      setUploadError(
+        'No se pudo cerrar la sala: ' + (err instanceof Error ? err.message : 'error'),
+      );
     }
   }, [room, token, router]);
 

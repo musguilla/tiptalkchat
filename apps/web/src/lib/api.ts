@@ -12,7 +12,11 @@ export async function api<T>(
   init: RequestInit & { token?: string } = {},
 ): Promise<T> {
   const headers = new Headers(init.headers);
-  headers.set('Content-Type', 'application/json');
+  // Only declare a JSON content-type when there's actually a body to parse,
+  // otherwise Fastify rejects the request with 400 (empty body).
+  if (init.body !== undefined && init.body !== null && !(init.body instanceof FormData)) {
+    headers.set('Content-Type', 'application/json');
+  }
   if (init.token) headers.set('Authorization', `Bearer ${init.token}`);
 
   const res = await fetch(`${API_BASE}${path}`, { ...init, headers, credentials: 'include' });

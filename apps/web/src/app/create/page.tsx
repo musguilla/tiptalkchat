@@ -11,7 +11,6 @@ export default function CreateRoomPage() {
   const router = useRouter();
   const token = useAuth((s) => s.token);
   const [name, setName] = useState('');
-  const [pin, setPin] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -28,10 +27,7 @@ export default function CreateRoomPage() {
       const res = await api<{ id: string; slug: string }>('/rooms', {
         method: 'POST',
         token: token!,
-        body: JSON.stringify({
-          name,
-          ...(pin ? { pin } : {}),
-        }),
+        body: JSON.stringify({ name }),
       });
       router.push(`/r/${res.slug}`);
     } catch {
@@ -52,10 +48,6 @@ export default function CreateRoomPage() {
         <label className="block space-y-1.5 text-sm">
           <span className="font-medium text-ink">{t('es', 'create.name')}</span>
           <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="Fiesta de Marta" className="w-full rounded-md border border-transparent bg-surface-soft p-2.5 outline-none transition focus:border-primary-500 focus:bg-white" />
-        </label>
-        <label className="block space-y-1.5 text-sm">
-          <span className="font-medium text-ink">PIN (opcional)</span>
-          <input type="password" value={pin} onChange={(e) => setPin(e.target.value)} className="w-full rounded-md border border-transparent bg-surface-soft p-2.5 outline-none transition focus:border-primary-500 focus:bg-white" />
         </label>
         {error && <p className="text-sm text-red-600">{error}</p>}
         <button disabled={loading} className="btn-tactile w-full rounded-md bg-primary-500 px-4 py-2.5 font-semibold text-white shadow-soft hover:bg-primary-600 disabled:opacity-60">
