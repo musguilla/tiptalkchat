@@ -11,23 +11,31 @@ export function SiteHeader({ variant = 'landing' }: { variant?: 'landing' | 'min
         </Link>
         {variant === 'landing' ? (
           <>
-            <nav className="hidden items-center gap-8 text-sm font-medium text-ink-muted md:flex">
-              <a href="#caracteristicas" className="transition hover:text-ink">
-                Características
+            <nav className="hidden items-center gap-10 text-sm font-medium text-ink-muted md:flex">
+              <a href="#como-funciona" className="transition hover:text-primary-500">
+                How it Works
               </a>
-              <a href="#como-funciona" className="transition hover:text-ink">
-                Cómo funciona
+              <a href="#caracteristicas" className="transition hover:text-primary-500">
+                Features
               </a>
-              <Link href="/login" className="transition hover:text-ink">
-                Iniciar sesión
-              </Link>
+              <a href="#precios" className="transition hover:text-primary-500">
+                Pricing
+              </a>
             </nav>
-            <Link
-              href="/create"
-              className="btn-tactile rounded-md bg-primary-500 px-5 py-2.5 text-sm font-semibold text-white shadow-soft transition hover:bg-primary-600"
-            >
-              Crear sala
-            </Link>
+            <div className="flex items-center gap-4">
+              <Link
+                href="/login"
+                className="text-sm font-medium text-ink-muted transition hover:text-ink"
+              >
+                Login
+              </Link>
+              <Link
+                href="/create"
+                className="btn-tactile rounded-full bg-primary-500 px-5 py-2.5 text-sm font-semibold text-white shadow-soft transition hover:bg-primary-600"
+              >
+                Create Room
+              </Link>
+            </div>
           </>
         ) : (
           <Link href="/" className="text-sm text-ink-muted hover:text-ink">

@@ -1,17 +1,19 @@
 import Link from 'next/link';
 import {
-  MessageCircle,
-  Link2,
-  PhoneCall,
+  Lock,
+  Share2,
   Coins,
-  Sparkles,
+  Video,
   ShieldCheck,
-  Smartphone,
+  CreditCard,
+  Zap,
+  ArrowRight,
+  Mic,
+  Sparkles,
 } from 'lucide-react';
-import { t } from '@/i18n';
-import { Logo } from '@/components/Logo';
 import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
+import { HeroVideoPreview } from '@/components/HeroVideoPreview';
 
 export default function HomePage() {
   return (
@@ -20,148 +22,154 @@ export default function HomePage() {
 
       {/* HERO */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-x-0 -top-32 -z-10 h-[420px] bg-[radial-gradient(closest-side,rgba(255,92,0,0.18),transparent)]" />
-        <div className="absolute right-0 top-20 -z-10 h-72 w-72 rounded-full bg-[radial-gradient(closest-side,rgba(255,0,122,0.18),transparent)]" />
-        <div className="mx-auto max-w-7xl px-6 py-20 sm:py-28 lg:py-32">
-          <div className="text-center">
+        <div className="absolute -right-32 -top-20 -z-10 h-[480px] w-[480px] rounded-full bg-[radial-gradient(closest-side,rgba(255,92,0,0.18),transparent_70%)]" />
+        <div className="absolute -left-32 top-40 -z-10 h-[420px] w-[420px] rounded-full bg-[radial-gradient(closest-side,rgba(255,0,122,0.12),transparent_70%)]" />
+        <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 py-16 sm:py-20 lg:grid-cols-2 lg:gap-16 lg:py-24">
+          {/* LEFT */}
+          <div>
             <div className="label-mono inline-flex items-center gap-2 rounded-full border border-primary-200 bg-primary-50 px-3 py-1.5 text-primary-700">
               <Sparkles className="h-3.5 w-3.5" />
-              Sin instalaciones · Solo un enlace
+              Nuevo: salas de video HD
             </div>
-            <Logo className="mt-8 text-6xl sm:text-8xl lg:text-9xl" />
-            <h1 className="mx-auto mt-10 max-w-3xl font-display text-[44px] font-extrabold leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl">
-              {t('es', 'landing.title')}
+            <h1 className="mt-6 font-display text-5xl font-extrabold leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl">
+              Conecta, Chatea
+              <br />
+              y <span className="text-primary-500">Gana Propinas</span>
             </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-ink-muted sm:text-xl">
-              {t('es', 'landing.subtitle')}
+            <p className="mt-6 max-w-md text-lg leading-relaxed text-ink-muted">
+              Tu espacio privado 1-on-1 para conectar con tu audiencia. Sin intermediarios,
+              con chat de voz, video y monetización instantánea.
             </p>
-            <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+            <div className="mt-8 flex flex-wrap items-center gap-4">
               <Link
                 href="/create"
-                className="btn-tactile rounded-md bg-primary-500 px-8 py-3.5 text-base font-semibold text-white shadow-vivid transition hover:bg-primary-600 hover:shadow-vivid-strong"
+                className="btn-tactile inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-7 py-3.5 text-base font-bold text-white shadow-vivid transition hover:shadow-vivid-strong"
               >
-                {t('es', 'landing.cta.create')}
+                Crea tu Sala Gratis
               </Link>
-              <Link
-                href="/login"
-                className="btn-tactile rounded-md border-2 border-primary-500 bg-white px-8 py-3 text-base font-semibold text-primary-500 transition hover:bg-primary-50"
-              >
-                {t('es', 'auth.login')}
-              </Link>
+              <div className="label-mono flex items-center gap-2 rounded-full border border-surface-container bg-white px-4 py-2.5 text-ink-soft">
+                <span className="text-primary-500">🔗</span>
+                tiptalk.chat/
+                <span className="text-ink/30">tu-nombre</span>
+              </div>
             </div>
-            <p className="label-mono mt-8 text-ink-soft">
-              Gratis · Sin tarjeta · Sin instalar nada
-            </p>
+          </div>
+
+          {/* RIGHT */}
+          <div className="relative">
+            <HeroVideoPreview />
           </div>
         </div>
       </section>
 
-      {/* FEATURES */}
-      <section id="caracteristicas" className="border-t border-surface-container bg-surface py-24">
+      {/* SOCIAL PROOF */}
+      <section className="border-y border-surface-container bg-surface-soft">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-6 py-6">
+          <div>
+            <p className="font-display text-base font-bold text-ink">
+              Más de 10,000 creadores
+            </p>
+            <p className="text-sm text-ink-muted">ya están monetizando su tiempo y talento.</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="flex -space-x-3">
+              <Avatar gradient="from-primary-400 to-primary-600" letter="A" />
+              <Avatar gradient="from-secondary-400 to-secondary-600" letter="B" />
+              <Avatar gradient="from-blue-400 to-blue-600" letter="C" />
+            </div>
+            <span className="label-mono rounded-full bg-primary-500 px-3 py-1 text-white">
+              +10k
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* EMPIEZA EN MINUTOS */}
+      <section id="como-funciona" className="bg-canvas py-20">
         <div className="mx-auto max-w-7xl px-6">
           <div className="mx-auto max-w-2xl text-center">
-            <span className="label-mono text-primary-500">Características</span>
-            <h2 className="mt-3 font-display text-4xl font-extrabold tracking-tight sm:text-5xl">
-              Todo para un chat privado
+            <h2 className="font-display text-4xl font-extrabold tracking-tight sm:text-5xl">
+              Empieza en minutos
             </h2>
-            <p className="mt-5 text-lg text-ink-muted">
-              Pensado para conversaciones uno a uno con opciones simples para los anfitriones.
+            <p className="mt-4 text-base text-ink-muted">
+              Sin complicaciones técnicas. Diseñado para que te enfoques en lo que mejor sabes hacer.
             </p>
           </div>
-          <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            <Feature
-              icon={<Link2 className="h-6 w-6" />}
-              title="URLs cortas"
-              body="Tu sala tiene un enlace amigable que puedes compartir por WhatsApp, mail o donde quieras."
+          <div className="mt-14 grid gap-6 md:grid-cols-3">
+            <StepCard
+              color="bg-primary-500"
+              icon={<Lock className="h-5 w-5" />}
+              title="Crea tu espacio"
+              body="Configura tu perfil en segundos. Define tus intereses y disponibilidad sin configuraciones complejas."
             />
-            <Feature
-              icon={<MessageCircle className="h-6 w-6" />}
-              title="Chat en directo"
-              body="Texto, fotos y vídeos en tiempo real. Sin app, abre el enlace y dentro."
+            <StepCard
+              color="bg-secondary-500"
+              icon={<Share2 className="h-5 w-5" />}
+              title="Comparte tu enlace"
+              body="Lleva tu audiencia a tu espacio privado. Comparte tu link personalizado en Instagram, Twitter o tu bio."
             />
-            <Feature
-              icon={<PhoneCall className="h-6 w-6" />}
-              title="Llamadas y vídeo"
-              body="Voz y vídeo de alta calidad integrados, con un clic dentro de la sala."
-            />
-            <Feature
-              icon={<Coins className="h-6 w-6" />}
-              title="Recibe propinas"
-              body="Tus invitados pueden enviarte propinas en € desde el primer minuto."
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* HOW IT WORKS */}
-      <section id="como-funciona" className="bg-surface-soft py-24">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="mx-auto max-w-2xl text-center">
-            <span className="label-mono text-secondary-500">Cómo funciona</span>
-            <h2 className="mt-3 font-display text-4xl font-extrabold tracking-tight sm:text-5xl">
-              En menos de un minuto
-            </h2>
-            <p className="mt-5 text-lg text-ink-muted">
-              Crea, comparte, conversa. Así de fácil.
-            </p>
-          </div>
-          <div className="mt-16 grid gap-8 md:grid-cols-3">
-            <Step
-              n={1}
-              title="Crea tu sala"
-              body="Le pones un nombre y, si quieres, un PIN. Te damos un enlace corto al instante."
-            />
-            <Step
-              n={2}
-              title="Comparte el enlace"
-              body="WhatsApp, email, redes... cualquiera puede entrar con solo abrir tu URL."
-            />
-            <Step
-              n={3}
-              title="Chatea y recibe propinas"
-              body="Tus invitados envían mensajes, llamadas y propinas en €. Tú decides cuándo cerrar."
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* TRUST */}
-      <section className="border-t border-surface-container bg-surface py-20">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="grid gap-10 md:grid-cols-3">
-            <TrustCard
-              icon={<ShieldCheck className="h-5 w-5" />}
-              title="Privado por diseño"
-              body="Tus chats se cierran y borran tras 24 horas, o cuando lo decidas. Nada queda guardado."
-            />
-            <TrustCard
-              icon={<Smartphone className="h-5 w-5" />}
-              title="Funciona en todas partes"
-              body="Web responsive. Apps móviles en camino. Sin instalaciones para tus invitados."
-            />
-            <TrustCard
+            <StepCard
+              color="bg-blue-500"
               icon={<Coins className="h-5 w-5" />}
-              title="Cobros sencillos"
-              body="A partir de 30€ acumulados puedes solicitar el cobro a tu cuenta bancaria."
+              title="Recibe propinas"
+              body="Chat de voz y video fluido con sistema de pagos integrado y liquidaciones instantáneas."
             />
           </div>
         </div>
       </section>
 
-      {/* FINAL CTA */}
-      <section className="relative overflow-hidden bg-gradient-to-r from-secondary-500 to-primary-500 py-20">
-        <div className="mx-auto max-w-4xl px-6 text-center">
-          <h2 className="font-display text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
-            Empieza tu primera sala
+      {/* TECNOLOGÍA DE ÉLITE */}
+      <section id="caracteristicas" className="bg-canvas py-20">
+        <div className="mx-auto grid max-w-7xl items-center gap-14 px-6 lg:grid-cols-2">
+          <div className="grid grid-cols-2 gap-4">
+            <FeaturePill icon={<Video className="h-4 w-4" />} title="HD Video" sub="Calidad premium garantizada." />
+            <FeaturePill icon={<Lock className="h-4 w-4" />} title="Privacidad" sub="Encriptación de punta a punta." />
+            <FeaturePill icon={<ShieldCheck className="h-4 w-4" />} title="Pagos Seguros" sub="Protección contra fraudes." />
+            <FeaturePill icon={<Zap className="h-4 w-4" />} title="Instantáneo" sub="Retiros sin esperas." />
+          </div>
+          <div>
+            <h2 className="font-display text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl">
+              Tecnología de élite para creadores premium
+            </h2>
+            <div className="mt-10 space-y-7">
+              <FeatureItem
+                icon={<Mic className="h-5 w-5" />}
+                color="bg-primary-50 text-primary-500"
+                title="Voz y Video de Alta Calidad"
+                body="Experimenta una conexión sin latencia. La mejor tecnología WebRTC para tus sesiones más importantes."
+              />
+              <FeatureItem
+                icon={<CreditCard className="h-5 w-5" />}
+                color="bg-secondary-50 text-secondary-500"
+                title="Sistema de Propinas Seguro"
+                body="Tus ingresos están protegidos. Integramos los procesadores de pago más confiables del mundo."
+              />
+              <FeatureItem
+                icon={<ShieldCheck className="h-5 w-5" />}
+                color="bg-blue-50 text-blue-500"
+                title="Privacidad por Diseño"
+                body="Tú tienes el control total. No guardamos grabaciones y tus datos personales son sagrados."
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA LAVENDER */}
+      <section id="precios" className="px-6 pb-20">
+        <div className="mx-auto max-w-5xl rounded-xl bg-surface-container px-6 py-16 text-center">
+          <h2 className="font-display text-4xl font-extrabold tracking-tight sm:text-5xl">
+            ¿Listo para empezar?
           </h2>
-          <p className="mt-4 text-lg text-white/90">
-            Sin instalar nada. Sin tarjeta. Cierra cuando quieras.
+          <p className="mx-auto mt-3 max-w-xl text-base text-ink-muted">
+            Únete a los miles de creadores que están transformando su comunidad en una fuente de
+            ingresos real.
           </p>
           <Link
             href="/create"
-            className="btn-tactile mt-10 inline-block rounded-md bg-white px-10 py-4 text-base font-bold text-primary-500 shadow-vivid-strong transition hover:bg-canvas"
+            className="btn-tactile mt-10 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-8 py-4 text-base font-bold text-white shadow-vivid-strong transition hover:opacity-95"
           >
-            Crear una sala gratis
+            Crea tu sala hoy <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
       </section>
@@ -171,10 +179,30 @@ export default function HomePage() {
   );
 }
 
-function Feature({ icon, title, body }: { icon: React.ReactNode; title: string; body: string }) {
+function Avatar({ gradient, letter }: { gradient: string; letter: string }) {
   return (
-    <div className="group rounded-lg border border-surface-container bg-white p-7 shadow-soft transition hover:border-primary-200 hover:shadow-vivid">
-      <div className="inline-flex h-12 w-12 items-center justify-center rounded-md bg-primary-50 text-primary-500 transition group-hover:bg-primary-500 group-hover:text-white">
+    <span
+      className={`grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br ${gradient} text-xs font-bold text-white ring-2 ring-surface-soft`}
+    >
+      {letter}
+    </span>
+  );
+}
+
+function StepCard({
+  color,
+  icon,
+  title,
+  body,
+}: {
+  color: string;
+  icon: React.ReactNode;
+  title: string;
+  body: string;
+}) {
+  return (
+    <div className="rounded-lg border border-surface-container bg-white p-7 shadow-soft">
+      <div className={`inline-flex h-10 w-10 items-center justify-center rounded-md text-white ${color}`}>
         {icon}
       </div>
       <h3 className="mt-5 font-display text-lg font-bold text-ink">{title}</h3>
@@ -183,35 +211,43 @@ function Feature({ icon, title, body }: { icon: React.ReactNode; title: string; 
   );
 }
 
-function Step({ n, title, body }: { n: number; title: string; body: string }) {
+function FeaturePill({
+  icon,
+  title,
+  sub,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  sub: string;
+}) {
   return (
-    <div className="relative rounded-lg bg-white p-8 shadow-card">
-      <div className="absolute -top-5 left-7 grid h-11 w-11 place-items-center rounded-full bg-gradient-to-br from-secondary-500 to-primary-500 font-display text-base font-extrabold text-white shadow-vivid">
-        {n}
+    <div className="rounded-md border border-surface-container bg-white p-4 shadow-soft">
+      <div className="flex items-center gap-2 text-ink">
+        <span className="text-ink-muted">{icon}</span>
+        <span className="text-sm font-semibold">{title}</span>
       </div>
-      <h3 className="mt-4 font-display text-xl font-bold text-ink">{title}</h3>
-      <p className="mt-3 text-sm leading-relaxed text-ink-muted">{body}</p>
+      <p className="mt-1 text-xs text-ink-muted">{sub}</p>
     </div>
   );
 }
 
-function TrustCard({
+function FeatureItem({
   icon,
+  color,
   title,
   body,
 }: {
   icon: React.ReactNode;
+  color: string;
   title: string;
   body: string;
 }) {
   return (
     <div className="flex gap-4">
-      <div className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-secondary-50 text-secondary-500">
-        {icon}
-      </div>
+      <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-md ${color}`}>{icon}</div>
       <div>
         <h4 className="font-display text-base font-bold text-ink">{title}</h4>
-        <p className="mt-1.5 text-sm leading-relaxed text-ink-muted">{body}</p>
+        <p className="mt-1 text-sm leading-relaxed text-ink-muted">{body}</p>
       </div>
     </div>
   );
