@@ -27,4 +27,6 @@ export interface ChatMessage {
   author: Identity | null;
   guest: Identity | null;
   createdAt: string;
+  /** Client-only state used for optimistic UI before the server confirms. */
+  clientStatus?: 'sending' | 'failed';
 }

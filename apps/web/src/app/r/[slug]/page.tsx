@@ -201,17 +201,74 @@ export default function RoomPage() {
     void refreshWallet();
   }, [refreshWallet]);
 
+  // Optimistic message send: the bubble appears instantly and is replaced
+  // with the server's response when it arrives. If it fails, the bubble
+  // turns red with a retry link.
+  const sendTextMessage = useCallback(
+    async (text: string, tempIdHint?: string) => {
+      if (!text.trim() || !room || !chatAuth || !identity) return;
+      const tempId =
+        tempIdHint ?? `tmp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+      // 1) Optimistic insert (or re-insert on retry).
+      const tempMsg: ChatMessage = {
+        id: tempId,
+        roomId: room.id,
+        kind: 'text',
+        body: text,
+        mediaId: null,
+        media: null,
+        author: !identity.isGuest ? identity : null,
+        guest: identity.isGuest ? identity : null,
+        createdAt: new Date().toISOString(),
+        clientStatus: 'sending',
+      };
+      setMessages((prev) => {
+        if (tempIdHint) {
+          // Retry path — flip status, keep position
+          return prev.map((m) =>
+            m.id === tempIdHint ? { ...m, clientStatus: 'sending' } : m,
+          );
+        }
+        return [...prev, tempMsg];
+      });
+
+      // 2) Fire-and-forget POST + socket broadcast.
+      try {
+        const msg = await api<ChatMessage>('/messages', {
+          method: 'POST',
+          token: chatAuth,
+          body: JSON.stringify({ roomId: room.id, kind: 'text', body: text }),
+        });
+        // Replace the temp message with the server-authoritative one.
+        setMessages((prev) => {
+          const withoutDuplicate = prev.filter((m) => m.id !== msg.id);
+          return withoutDuplicate.map((m) => (m.id === tempId ? msg : m));
+        });
+        socketRef.current?.emit('message:send', msg, () => undefined);
+      } catch {
+        setMessages((prev) =>
+          prev.map((m) => (m.id === tempId ? { ...m, clientStatus: 'failed' } : m)),
+        );
+      }
+    },
+    [room, chatAuth, identity],
+  );
+
   const sendMessage = useCallback(async () => {
-    if (!input.trim() || !room || !chatAuth) return;
-    const msg = await api<ChatMessage>('/messages', {
-      method: 'POST',
-      token: chatAuth,
-      body: JSON.stringify({ roomId: room.id, kind: 'text', body: input.trim() }),
-    });
-    socketRef.current?.emit('message:send', msg, () => undefined);
-    setMessages((prev) => [...prev, msg]);
-    setInput('');
-  }, [input, room, chatAuth]);
+    const text = input.trim();
+    if (!text) return;
+    setInput(''); // clear immediately — no perceived latency
+    void sendTextMessage(text);
+  }, [input, sendTextMessage]);
+
+  const retryMessage = useCallback(
+    (msg: ChatMessage) => {
+      if (!msg.body) return;
+      void sendTextMessage(msg.body, msg.id);
+    },
+    [sendTextMessage],
+  );
 
   const sendMediaMessage = useCallback(
     async (kind: 'image' | 'video', mediaId: string) => {
@@ -418,6 +475,7 @@ export default function RoomPage() {
                 key={m.id}
                 msg={m}
                 onTip={(msg) => setTipTarget({ kind: 'message', id: msg.id })}
+                onRetry={retryMessage}
               />
             ))}
           </div>

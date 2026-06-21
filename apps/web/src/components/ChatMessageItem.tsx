@@ -1,17 +1,25 @@
 'use client';
-import { Coins, Loader2 } from 'lucide-react';
+import { Coins, Loader2, AlertCircle } from 'lucide-react';
 import type { ChatMessage } from './types';
 import { HlsPlayer } from './HlsPlayer';
 
 export function ChatMessageItem({
   msg,
   onTip,
+  onRetry,
 }: {
   msg: ChatMessage;
   onTip: (msg: ChatMessage) => void;
+  onRetry?: (msg: ChatMessage) => void;
 }) {
+  const isSending = msg.clientStatus === 'sending';
+  const isFailed = msg.clientStatus === 'failed';
   return (
-    <div className="group flex items-start gap-3 rounded-lg p-2 hover:bg-zinc-50 dark:hover:bg-zinc-900">
+    <div
+      className={`group flex items-start gap-3 rounded-lg p-2 transition hover:bg-zinc-50 dark:hover:bg-zinc-900 ${
+        isSending ? 'opacity-60' : ''
+      } ${isFailed ? 'bg-red-50/50 dark:bg-red-950/20' : ''}`}
+    >
       {(() => {
         const who = msg.author ?? msg.guest;
         const isGuest = !msg.author && !!msg.guest;
@@ -45,15 +53,38 @@ export function ChatMessageItem({
         {msg.kind === 'text' && <p className="break-words text-sm">{msg.body}</p>}
         {msg.kind === 'image' && <MediaImage msg={msg} />}
         {msg.kind === 'video' && <MediaVideo msg={msg} />}
+        {isFailed && (
+          <div className="mt-1 flex items-center gap-2 text-xs text-red-600">
+            <AlertCircle className="h-3.5 w-3.5" />
+            <span>No se pudo enviar.</span>
+            {onRetry && (
+              <button
+                type="button"
+                onClick={() => onRetry(msg)}
+                className="font-semibold underline hover:no-underline"
+              >
+                Reintentar
+              </button>
+            )}
+          </div>
+        )}
+        {isSending && (
+          <span className="mt-0.5 inline-flex items-center gap-1 text-[10px] text-ink-soft">
+            <Loader2 className="h-3 w-3 animate-spin" />
+            Enviando…
+          </span>
+        )}
       </div>
-      <button
-        onClick={() => onTip(msg)}
-        className="opacity-0 transition group-hover:opacity-100"
-        aria-label="Enviar propina"
-        title="Tip"
-      >
-        <Coins className="h-5 w-5 text-amber-500 hover:text-amber-600" />
-      </button>
+      {!isSending && !isFailed && (
+        <button
+          onClick={() => onTip(msg)}
+          className="opacity-0 transition group-hover:opacity-100"
+          aria-label="Enviar propina"
+          title="Tip"
+        >
+          <Coins className="h-5 w-5 text-amber-500 hover:text-amber-600" />
+        </button>
+      )}
     </div>
   );
 }
