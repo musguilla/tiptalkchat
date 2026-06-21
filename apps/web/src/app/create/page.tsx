@@ -9,7 +9,6 @@ export default function CreateRoomPage() {
   const router = useRouter();
   const token = useAuth((s) => s.token);
   const [name, setName] = useState('');
-  const [slug, setSlug] = useState('');
   const [pin, setPin] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -29,7 +28,6 @@ export default function CreateRoomPage() {
         token: token!,
         body: JSON.stringify({
           name,
-          ...(slug ? { slug } : {}),
           ...(pin ? { pin } : {}),
         }),
       });
@@ -48,10 +46,6 @@ export default function CreateRoomPage() {
         <label className="block space-y-1 text-sm">
           <span className="font-medium">{t('es', 'create.name')}</span>
           <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="Fiesta de Marta" className="w-full rounded-md border border-zinc-300 bg-white p-2 dark:border-zinc-700 dark:bg-zinc-800" />
-        </label>
-        <label className="block space-y-1 text-sm">
-          <span className="font-medium">Slug (opcional)</span>
-          <input value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="fiesta-marta" className="w-full rounded-md border border-zinc-300 bg-white p-2 dark:border-zinc-700 dark:bg-zinc-800" />
         </label>
         <label className="block space-y-1 text-sm">
           <span className="font-medium">PIN (opcional)</span>

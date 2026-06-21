@@ -10,6 +10,7 @@ import {
   S3Client,
   PutObjectCommand,
   GetObjectCommand,
+  DeleteObjectCommand,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { loadEnv } from '@tiptalk/config';
@@ -29,6 +30,8 @@ export interface UploadTicket {
 export interface StorageProvider {
   createImageUploadTicket(input: { contentType: string; bytes: number }): Promise<UploadTicket>;
   getPublicUrl(storageKey: string): string;
+  /** Delete an object. Best-effort: missing-object errors are swallowed. */
+  deleteObject(storageKey: string): Promise<void>;
 }
 
 let cached: StorageProvider | null = null;
@@ -94,6 +97,17 @@ function buildSupabaseProvider(): StorageProvider {
     getPublicUrl(storageKey: string) {
       return `${base}/storage/v1/object/public/${bucket}/${storageKey}`;
     },
+
+    async deleteObject(storageKey: string) {
+      try {
+        await fetch(`${base}/storage/v1/object/${bucket}/${storageKey}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${env.SUPABASE_SERVICE_KEY}` },
+        });
+      } catch {
+        /* swallow */
+      }
+    },
   };
 }
 
@@ -131,6 +145,13 @@ function buildS3Provider(): StorageProvider {
     },
     getPublicUrl(storageKey: string) {
       return `${env.S3_PUBLIC_URL.replace(/\/$/, '')}/${storageKey}`;
+    },
+    async deleteObject(storageKey: string) {
+      try {
+        await client.send(new DeleteObjectCommand({ Bucket: env.S3_BUCKET, Key: storageKey }));
+      } catch {
+        /* swallow */
+      }
     },
   };
 }

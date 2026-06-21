@@ -3,8 +3,8 @@ export const DEFAULT_LOCALE: Locale = 'es';
 
 const dict = {
   es: {
-    'landing.title': 'TipTalk — chats privados con propinas',
-    'landing.subtitle': 'Crea una sala, comparte el enlace y recibe propinas en Tipsys.',
+    'landing.title': 'Salas de chats privadas uno a uno',
+    'landing.subtitle': 'Crea una sala, comparte el enlace y recibe propinas.',
     'landing.cta.create': 'Crear sala',
     'landing.cta.join': 'Unirme a una sala',
     'create.name': 'Nombre de la sala',
@@ -24,8 +24,8 @@ const dict = {
     'auth.displayName': 'Tu nombre',
   },
   en: {
-    'landing.title': 'TipTalk — private rooms with tipping',
-    'landing.subtitle': 'Create a room, share the link, get tipped in Tipsys.',
+    'landing.title': 'Private one-to-one chat rooms',
+    'landing.subtitle': 'Create a room, share the link, get tipped.',
     'landing.cta.create': 'Create room',
     'landing.cta.join': 'Join a room',
     'create.name': 'Room name',

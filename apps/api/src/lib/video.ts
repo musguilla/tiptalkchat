@@ -100,6 +100,24 @@ export function muxThumbnailUrl(playbackId: string, opts?: { time?: number; widt
  * Returns true if the signature is valid OR if no secret is configured (dev).
  * Includes a 5-minute replay-protection window on the timestamp.
  */
+/**
+ * Best-effort deletion of a Mux asset given the upload id we originally
+ * stored. Resolves the asset id from the upload first, then deletes the
+ * asset. Errors are swallowed because this runs from the host's "close
+ * chat" action and a missing Mux asset should not block the cleanup.
+ */
+export async function deleteMuxAssetByUploadId(uploadId: string): Promise<void> {
+  try {
+    const mux = getMux();
+    const upload = await mux.video.uploads.retrieve(uploadId);
+    if (upload?.asset_id) {
+      await mux.video.assets.delete(upload.asset_id);
+    }
+  } catch {
+    /* swallow — best effort */
+  }
+}
+
 export function verifyMuxWebhook(rawBody: Buffer, signatureHeader: string | undefined): boolean {
   const env = loadEnv();
   if (!env.MUX_WEBHOOK_SECRET) return true; // dev: skip verification

@@ -3,6 +3,9 @@ import { z } from 'zod';
 import { prisma } from '@tiptalk/db';
 import { generateFriendlySlug, isValidCustomSlug, sanitizeSlug } from '../lib/slug.js';
 import { hashPassword, verifyPassword } from '../lib/passwords.js';
+import { getStorage } from '../lib/storage.js';
+import { deleteMuxAssetByUploadId } from '../lib/video.js';
+import { loadEnv } from '@tiptalk/config';
 
 const createBody = z.object({
   name: z.string().min(1).max(80),
@@ -156,7 +159,53 @@ export async function roomRoutes(app: FastifyInstance): Promise<void> {
     const room = await prisma.room.findUnique({ where: { id } });
     if (!room) throw app.httpErrors.notFound('Room not found');
     if (room.creatorId !== userId) throw app.httpErrors.forbidden('Only creator can close');
-    await prisma.room.update({ where: { id }, data: { closedAt: new Date() } });
-    return { closed: true };
+
+    // Wipe every uploaded media attached to messages in this room: deletes
+    // the underlying files in Supabase Storage (images) and Mux (videos),
+    // then drops the MediaAsset rows (Message.mediaId becomes null via the
+    // SetNull onDelete on the relation).
+    const env = loadEnv();
+    const storage = getStorage();
+    const mediaAssets = await prisma.mediaAsset.findMany({
+      where: {
+        messages: { some: { roomId: id } },
+      },
+    });
+
+    let deletedFiles = 0;
+    for (const m of mediaAssets) {
+      if (m.kind === 'image') {
+        if (m.originalKey) {
+          await storage.deleteObject(m.originalKey);
+          deletedFiles += 1;
+        }
+        if (m.thumbnailKey && m.thumbnailKey !== m.originalKey) {
+          await storage.deleteObject(m.thumbnailKey);
+        }
+      } else if (m.kind === 'video') {
+        if (m.hlsManifestKey?.startsWith('mux:')) {
+          if (env.VIDEO_PROVIDER === 'mux' && m.originalKey) {
+            await deleteMuxAssetByUploadId(m.originalKey);
+            deletedFiles += 1;
+          }
+        } else if (m.originalKey) {
+          await storage.deleteObject(m.originalKey);
+          if (m.hlsManifestKey) await storage.deleteObject(m.hlsManifestKey);
+          if (m.thumbnailKey) await storage.deleteObject(m.thumbnailKey);
+          deletedFiles += 1;
+        }
+      }
+    }
+
+    await prisma.mediaAsset.deleteMany({
+      where: { id: { in: mediaAssets.map((m) => m.id) } },
+    });
+
+    await prisma.room.update({
+      where: { id },
+      data: { closedAt: new Date() },
+    });
+
+    return { closed: true, mediaDeleted: deletedFiles };
   });
 }
