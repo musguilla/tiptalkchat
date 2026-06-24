@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { prisma } from '@tiptalk/db';
 import { formatMediaForClient } from '../lib/media-urls.js';
+import { broadcastToRoom } from '../lib/realtime.js';
 
 const createBody = z.object({
   roomId: z.string(),
@@ -48,8 +49,10 @@ export async function messageRoutes(app: FastifyInstance): Promise<void> {
           media: true,
         },
       });
+      const payload = { ...msg, media: msg.media ? formatMediaForClient(msg.media) : null };
+      void broadcastToRoom('message:new', body.roomId, payload);
       reply.code(201);
-      return { ...msg, media: msg.media ? formatMediaForClient(msg.media) : null };
+      return payload;
     }
 
     // user path
@@ -77,8 +80,10 @@ export async function messageRoutes(app: FastifyInstance): Promise<void> {
         media: true,
       },
     });
+    const payload = { ...msg, media: msg.media ? formatMediaForClient(msg.media) : null };
+    void broadcastToRoom('message:new', body.roomId, payload);
     reply.code(201);
-    return { ...msg, media: msg.media ? formatMediaForClient(msg.media) : null };
+    return payload;
   });
 
   app.get('/', async (req) => {

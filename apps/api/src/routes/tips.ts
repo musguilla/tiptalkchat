@@ -6,6 +6,7 @@ import { prisma } from '@tiptalk/db';
 import { transferTipsys } from '../lib/wallet.js';
 import { InsufficientBalanceError, eurCentsToTipsys } from '@tiptalk/economy';
 import { loadEnv } from '@tiptalk/config';
+import { broadcastToRoom } from '../lib/realtime.js';
 
 const sendBody = z.object({
   amount: z.number().int().positive().max(100_000),
@@ -165,6 +166,7 @@ export async function tipRoutes(app: FastifyInstance): Promise<void> {
         idempotencyKey: `tip:${tip.id}`,
       });
 
+      void broadcastToRoom('tip:new', body.roomId, tip);
       reply.code(201);
       return tip;
     } catch (err) {

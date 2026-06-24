@@ -18,7 +18,56 @@ interface SocketData {
   inCalls: Set<string>;
 }
 
-const http = createServer();
+/**
+ * Internal broadcast endpoint: lets the API push events into a room without
+ * depending on a client socket being healthy. Auth is shared via the JWT
+ * access secret (the API and realtime are co-deployed and trust each other).
+ */
+const http = createServer((req, res) => {
+  if (req.url === '/internal/broadcast' && req.method === 'POST') {
+    const auth = req.headers.authorization;
+    if (auth !== `Bearer ${env.JWT_ACCESS_SECRET}`) {
+      res.statusCode = 401;
+      res.end();
+      return;
+    }
+    let body = '';
+    req.on('data', (chunk: Buffer) => {
+      body += chunk.toString();
+    });
+    req.on('end', () => {
+      try {
+        const parsed = JSON.parse(body) as {
+          event: string;
+          roomId: string;
+          payload: unknown;
+        };
+        if (!parsed.event || !parsed.roomId) {
+          res.statusCode = 400;
+          res.end('missing event or roomId');
+          return;
+        }
+        io.to(roomKey(parsed.roomId)).emit(
+          parsed.event as keyof ServerToClientEvents,
+          parsed.payload as never,
+        );
+        res.statusCode = 204;
+        res.end();
+      } catch {
+        res.statusCode = 400;
+        res.end('invalid JSON');
+      }
+    });
+    return;
+  }
+  if (req.url === '/health' || req.url === '/') {
+    res.statusCode = 200;
+    res.end('ok');
+    return;
+  }
+  // Socket.IO handles its own /socket.io paths via the `attached` listener
+  // added by the Server constructor — fall through silently for those.
+});
 const io = new Server<ClientToServerEvents, ServerToClientEvents, Record<string, never>, SocketData>(
   http,
   {
