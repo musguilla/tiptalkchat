@@ -119,6 +119,24 @@ export default function WalletPage() {
       </header>
       <h1 className="text-2xl font-bold">{t('es', 'wallet.title')}</h1>
 
+      <section className="flex flex-col gap-3 rounded-xl border border-primary-200 bg-primary-50/70 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="font-display text-sm font-bold text-primary-700">
+            Activa los cobros de tus propinas
+          </p>
+          <p className="text-xs text-primary-700/80">
+            Conecta tu cuenta de Stripe para recibir el dinero de tus Tipsys.
+          </p>
+        </div>
+        <button
+          onClick={connectStripe}
+          disabled={busy}
+          className="btn-tactile shrink-0 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-4 py-2 text-xs font-bold text-white shadow-soft hover:shadow-vivid disabled:opacity-60"
+        >
+          Conectar Stripe
+        </button>
+      </section>
+
       <section className="rounded-xl border border-zinc-200 bg-gradient-to-br from-amber-50 to-amber-100 p-5 dark:border-zinc-800 dark:from-amber-900/30 dark:to-amber-700/20">
         <div className="text-xs font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-300">
           {t('es', 'wallet.balance')}
@@ -160,22 +178,13 @@ export default function WalletPage() {
           {' '}
           {formatTipsysAsEur(PAYOUT_MIN_TIPSYS)} bruto, antes de comisión)
         </p>
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={connectStripe}
-            disabled={busy}
-            className="rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm font-semibold disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-900"
-          >
-            Conectar Stripe
-          </button>
-          <button
-            onClick={requestPayout}
-            disabled={busy || !wallet?.canRequestPayout}
-            className="rounded-md bg-amber-500 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
-          >
-            {t('es', 'wallet.payout.request')}
-          </button>
-        </div>
+        <button
+          onClick={requestPayout}
+          disabled={busy || !wallet?.canRequestPayout}
+          className="rounded-md bg-amber-500 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+        >
+          {t('es', 'wallet.payout.request')}
+        </button>
         {msg && <p className="text-sm">{msg}</p>}
       </section>
 
