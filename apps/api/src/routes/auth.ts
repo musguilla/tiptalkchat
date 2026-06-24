@@ -17,6 +17,10 @@ const upgradeGuestBody = z.object({
   displayName: z.string().min(1).max(40).optional(),
 });
 
+const claimGuestRoomsBody = z.object({
+  guestToken: z.string(),
+});
+
 const loginBody = z.object({
   email: z.string().email(),
   password: z.string().min(1),
@@ -172,5 +176,72 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
       user: { id: user.id, email: user.email, displayName: user.displayName, role: user.role },
       upgraded: true,
     };
+  });
+
+  /**
+   * Same ownership-transfer logic as /upgrade-guest, but for hosts who
+   * already have an account. After /auth/login, the client posts here with
+   * the guest token still in localStorage. We verify the guest token, grab
+   * its guestId, and migrate that guest session's rooms + memberships +
+   * messages + wallet to the logged-in user.
+   */
+  app.post('/claim-guest-rooms', async (req) => {
+    const { userId } = await app.requireUser(req);
+    const body = claimGuestRoomsBody.parse(req.body);
+
+    let guestId: string;
+    try {
+      const decoded = app.jwt.verify<{ sub: string; kind?: string }>(body.guestToken);
+      if (decoded.kind !== 'guest') throw new Error('Not a guest token');
+      guestId = decoded.sub;
+    } catch {
+      throw app.httpErrors.badRequest('Invalid guest token');
+    }
+
+    const moved = await prisma.$transaction(async (tx) => {
+      const rooms = await tx.room.updateMany({
+        where: { creatorGuestId: guestId },
+        data: { creatorId: userId, creatorGuestId: null },
+      });
+
+      const memberships = await tx.roomMembership.findMany({ where: { guestId } });
+      for (const m of memberships) {
+        const conflict = await tx.roomMembership.findUnique({
+          where: { roomId_userId: { roomId: m.roomId, userId } },
+        });
+        if (conflict) {
+          await tx.roomMembership.delete({ where: { id: m.id } });
+        } else {
+          await tx.roomMembership.update({
+            where: { id: m.id },
+            data: { userId, guestId: null },
+          });
+        }
+      }
+
+      const messages = await tx.message.updateMany({
+        where: { guestId },
+        data: { authorId: userId, guestId: null },
+      });
+
+      // Wallet: prefer the user's existing wallet. If only the guest had one,
+      // move it over. If both exist, drop the guest one (could sum later).
+      const guestWallet = await tx.wallet.findUnique({ where: { guestId } });
+      if (guestWallet) {
+        const userWallet = await tx.wallet.findUnique({ where: { userId } });
+        if (userWallet) {
+          await tx.wallet.delete({ where: { id: guestWallet.id } });
+        } else {
+          await tx.wallet.update({
+            where: { id: guestWallet.id },
+            data: { userId, guestId: null },
+          });
+        }
+      }
+
+      return { rooms: rooms.count, messages: messages.count };
+    });
+
+    return { migrated: true, ...moved };
   });
 }

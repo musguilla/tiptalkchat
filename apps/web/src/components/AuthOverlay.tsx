@@ -13,8 +13,9 @@ interface AuthResponse {
 interface Props {
   open: boolean;
   initialMode?: 'login' | 'signup';
-  /** When set, after signup we call /auth/upgrade-guest with this token so
-   * the user's anon host session is migrated into the new account. */
+  /** When set, the modal is in 'upgrade host' mode: after signup OR login,
+   * we transfer ownership of the anonymous room (identified by this guest
+   * token) to the user account. */
   upgradeFromGuestToken?: string | null;
   onClose: () => void;
   onSuccess: (token: string, user: SessionUser) => void;
@@ -35,6 +36,8 @@ export function AuthOverlay({
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  const isUpgrade = !!upgradeFromGuestToken;
+
   useEffect(() => {
     if (!open) return;
     setMode(initialMode);
@@ -53,24 +56,35 @@ export function AuthOverlay({
     setError(null);
     setBusy(true);
     try {
-      const endpoint =
-        mode === 'login'
-          ? '/auth/login'
-          : upgradeFromGuestToken
-            ? '/auth/upgrade-guest'
-            : '/auth/signup';
-      const body =
-        mode === 'login'
-          ? { email, password }
-          : upgradeFromGuestToken
-            ? { email, password, displayName: displayName || undefined }
-            : { email, password, displayName: displayName || 'Anónimo' };
-
-      const res = await api<AuthResponse>(endpoint, {
-        method: 'POST',
-        token: upgradeFromGuestToken ?? undefined,
-        body: JSON.stringify(body),
-      });
+      let res: AuthResponse;
+      if (mode === 'login') {
+        // Plain login (regular flow or upgrade-via-existing-account).
+        res = await api<AuthResponse>('/auth/login', {
+          method: 'POST',
+          body: JSON.stringify({ email, password }),
+        });
+        if (isUpgrade && upgradeFromGuestToken) {
+          // Existing-account host: transfer the anon room ownership now.
+          await api('/auth/claim-guest-rooms', {
+            method: 'POST',
+            token: res.token,
+            body: JSON.stringify({ guestToken: upgradeFromGuestToken }),
+          });
+        }
+      } else if (isUpgrade && upgradeFromGuestToken) {
+        // New-account host: single endpoint creates user AND migrates.
+        res = await api<AuthResponse>('/auth/upgrade-guest', {
+          method: 'POST',
+          token: upgradeFromGuestToken,
+          body: JSON.stringify({ email, password, displayName: displayName || undefined }),
+        });
+      } else {
+        // Regular signup (no upgrade in flight).
+        res = await api<AuthResponse>('/auth/signup', {
+          method: 'POST',
+          body: JSON.stringify({ email, password, displayName: displayName || 'Anónimo' }),
+        });
+      }
       setSession(res.token, res.user);
       onSuccess(res.token, res.user);
     } catch (err) {
@@ -86,7 +100,19 @@ export function AuthOverlay({
     }
   }
 
-  const isUpgrade = mode === 'signup' && !!upgradeFromGuestToken;
+  const title = isUpgrade
+    ? 'Activa los pagos'
+    : mode === 'login'
+      ? 'Iniciar sesión'
+      : 'Crear cuenta';
+
+  const buttonLabel = busy
+    ? '…'
+    : isUpgrade
+      ? 'Activa el recibir tips'
+      : mode === 'login'
+        ? 'Iniciar sesión'
+        : 'Crear cuenta';
 
   return (
     <div className="fixed inset-0 z-[60] grid place-items-center bg-ink/40 p-4 backdrop-blur-sm">
@@ -109,11 +135,7 @@ export function AuthOverlay({
 
         <div>
           <h2 className="text-center font-display text-2xl font-extrabold tracking-tight">
-            {isUpgrade
-              ? 'Activa los pagos'
-              : mode === 'login'
-                ? 'Iniciar sesión'
-                : 'Crear cuenta'}
+            {title}
           </h2>
           {isUpgrade && (
             <p className="mt-2 text-center text-sm text-ink-muted">
@@ -123,6 +145,7 @@ export function AuthOverlay({
           )}
         </div>
 
+        {/* displayName: only shown when CREATING a new account */}
         {mode === 'signup' && (
           <label className="block space-y-1.5 text-sm">
             <span className="font-medium text-ink">Tu nombre</span>
@@ -164,32 +187,25 @@ export function AuthOverlay({
         <button
           type="submit"
           disabled={busy}
-          className="btn-tactile w-full rounded-md bg-primary-500 px-4 py-2.5 font-semibold text-white shadow-soft hover:bg-primary-600 disabled:opacity-60"
+          className="btn-tactile w-full rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-4 py-3 font-bold text-white shadow-vivid hover:shadow-vivid-strong disabled:opacity-60"
         >
-          {busy
-            ? '…'
-            : isUpgrade
-              ? 'Activar pagos'
-              : mode === 'login'
-                ? 'Iniciar sesión'
-                : 'Crear cuenta'}
+          {buttonLabel}
         </button>
 
-        {!isUpgrade && (
-          <p className="text-center text-sm text-ink-muted">
-            {mode === 'login' ? '¿Sin cuenta?' : '¿Ya tienes cuenta?'}{' '}
-            <button
-              type="button"
-              onClick={() => {
-                setMode(mode === 'login' ? 'signup' : 'login');
-                setError(null);
-              }}
-              className="font-semibold text-primary-500 hover:underline"
-            >
-              {mode === 'login' ? 'Crear cuenta' : 'Iniciar sesión'}
-            </button>
-          </p>
-        )}
+        {/* Toggle login / signup. Available in both regular and upgrade modes. */}
+        <p className="text-center text-sm text-ink-muted">
+          {mode === 'login' ? '¿Sin cuenta?' : '¿Ya tienes cuenta?'}{' '}
+          <button
+            type="button"
+            onClick={() => {
+              setMode(mode === 'login' ? 'signup' : 'login');
+              setError(null);
+            }}
+            className="font-semibold text-primary-500 hover:underline"
+          >
+            {mode === 'login' ? 'Crear cuenta' : 'Iniciar sesión'}
+          </button>
+        </p>
       </form>
     </div>
   );
