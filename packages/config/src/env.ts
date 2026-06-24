@@ -36,7 +36,7 @@ const baseSchema = z.object({
 
   JWT_ACCESS_SECRET: z.string().min(16).default('dev_access_secret_change_me_please'),
   JWT_REFRESH_SECRET: z.string().min(16).default('dev_refresh_secret_change_me_please'),
-  JWT_ACCESS_TTL: z.string().default('15m'),
+  JWT_ACCESS_TTL: z.string().default('7d'),
   JWT_REFRESH_TTL: z.string().default('30d'),
 
   // --- Storage (for images) ---

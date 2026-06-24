@@ -22,7 +22,18 @@ export async function api<T>(
   const res = await fetch(`${API_BASE}${path}`, { ...init, headers, credentials: 'include' });
   const text = await res.text();
   const payload = text ? safeJson(text) : null;
-  if (!res.ok) throw new ApiError(res.status, payload);
+  if (!res.ok) {
+    // The JWT we sent was rejected. Drop the local session immediately so
+    // the UI stops pretending the user is logged in.
+    if (res.status === 401 && init.token && typeof window !== 'undefined') {
+      try {
+        window.localStorage.removeItem('tiptalk-auth');
+      } catch {
+        /* ignore */
+      }
+    }
+    throw new ApiError(res.status, payload);
+  }
   return payload as T;
 }
 

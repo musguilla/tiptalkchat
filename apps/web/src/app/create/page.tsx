@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Check, Copy, ArrowRight } from 'lucide-react';
-import { api } from '@/lib/api';
+import { api, ApiError } from '@/lib/api';
 import { useAuth } from '@/lib/auth-store';
 import { Logo } from '@/components/Logo';
 
@@ -55,8 +55,17 @@ export default function CreateRoomPage() {
         writeHostTokens(tokens);
       }
       setCreated(res);
-    } catch {
-      setError('No se pudo crear la sala. Inténtalo de nuevo.');
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        clearAuth();
+        setError('Tu sesión ha caducado. Vuelve a iniciar sesión o crea la sala como invitado.');
+      } else {
+        const msg =
+          err instanceof ApiError && err.payload && typeof err.payload === 'object'
+            ? ((err.payload as { message?: string }).message ?? null)
+            : null;
+        setError(msg ?? 'No se pudo crear la sala. Inténtalo de nuevo.');
+      }
     } finally {
       setLoading(false);
     }

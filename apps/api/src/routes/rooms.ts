@@ -27,6 +27,14 @@ export async function roomRoutes(app: FastifyInstance): Promise<void> {
   app.post('/', async (req, reply) => {
     const body = createBody.parse(req.body);
 
+    // If the client sent an Authorization header but auth failed, surface
+    // the expiry/invalid-token as 401 instead of silently falling through
+    // to the anonymous path (which would 400 because no nick was sent).
+    const sentAuth = !!req.headers.authorization;
+    if (sentAuth && !req.sessionUser) {
+      throw app.httpErrors.unauthorized('Session expired — please log in again');
+    }
+
     let slug = body.slug ? sanitizeSlug(body.slug) : generateFriendlySlug();
     if (!isValidCustomSlug(slug)) {
       throw app.httpErrors.badRequest('Invalid slug');
