@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { X as XIcon, Camera, Loader2 } from 'lucide-react';
 import { api } from '@/lib/api';
-import { uploadImage } from '@/lib/upload';
+import { uploadAvatar } from '@/lib/upload';
 import { useAuth, type SessionUser } from '@/lib/auth-store';
 import { Logo } from './Logo';
 
@@ -48,7 +48,7 @@ export function ProfileOverlay({ open, onClose }: Props) {
     setUploadPct(0);
     setMsg(null);
     try {
-      const res = await uploadImage(file, token, setUploadPct);
+      const res = await uploadAvatar(file, token, setUploadPct);
       setAvatarUrl(res.publicUrl);
     } catch (err) {
       setMsg(err instanceof Error ? err.message : 'No se pudo subir la imagen');

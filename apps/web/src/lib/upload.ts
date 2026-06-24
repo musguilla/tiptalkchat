@@ -54,6 +54,32 @@ export async function uploadImage(
 }
 
 /**
+ * Profile-avatar upload. Goes through /auth/me/avatar/upload which signs
+ * against the public `profiles` Supabase bucket (separate from chat media).
+ * After the bytes land, the caller should PATCH /auth/me { avatarUrl }
+ * with the returned publicUrl.
+ */
+export async function uploadAvatar(
+  file: File,
+  token: string,
+  onProgress?: (pct: number) => void,
+): Promise<{ publicUrl: string }> {
+  if (!/^image\/(jpeg|png|webp|gif)$/.test(file.type)) {
+    throw new Error('Formato no soportado (jpeg, png, webp, gif)');
+  }
+  const ticket = await api<{ upload: UploadTicket; publicUrl: string }>(
+    '/auth/me/avatar/upload',
+    {
+      method: 'POST',
+      token,
+      body: JSON.stringify({ contentType: file.type, bytes: file.size }),
+    },
+  );
+  await uploadBytes(ticket.upload, file, onProgress);
+  return { publicUrl: ticket.publicUrl };
+}
+
+/**
  * Video upload via Mux Direct Upload (or local fallback). Mux processes the
  * file asynchronously; the MediaAsset stays in `uploaded` → `processing` →
  * `ready` driven by Mux's webhook. The UI should show a "Processing..." state

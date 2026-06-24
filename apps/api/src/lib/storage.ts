@@ -29,6 +29,12 @@ export interface UploadTicket {
 
 export interface StorageProvider {
   createImageUploadTicket(input: { contentType: string; bytes: number }): Promise<UploadTicket>;
+  /**
+   * Same as createImageUploadTicket but pushes to the public `profiles`
+   * bucket (Supabase) — separate from chat media so avatars never get
+   * swept up by room-cleanup logic.
+   */
+  createAvatarUploadTicket(input: { contentType: string; bytes: number }): Promise<UploadTicket>;
   getPublicUrl(storageKey: string): string;
   /** Delete an object. Best-effort: missing-object errors are swallowed. */
   deleteObject(storageKey: string): Promise<void>;
@@ -53,54 +59,59 @@ function buildSupabaseProvider(): StorageProvider {
     throw new Error('Supabase storage selected but SUPABASE_URL / SUPABASE_SERVICE_KEY missing');
   }
   const base = env.SUPABASE_URL.replace(/\/$/, '');
-  const bucket = env.SUPABASE_BUCKET;
+  const mediaBucket = env.SUPABASE_BUCKET;
+  const profileBucket = env.SUPABASE_PROFILE_BUCKET;
+
+  async function signUpload(
+    bucket: string,
+    keyPrefix: string,
+    contentType: string,
+  ): Promise<UploadTicket> {
+    const storageKey = `${keyPrefix}/${todayPath()}/${randomUUID()}${extFromMime(contentType)}`;
+    const res = await fetch(
+      `${base}/storage/v1/object/upload/sign/${bucket}/${storageKey}`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${env.SUPABASE_SERVICE_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ expiresIn: 300 }),
+      },
+    );
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`Supabase signed upload failed (${res.status}): ${body}`);
+    }
+    const { url, token } = (await res.json()) as { url: string; token: string };
+    const uploadUrl = url.startsWith('http') ? url : `${base}/storage/v1${url}`;
+    return {
+      uploadUrl,
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': contentType,
+        'x-upsert': 'false',
+      },
+      storageKey,
+      publicUrl: `${base}/storage/v1/object/public/${bucket}/${storageKey}`,
+      expiresInSec: 300,
+    };
+  }
 
   return {
-    async createImageUploadTicket({ contentType }) {
-      const storageKey = `images/${todayPath()}/${randomUUID()}${extFromMime(contentType)}`;
-
-      // Supabase Storage: ask the API for a signed upload URL the browser can PUT to.
-      const res = await fetch(
-        `${base}/storage/v1/object/upload/sign/${bucket}/${storageKey}`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${env.SUPABASE_SERVICE_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ expiresIn: 300 }),
-        },
-      );
-      if (!res.ok) {
-        const body = await res.text();
-        throw new Error(`Supabase signed upload failed (${res.status}): ${body}`);
-      }
-      const { url, token } = (await res.json()) as { url: string; token: string };
-      // Supabase returns a relative path like "/object/upload/sign/BUCKET/KEY?token=..."
-      // which needs the "/storage/v1" prefix when joined with the project host.
-      const uploadUrl = url.startsWith('http') ? url : `${base}/storage/v1${url}`;
-
-      return {
-        uploadUrl,
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': contentType,
-          'x-upsert': 'false',
-        },
-        storageKey,
-        publicUrl: `${base}/storage/v1/object/public/${bucket}/${storageKey}`,
-        expiresInSec: 300,
-      };
+    createImageUploadTicket({ contentType }) {
+      return signUpload(mediaBucket, 'images', contentType);
     },
-
+    createAvatarUploadTicket({ contentType }) {
+      return signUpload(profileBucket, 'avatars', contentType);
+    },
     getPublicUrl(storageKey: string) {
-      return `${base}/storage/v1/object/public/${bucket}/${storageKey}`;
+      return `${base}/storage/v1/object/public/${mediaBucket}/${storageKey}`;
     },
-
     async deleteObject(storageKey: string) {
       try {
-        await fetch(`${base}/storage/v1/object/${bucket}/${storageKey}`, {
+        await fetch(`${base}/storage/v1/object/${mediaBucket}/${storageKey}`, {
           method: 'DELETE',
           headers: { Authorization: `Bearer ${env.SUPABASE_SERVICE_KEY}` },
         });
@@ -122,26 +133,32 @@ function buildS3Provider(): StorageProvider {
       secretAccessKey: env.S3_SECRET_KEY,
     },
   });
+  async function s3Upload(prefix: string, contentType: string): Promise<UploadTicket> {
+    const storageKey = `${prefix}/${todayPath()}/${randomUUID()}${extFromMime(contentType)}`;
+    const url = await getSignedUrl(
+      client,
+      new PutObjectCommand({
+        Bucket: env.S3_BUCKET,
+        Key: storageKey,
+        ContentType: contentType,
+      }),
+      { expiresIn: 300 },
+    );
+    return {
+      uploadUrl: url,
+      method: 'PUT',
+      headers: { 'Content-Type': contentType },
+      storageKey,
+      publicUrl: `${env.S3_PUBLIC_URL.replace(/\/$/, '')}/${storageKey}`,
+      expiresInSec: 300,
+    };
+  }
   return {
-    async createImageUploadTicket({ contentType }) {
-      const storageKey = `images/${todayPath()}/${randomUUID()}${extFromMime(contentType)}`;
-      const url = await getSignedUrl(
-        client,
-        new PutObjectCommand({
-          Bucket: env.S3_BUCKET,
-          Key: storageKey,
-          ContentType: contentType,
-        }),
-        { expiresIn: 300 },
-      );
-      return {
-        uploadUrl: url,
-        method: 'PUT',
-        headers: { 'Content-Type': contentType },
-        storageKey,
-        publicUrl: `${env.S3_PUBLIC_URL.replace(/\/$/, '')}/${storageKey}`,
-        expiresInSec: 300,
-      };
+    createImageUploadTicket({ contentType }) {
+      return s3Upload('images', contentType);
+    },
+    createAvatarUploadTicket({ contentType }) {
+      return s3Upload('avatars', contentType);
     },
     getPublicUrl(storageKey: string) {
       return `${env.S3_PUBLIC_URL.replace(/\/$/, '')}/${storageKey}`;

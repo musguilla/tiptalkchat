@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { prisma } from '@tiptalk/db';
 import { hashPassword, verifyPassword } from '../lib/passwords.js';
 import { loadEnv } from '@tiptalk/config';
+import { getStorage } from '../lib/storage.js';
 
 const signupBody = z.object({
   email: z.string().email(),
@@ -24,6 +25,11 @@ const claimGuestRoomsBody = z.object({
 const updateMeBody = z.object({
   displayName: z.string().min(1).max(40).optional(),
   avatarUrl: z.string().url().nullable().optional(),
+});
+
+const avatarUploadBody = z.object({
+  contentType: z.enum(['image/jpeg', 'image/png', 'image/webp', 'image/gif']),
+  bytes: z.number().int().positive().max(8 * 1024 * 1024),
 });
 
 const loginBody = z.object({
@@ -101,6 +107,32 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
       select: { id: true, email: true, displayName: true, avatarUrl: true, role: true },
     });
     return user;
+  });
+
+  /**
+   * Sign a direct upload URL for a profile picture. Lands in the public
+   * `profiles` Supabase bucket so it's served as a static asset and won't
+   * get swept up by chat-media cleanup. The client uploads bytes directly
+   * and then PATCH /auth/me with the returned publicUrl.
+   */
+  app.post('/me/avatar/upload', async (req, reply) => {
+    await app.requireUser(req);
+    const body = avatarUploadBody.parse(req.body);
+    const storage = getStorage();
+    const ticket = await storage.createAvatarUploadTicket({
+      contentType: body.contentType,
+      bytes: body.bytes,
+    });
+    reply.code(201);
+    return {
+      upload: {
+        url: ticket.uploadUrl,
+        method: ticket.method,
+        headers: ticket.headers,
+        expiresInSec: ticket.expiresInSec,
+      },
+      publicUrl: ticket.publicUrl,
+    };
   });
 
   /**
