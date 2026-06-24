@@ -560,6 +560,16 @@ export default function RoomPage() {
               Monedero
             </Link>
           )}
+          {/* Visitors (not the owner, not logged in) get the login link.
+              Hidden for the owner since they already have the gradient CTA. */}
+          {!token && !isOwner && (
+            <button
+              onClick={() => setAuthOverlay('login')}
+              className="rounded-md px-3 py-1 text-sm font-medium text-ink-muted hover:text-ink"
+            >
+              Iniciar sesión
+            </button>
+          )}
           {isOwner && (
             <button
               onClick={() => setShowCloseConfirm(true)}
