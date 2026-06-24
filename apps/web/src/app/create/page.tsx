@@ -7,6 +7,8 @@ import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-store';
 import { Logo } from '@/components/Logo';
 
+const ANON_DISCLAIMER = 'No necesitas cuenta. Solo pon tu nick y un nombre para la sala.';
+
 interface CreatedRoom {
   id: string;
   slug: string;
@@ -19,6 +21,8 @@ interface CreatedRoom {
 export default function CreateRoomPage() {
   const router = useRouter();
   const token = useAuth((s) => s.token);
+  const user = useAuth((s) => s.user);
+  const clearAuth = useAuth((s) => s.clear);
 
   const [nick, setNick] = useState('');
   const [name, setName] = useState('');
@@ -133,9 +137,22 @@ export default function CreateRoomPage() {
           className="w-full max-w-md space-y-5 rounded-lg border border-surface-container bg-white p-7 shadow-soft"
         >
           <h1 className="font-display text-2xl font-extrabold tracking-tight">Crear sala</h1>
-          <p className="text-sm text-ink-muted">
-            No necesitas cuenta. Solo pon tu nick y un nombre para la sala.
-          </p>
+
+          {token && user ? (
+            <p className="text-sm text-ink-muted">
+              Creas como <span className="font-semibold text-ink">{user.displayName}</span>.{' '}
+              <button
+                type="button"
+                onClick={() => clearAuth()}
+                className="font-semibold text-primary-500 hover:underline"
+              >
+                Cerrar sesión
+              </button>{' '}
+              para crear sin cuenta.
+            </p>
+          ) : (
+            <p className="text-sm text-ink-muted">{ANON_DISCLAIMER}</p>
+          )}
 
           {!token && (
             <label className="block space-y-1.5 text-sm">
