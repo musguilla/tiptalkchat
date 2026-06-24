@@ -101,7 +101,7 @@ export function AuthOverlay({
   }
 
   const title = isUpgrade
-    ? 'Activa los pagos'
+    ? 'Activa los tips'
     : mode === 'login'
       ? 'Iniciar sesión'
       : 'Crear cuenta';
@@ -109,7 +109,7 @@ export function AuthOverlay({
   const buttonLabel = busy
     ? '…'
     : isUpgrade
-      ? 'Activa el recibir tips'
+      ? 'Activar ahora'
       : mode === 'login'
         ? 'Iniciar sesión'
         : 'Crear cuenta';
