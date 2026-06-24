@@ -11,6 +11,7 @@ import { Sidebar } from '@/components/Sidebar';
 import { Logo } from '@/components/Logo';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { AuthOverlay } from '@/components/AuthOverlay';
+import { WalletOverlay } from '@/components/WalletOverlay';
 import { ChatMessageItem } from '@/components/ChatMessageItem';
 import { AttachButton } from '@/components/AttachButton';
 import { CallPanel } from '@/components/CallPanel';
@@ -80,6 +81,7 @@ export default function RoomPage() {
   // Auth overlay state: 'login' | 'signup' | 'upgrade' | null
   // 'upgrade' is the host-claim flow (transfers the anonymous room to a new user account).
   const [authOverlay, setAuthOverlay] = useState<'login' | 'signup' | 'upgrade' | null>(null);
+  const [walletOpen, setWalletOpen] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [activeCall, setActiveCall] = useState<'audio' | 'video' | null>(null);
   const socketRef = useRef<Socket | null>(null);
@@ -580,9 +582,13 @@ export default function RoomPage() {
             </button>
           )}
           {token && (
-            <Link href="/wallet" className="rounded-md bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-900 hover:bg-amber-200 dark:bg-amber-900 dark:text-amber-100">
+            <button
+              type="button"
+              onClick={() => setWalletOpen(true)}
+              className="rounded-md bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-900 hover:bg-amber-200 dark:bg-amber-900 dark:text-amber-100"
+            >
               Monedero
-            </Link>
+            </button>
           )}
           {isOwner && (
             <button
@@ -853,6 +859,8 @@ export default function RoomPage() {
           api<RoomData>(`/rooms/${params.slug}`).then(setRoom).catch(() => undefined);
         }}
       />
+
+      <WalletOverlay open={walletOpen} onClose={() => setWalletOpen(false)} />
     </main>
   );
 }
