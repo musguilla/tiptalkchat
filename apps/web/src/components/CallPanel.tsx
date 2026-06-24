@@ -52,6 +52,19 @@ export function CallPanel({ roomId, token, mode, onClose }: CallPanelProps) {
     return Math.min(Math.max(parsed, CALL_WIDTH_MIN), CALL_WIDTH_MAX);
   });
 
+  // Mobile collapses to a top stack (full width, fixed 65vh) so the chat
+  // keeps a couple of lines readable below it. The width drag handle only
+  // makes sense on desktop, so we suppress the inline style on phones.
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(max-width: 767px)');
+    const sync = (): void => setIsMobile(mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
     window.localStorage.setItem(CALL_WIDTH_KEY, String(width));
@@ -191,8 +204,8 @@ export function CallPanel({ roomId, token, mode, onClose }: CallPanelProps) {
 
   return (
     <aside
-      style={{ width: `${width}px` }}
-      className="relative flex w-full max-w-full flex-shrink-0 flex-col border-l border-zinc-800 bg-zinc-950 text-white"
+      style={isMobile ? undefined : { width: `${width}px` }}
+      className="relative order-1 flex w-full max-w-full flex-col bg-zinc-950 text-white max-md:h-[65vh] max-md:border-b max-md:border-zinc-800 md:order-2 md:h-full md:flex-shrink-0 md:border-l md:border-zinc-800"
     >
       {/* Drag handle on the left edge. */}
       <div

@@ -537,13 +537,13 @@ export default function RoomPage() {
 
   return (
     <main className="flex h-screen flex-col">
-      <header className="flex items-center justify-between border-b border-zinc-200 bg-white px-4 py-2 dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="flex items-center gap-3">
-          <Link href="/" className="flex items-center">
+      <header className="flex items-center justify-between gap-2 border-b border-zinc-200 bg-white px-3 py-2 dark:border-zinc-800 dark:bg-zinc-900 sm:px-4">
+        <div className="flex min-w-0 items-center gap-3">
+          <Link href="/" className="flex shrink-0 items-center">
             <Logo className="text-lg" />
           </Link>
-          <span className="text-sm font-semibold">/r/{room.slug}</span>
-          <span className="hidden text-sm text-zinc-500 sm:inline">— {room.name}</span>
+          <span className="hidden truncate text-sm font-semibold md:inline">/r/{room.slug}</span>
+          <span className="hidden truncate text-sm text-zinc-500 lg:inline">— {room.name}</span>
         </div>
         <div className="flex items-center gap-2">
           {chatAuth && (
@@ -568,20 +568,22 @@ export default function RoomPage() {
           {hostToken && !user && room.creator?.kind === 'guest' && (
             <button
               onClick={() => setAuthOverlay('upgrade')}
-              className="btn-tactile rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-3.5 py-1.5 text-xs font-semibold text-white shadow-soft hover:shadow-vivid"
+              className="btn-tactile whitespace-nowrap rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-3 py-1.5 text-xs font-semibold text-white shadow-soft hover:shadow-vivid"
               title="Activar propinas para esta sala"
             >
-              Activar propinas en el chat
+              <span className="sm:hidden">Cobrar</span>
+              <span className="hidden sm:inline">Activar propinas en el chat</span>
             </button>
           )}
           {/* Visitor: prominent CTA to tip the host */}
           {!isOwner && chatAuth && (
             <button
               onClick={() => setTipTarget({ kind: 'room', id: room.id })}
-              className="btn-tactile rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-3.5 py-1.5 text-xs font-semibold text-white shadow-soft hover:shadow-vivid"
+              className="btn-tactile whitespace-nowrap rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-3 py-1.5 text-xs font-semibold text-white shadow-soft hover:shadow-vivid"
               title="Enviar propinas al anfitrión"
             >
-              Dale propinas a tu compi de chat!
+              <span className="sm:hidden">Tipear</span>
+              <span className="hidden sm:inline">Dale propinas a tu compi de chat!</span>
             </button>
           )}
           {token && (
@@ -623,8 +625,8 @@ export default function RoomPage() {
         </div>
       </header>
 
-      <div className="relative flex flex-1 overflow-hidden">
-        <section className="flex flex-1 flex-col">
+      <div className="relative flex flex-1 flex-col overflow-hidden md:flex-row">
+        <section className="order-2 flex flex-1 flex-col min-h-0 md:order-1">
           <div ref={scrollRef} className="flex-1 overflow-y-auto px-2 py-3">
             {messages.map((m) => (
               <ChatMessageItem
