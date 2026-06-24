@@ -11,6 +11,11 @@ import {
 import { Mic, MicOff, Video, VideoOff, PhoneOff } from 'lucide-react';
 import { api } from '@/lib/api';
 
+const CALL_WIDTH_KEY = 'tiptalk-call-width';
+const CALL_WIDTH_MIN = 280;
+const CALL_WIDTH_MAX = 900;
+const CALL_WIDTH_DEFAULT = 320;
+
 interface CallPanelProps {
   roomId: string;
   token: string;
@@ -37,6 +42,54 @@ export function CallPanel({ roomId, token, mode, onClose }: CallPanelProps) {
   const [peers, setPeers] = useState<ParticipantTile[]>([]);
   const roomRef = useRef<Room | null>(null);
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
+
+  // Width is user-resizable via the left edge handle. Persisted across visits.
+  const [width, setWidth] = useState<number>(() => {
+    if (typeof window === 'undefined') return CALL_WIDTH_DEFAULT;
+    const raw = window.localStorage.getItem(CALL_WIDTH_KEY);
+    const parsed = raw ? parseInt(raw, 10) : NaN;
+    if (!Number.isFinite(parsed)) return CALL_WIDTH_DEFAULT;
+    return Math.min(Math.max(parsed, CALL_WIDTH_MIN), CALL_WIDTH_MAX);
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem(CALL_WIDTH_KEY, String(width));
+  }, [width]);
+
+  const startResize = useCallback(
+    (e: React.MouseEvent | React.TouchEvent) => {
+      e.preventDefault();
+      const startX = 'touches' in e ? e.touches[0]?.clientX ?? 0 : e.clientX;
+      const startWidth = width;
+      const onMove = (ev: MouseEvent | TouchEvent): void => {
+        const currentX =
+          'touches' in ev ? ev.touches[0]?.clientX ?? startX : (ev as MouseEvent).clientX;
+        // Dragging the handle LEFT widens the panel.
+        const delta = startX - currentX;
+        const next = Math.min(
+          Math.max(startWidth + delta, CALL_WIDTH_MIN),
+          Math.min(CALL_WIDTH_MAX, window.innerWidth - 200),
+        );
+        setWidth(next);
+      };
+      const onUp = (): void => {
+        window.removeEventListener('mousemove', onMove);
+        window.removeEventListener('mouseup', onUp);
+        window.removeEventListener('touchmove', onMove);
+        window.removeEventListener('touchend', onUp);
+        document.body.style.userSelect = '';
+        document.body.style.cursor = '';
+      };
+      document.body.style.userSelect = 'none';
+      document.body.style.cursor = 'col-resize';
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('mouseup', onUp);
+      window.addEventListener('touchmove', onMove, { passive: false });
+      window.addEventListener('touchend', onUp);
+    },
+    [width],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -137,7 +190,20 @@ export function CallPanel({ roomId, token, mode, onClose }: CallPanelProps) {
   }, [camOn]);
 
   return (
-    <aside className="flex w-full flex-col border-l border-zinc-800 bg-zinc-950 text-white md:w-80">
+    <aside
+      style={{ width: `${width}px` }}
+      className="relative flex w-full max-w-full flex-shrink-0 flex-col border-l border-zinc-800 bg-zinc-950 text-white"
+    >
+      {/* Drag handle on the left edge. */}
+      <div
+        onMouseDown={startResize}
+        onTouchStart={startResize}
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Redimensionar llamada"
+        className="absolute left-0 top-0 z-20 hidden h-full w-1.5 -translate-x-1/2 cursor-col-resize bg-transparent transition hover:bg-primary-500/50 md:block"
+      />
+
       <div className="flex items-center justify-between border-b border-white/10 px-4 py-2">
         <span className="text-sm font-semibold">
           {mode === 'video' ? 'Videollamada' : 'Llamada de voz'}
