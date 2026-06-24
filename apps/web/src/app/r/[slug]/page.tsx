@@ -555,20 +555,20 @@ export default function RoomPage() {
               Activar propinas en el chat
             </button>
           )}
+          {/* Visitor: prominent CTA to tip the host */}
+          {!isOwner && chatAuth && (
+            <button
+              onClick={() => setTipTarget({ kind: 'room', id: room.id })}
+              className="btn-tactile rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-3.5 py-1.5 text-xs font-semibold text-white shadow-soft hover:shadow-vivid"
+              title="Enviar propinas al anfitrión"
+            >
+              Dale propinas a tu compi de chat!
+            </button>
+          )}
           {token && (
             <Link href="/wallet" className="rounded-md bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-900 hover:bg-amber-200 dark:bg-amber-900 dark:text-amber-100">
               Monedero
             </Link>
-          )}
-          {/* Visitors (not the owner, not logged in) get the login link.
-              Hidden for the owner since they already have the gradient CTA. */}
-          {!token && !isOwner && (
-            <button
-              onClick={() => setAuthOverlay('login')}
-              className="rounded-md px-3 py-1 text-sm font-medium text-ink-muted hover:text-ink"
-            >
-              Iniciar sesión
-            </button>
           )}
           {isOwner && (
             <button
