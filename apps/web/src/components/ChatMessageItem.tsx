@@ -82,8 +82,8 @@ export function ChatMessageItem({
   return (
     <div
       className={`group flex items-start gap-3 rounded-lg p-2 transition hover:bg-zinc-50 dark:hover:bg-zinc-900 ${
-        isSending ? 'opacity-60' : ''
-      } ${isFailed ? 'bg-red-50/50 dark:bg-red-950/20' : ''}`}
+        isFailed ? 'bg-red-50/50 dark:bg-red-950/20' : ''
+      }`}
     >
       {(() => {
         const who = msg.author ?? msg.guest;
@@ -132,12 +132,6 @@ export function ChatMessageItem({
               </button>
             )}
           </div>
-        )}
-        {isSending && (
-          <span className="mt-0.5 inline-flex items-center gap-1 text-[10px] text-ink-soft">
-            <Loader2 className="h-3 w-3 animate-spin" />
-            Enviando…
-          </span>
         )}
       </div>
       {!isSending && !isFailed && canTip && (

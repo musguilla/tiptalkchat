@@ -19,13 +19,14 @@ export function HeroVideoPreview() {
           <span className="label-mono text-white/90">LIVE: SESIÓN PRIVADA</span>
         </div>
 
-        {/* Centred subject circle with radial glow */}
+        {/* Centred avatar placeholder with radial glow — neutral letter
+            initial (no person imagery) so the marketing surface stays
+            generic and friendly for payment-provider review. */}
         <div className="absolute inset-0 grid place-items-center">
           <div className="relative">
             <div className="absolute -inset-20 rounded-full bg-[radial-gradient(closest-side,rgba(255,92,0,0.45),transparent_70%)]" />
-            <div className="relative h-44 w-44 overflow-hidden rounded-full shadow-2xl ring-4 ring-primary-500/40">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/hero-room.png" alt="" className="h-full w-full object-cover" />
+            <div className="relative grid h-44 w-44 place-items-center rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 font-display text-7xl font-extrabold text-white shadow-2xl ring-4 ring-primary-500/40">
+              T
             </div>
           </div>
         </div>
