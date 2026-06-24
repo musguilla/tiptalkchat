@@ -135,7 +135,7 @@ export function WalletOverlay({ open, onClose }: Props) {
               Activa los cobros de tus propinas
             </p>
             <p className="text-xs text-primary-700/80">
-              Conecta tu cuenta de Stripe para recibir el dinero de tus Tipsys.
+              Conecta una cuenta para retirar el dinero de tus Tipsys cuando quieras.
             </p>
           </div>
           <button
@@ -143,7 +143,7 @@ export function WalletOverlay({ open, onClose }: Props) {
             disabled={busy}
             className="btn-tactile shrink-0 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-4 py-2 text-xs font-bold text-white shadow-soft hover:shadow-vivid disabled:opacity-60"
           >
-            Conectar Stripe
+            Activar cobros
           </button>
         </section>
 
