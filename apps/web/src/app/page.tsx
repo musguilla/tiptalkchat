@@ -27,17 +27,17 @@ export default function HomePage() {
           {/* LEFT */}
           <div>
             <h1 className="font-display text-5xl font-extrabold leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl">
-              Salas de chats <span className="text-primary-500">privadas</span> uno a uno
+              Salas de chats <span className="text-primary-500">privadas</span> 1 a 1
             </h1>
             <p className="mt-6 max-w-md text-lg leading-relaxed text-ink-muted">
-              Chat con videollamada, voz y propinas.
+              Chatea con quien quieras con videollamada, voz o solo texto.
             </p>
             <div className="mt-10">
               <Link
                 href="/create"
-                className="btn-tactile inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-10 py-5 text-lg font-bold text-white shadow-vivid transition hover:shadow-vivid-strong"
+                className="btn-tactile inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-12 py-5 text-lg font-bold text-white shadow-vivid transition hover:shadow-vivid-strong sm:w-auto sm:min-w-[20rem]"
               >
-                Crea tu Sala Gratis
+                Crear sala de chat
               </Link>
             </div>
           </div>
