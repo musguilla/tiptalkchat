@@ -13,7 +13,7 @@ export function HeroVideoPreview() {
         {/* Hero subject image */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/hero-room.jpg"
+          src="/hero-room.png"
           alt=""
           className="absolute inset-0 h-full w-full object-cover opacity-90"
         />
