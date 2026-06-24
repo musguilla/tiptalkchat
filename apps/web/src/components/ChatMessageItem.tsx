@@ -40,7 +40,7 @@ export function ChatMessageItem({
       const Icon = invite.mode === 'video' ? VideoIcon : Phone;
       const label = invite.mode === 'video' ? 'videollamada' : 'llamada de voz';
       return (
-        <div className="my-2 flex items-center justify-center px-2">
+        <div className="my-2 px-2">
           <div className="flex w-full max-w-md items-center gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm dark:border-emerald-900/40 dark:bg-emerald-950/30">
             <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-emerald-500 text-white">
               <Icon className="h-5 w-5" />
@@ -68,7 +68,7 @@ export function ChatMessageItem({
     }
     // Generic system message fallback
     return (
-      <div className="my-2 flex justify-center px-2 text-xs text-ink-muted">
+      <div className="my-2 px-2 text-xs text-ink-muted">
         <span className="rounded-full bg-surface-soft px-3 py-1">{msg.body}</span>
       </div>
     );
