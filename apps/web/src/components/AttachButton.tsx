@@ -1,53 +1,41 @@
 'use client';
 import { useRef, useState } from 'react';
-import { ImagePlus, Film, Loader2 } from 'lucide-react';
+import { Paperclip, Loader2 } from 'lucide-react';
 import { uploadImage, uploadVideo } from '@/lib/upload';
 
 interface Props {
   token: string;
-  onUploaded: (
-    kind: 'image' | 'video',
-    mediaId: string,
-    extra?: { publicUrl?: string },
-  ) => void;
+  onUploaded: (kind: 'image' | 'video', mediaId: string, extra?: { publicUrl?: string }) => void;
   onError?: (msg: string) => void;
 }
 
+const ACCEPT =
+  'image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime';
+
 export function AttachButton({ token, onUploaded, onError }: Props) {
-  const imageRef = useRef<HTMLInputElement | null>(null);
-  const videoRef = useRef<HTMLInputElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
   const [busy, setBusy] = useState<'image' | 'video' | null>(null);
   const [progress, setProgress] = useState(0);
 
-  async function handleImage(e: React.ChangeEvent<HTMLInputElement>): Promise<void> {
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>): Promise<void> {
     const file = e.target.files?.[0];
     if (!file) return;
-    setBusy('image');
+    const kind: 'image' | 'video' = file.type.startsWith('video/') ? 'video' : 'image';
+    setBusy(kind);
     setProgress(0);
     try {
-      const res = await uploadImage(file, token, setProgress);
-      onUploaded('image', res.mediaId, { publicUrl: res.publicUrl });
+      if (kind === 'image') {
+        const res = await uploadImage(file, token, setProgress);
+        onUploaded('image', res.mediaId, { publicUrl: res.publicUrl });
+      } else {
+        const res = await uploadVideo(file, token, setProgress);
+        onUploaded('video', res.mediaId);
+      }
     } catch (err) {
-      onError?.(err instanceof Error ? err.message : 'Error subiendo imagen');
+      onError?.(err instanceof Error ? err.message : `Error subiendo ${kind === 'image' ? 'imagen' : 'vídeo'}`);
     } finally {
       setBusy(null);
-      if (imageRef.current) imageRef.current.value = '';
-    }
-  }
-
-  async function handleVideo(e: React.ChangeEvent<HTMLInputElement>): Promise<void> {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setBusy('video');
-    setProgress(0);
-    try {
-      const res = await uploadVideo(file, token, setProgress);
-      onUploaded('video', res.mediaId);
-    } catch (err) {
-      onError?.(err instanceof Error ? err.message : 'Error subiendo vídeo');
-    } finally {
-      setBusy(null);
-      if (videoRef.current) videoRef.current.value = '';
+      if (inputRef.current) inputRef.current.value = '';
     }
   }
 
@@ -64,33 +52,19 @@ export function AttachButton({ token, onUploaded, onError }: Props) {
     <>
       <button
         type="button"
-        onClick={() => imageRef.current?.click()}
+        onClick={() => inputRef.current?.click()}
         className="grid h-10 w-10 place-items-center rounded-md text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
-        title="Subir imagen"
+        title="Adjuntar foto o vídeo"
+        aria-label="Adjuntar foto o vídeo"
       >
-        <ImagePlus className="h-5 w-5" />
-      </button>
-      <button
-        type="button"
-        onClick={() => videoRef.current?.click()}
-        className="grid h-10 w-10 place-items-center rounded-md text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
-        title="Subir vídeo"
-      >
-        <Film className="h-5 w-5" />
+        <Paperclip className="h-5 w-5" />
       </button>
       <input
-        ref={imageRef}
+        ref={inputRef}
         type="file"
-        accept="image/jpeg,image/png,image/webp,image/gif"
+        accept={ACCEPT}
         className="hidden"
-        onChange={handleImage}
-      />
-      <input
-        ref={videoRef}
-        type="file"
-        accept="video/mp4,video/webm,video/quicktime"
-        className="hidden"
-        onChange={handleVideo}
+        onChange={handleFile}
       />
     </>
   );
