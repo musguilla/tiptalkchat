@@ -35,6 +35,12 @@ export function SiteHeader({ variant = 'landing' }: { variant?: 'landing' | 'min
             <div className="flex items-center gap-3">
               {user ? (
                 <>
+                  <Link
+                    href="/wallet"
+                    className="rounded-md bg-amber-100 px-3 py-1.5 text-sm font-semibold text-amber-900 transition hover:bg-amber-200 dark:bg-amber-900 dark:text-amber-100"
+                  >
+                    Monedero
+                  </Link>
                   <UserChip user={user} onClick={() => setProfileOpen(true)} />
                   <button
                     type="button"
