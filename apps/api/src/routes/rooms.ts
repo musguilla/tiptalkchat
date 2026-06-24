@@ -12,6 +12,9 @@ const createBody = z.object({
   inviteOnly: z.boolean().optional(),
   maxParticipants: z.number().int().positive().max(500).optional(),
   expiresInHours: z.number().int().positive().max(24 * 30).optional(),
+  /** Required when posting without auth: the host's display nick. */
+  nick: z.string().min(1).max(40).optional(),
+  avatarUrl: z.string().url().optional(),
 });
 
 const joinBody = z.object({
@@ -22,40 +25,88 @@ const joinBody = z.object({
 
 export async function roomRoutes(app: FastifyInstance): Promise<void> {
   app.post('/', async (req, reply) => {
-    const { userId } = await app.requireUser(req);
     const body = createBody.parse(req.body);
 
     let slug = body.slug ? sanitizeSlug(body.slug) : generateFriendlySlug();
     if (!isValidCustomSlug(slug)) {
       throw app.httpErrors.badRequest('Invalid slug');
     }
-
-    // Ensure uniqueness — append a short suffix on conflict.
     for (let i = 0; i < 5; i += 1) {
       const exists = await prisma.room.findUnique({ where: { slug } });
       if (!exists) break;
       slug = `${slug}-${Math.random().toString(36).slice(2, 6)}`;
     }
-
-    // Every room expires after 24h by default (sweeper closes + wipes).
     const expiresInHours = body.expiresInHours ?? DEFAULT_ROOM_TTL_HOURS;
     const expiresAt = new Date(Date.now() + expiresInHours * 3600 * 1000);
+    const pinHash = body.pin ? await hashPassword(body.pin) : undefined;
 
+    // Authenticated user path — existing behaviour.
+    if (req.sessionUser) {
+      const userId = req.sessionUser.userId;
+      const room = await prisma.room.create({
+        data: {
+          slug,
+          name: body.name,
+          creatorId: userId,
+          pinHash,
+          inviteOnly: body.inviteOnly ?? false,
+          maxParticipants: body.maxParticipants,
+          expiresAt,
+          memberships: { create: { userId, role: 'creator' } },
+        },
+      });
+      reply.code(201);
+      return {
+        id: room.id,
+        slug: room.slug,
+        name: room.name,
+        asGuest: false,
+      };
+    }
+
+    // Anonymous host path — needs a nick. We mint a GuestSession that owns
+    // the room and a host-scoped JWT the client uses for the room and for
+    // managing it (close, etc.). The room and the host session both live for
+    // the same TTL.
+    if (!body.nick) {
+      throw app.httpErrors.badRequest(
+        'Either an Authorization token or a nick is required to create a room',
+      );
+    }
+    const guest = await prisma.guestSession.create({
+      data: {
+        displayName: body.nick,
+        avatarUrl: body.avatarUrl,
+        fingerprint: `host:${Date.now()}:${Math.random().toString(36).slice(2)}`,
+        expiresAt,
+      },
+    });
     const room = await prisma.room.create({
       data: {
         slug,
         name: body.name,
-        creatorId: userId,
-        pinHash: body.pin ? await hashPassword(body.pin) : undefined,
+        creatorGuestId: guest.id,
+        pinHash,
         inviteOnly: body.inviteOnly ?? false,
         maxParticipants: body.maxParticipants,
         expiresAt,
-        memberships: { create: { userId, role: 'creator' } },
+        memberships: { create: { guestId: guest.id, role: 'creator' } },
       },
     });
-
+    const guestToken = app.jwt.sign(
+      { sub: guest.id, kind: 'guest', roomId: room.id },
+      { expiresIn: `${expiresInHours}h` },
+    );
     reply.code(201);
-    return { id: room.id, slug: room.slug, name: room.name };
+    return {
+      id: room.id,
+      slug: room.slug,
+      name: room.name,
+      asGuest: true,
+      guestId: guest.id,
+      guestToken,
+      displayName: guest.displayName,
+    };
   });
 
   app.get('/slug-available', async (req) => {
@@ -71,6 +122,7 @@ export async function roomRoutes(app: FastifyInstance): Promise<void> {
       where: { slug },
       include: {
         creator: { select: { id: true, displayName: true, avatarUrl: true } },
+        creatorGuest: { select: { id: true, displayName: true, avatarUrl: true } },
         memberships: {
           where: { status: 'active' },
           include: {
@@ -85,11 +137,18 @@ export async function roomRoutes(app: FastifyInstance): Promise<void> {
     if (room.expiresAt && room.expiresAt < new Date()) {
       throw app.httpErrors.gone('Room has expired');
     }
+    // Surface a unified "creator" identity regardless of whether the host is
+    // a real user or an anonymous guest.
+    const creatorIdentity = room.creator
+      ? { ...room.creator, kind: 'user' as const }
+      : room.creatorGuest
+        ? { ...room.creatorGuest, kind: 'guest' as const }
+        : null;
     return {
       id: room.id,
       slug: room.slug,
       name: room.name,
-      creator: room.creator,
+      creator: creatorIdentity,
       inviteOnly: room.inviteOnly,
       hasPin: !!room.pinHash,
       maxParticipants: room.maxParticipants,
@@ -152,11 +211,16 @@ export async function roomRoutes(app: FastifyInstance): Promise<void> {
   });
 
   app.post('/:id/close', async (req) => {
-    const { userId } = await app.requireUser(req);
+    const actor = await app.requireActor(req);
     const id = (req.params as { id: string }).id;
     const room = await prisma.room.findUnique({ where: { id } });
     if (!room) throw app.httpErrors.notFound('Room not found');
-    if (room.creatorId !== userId) throw app.httpErrors.forbidden('Only creator can close');
+    const isUserCreator = actor.kind === 'user' && room.creatorId === actor.userId;
+    const isGuestCreator =
+      actor.kind === 'guest' && room.creatorGuestId === actor.guestId;
+    if (!isUserCreator && !isGuestCreator) {
+      throw app.httpErrors.forbidden('Only the creator can close this room');
+    }
     const result = await cleanupRoom(id);
     return { closed: true, ...result };
   });

@@ -1,0 +1,8 @@
+ALTER TABLE "Room" ALTER COLUMN "creatorId" DROP NOT NULL;
+ALTER TABLE "Room" DROP CONSTRAINT IF EXISTS "Room_creatorId_fkey";
+ALTER TABLE "Room" ADD CONSTRAINT "Room_creatorId_fkey"
+  FOREIGN KEY ("creatorId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Room" ADD COLUMN IF NOT EXISTS "creatorGuestId" TEXT;
+CREATE INDEX IF NOT EXISTS "Room_creatorGuestId_idx" ON "Room"("creatorGuestId");
+ALTER TABLE "Room" ADD CONSTRAINT "Room_creatorGuestId_fkey"
+  FOREIGN KEY ("creatorGuestId") REFERENCES "GuestSession"("id") ON DELETE CASCADE ON UPDATE CASCADE;

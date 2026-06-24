@@ -20,9 +20,34 @@ interface RoomData {
   id: string;
   slug: string;
   name: string;
-  creator: { id: string; displayName: string; avatarUrl: string | null };
+  creator: {
+    id: string;
+    displayName: string;
+    avatarUrl: string | null;
+    kind: 'user' | 'guest';
+  } | null;
   hasPin: boolean;
   members: Array<{ id: string; role: string; user: Identity | null; guest: Identity | null }>;
+}
+
+// Host tokens are persisted in localStorage by /create after an anonymous
+// room creation so the host doesn't have to retype their nick on every
+// visit.
+interface HostTokenEntry {
+  token: string;
+  displayName: string;
+}
+const HOST_TOKENS_KEY = 'tiptalk-host-tokens';
+function readHostToken(slug: string): HostTokenEntry | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(HOST_TOKENS_KEY);
+    if (!raw) return null;
+    const tokens = JSON.parse(raw) as Record<string, HostTokenEntry>;
+    return tokens[slug] ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export default function RoomPage() {
@@ -35,6 +60,7 @@ export default function RoomPage() {
   // Guest JWT issued by the API on join. Lives in component state only
   // (ephemeral; refreshed on every page load).
   const [guestToken, setGuestToken] = useState<string | null>(null);
+  const [hostToken, setHostToken] = useState<HostTokenEntry | null>(null);
   const [pin, setPin] = useState('');
   const [needsPin, setNeedsPin] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -57,16 +83,21 @@ export default function RoomPage() {
 
   const identity: Identity | null = useMemo(() => {
     if (user) return { id: user.id, displayName: user.displayName, avatarUrl: null, isGuest: false };
+    if (hostToken)
+      return { id: `host:${hostToken.displayName}`, displayName: hostToken.displayName, avatarUrl: null, isGuest: true };
     if (guestName) return { id: `guest:${guestName}`, displayName: guestName, avatarUrl: null, isGuest: true };
     return null;
-  }, [user, guestName]);
+  }, [user, guestName, hostToken]);
 
   useEffect(() => {
+    const ht = readHostToken(params.slug);
+    if (ht) setHostToken(ht);
     api<RoomData>(`/rooms/${params.slug}`)
       .then((r) => {
         setRoom(r);
         if (r.hasPin && !pin) setNeedsPin(true);
-        if (!user && !guestName) setNeedsName(true);
+        // Anon host already authenticated via stored token → skip nick prompt.
+        if (!user && !guestName && !ht) setNeedsName(true);
       })
       .catch(() => setRoom(null));
   }, [params.slug, pin, user, guestName]);
@@ -77,19 +108,25 @@ export default function RoomPage() {
     let cancelled = false;
     (async () => {
       try {
-        const join = await api<{
-          membershipId: string;
-          asGuest: boolean;
-          guestToken?: string;
-        }>(`/rooms/${params.slug}/join`, {
-          method: 'POST',
-          token: token ?? undefined,
-          body: JSON.stringify({
-            ...(pin ? { pin } : {}),
-            ...(!user ? { displayName: guestName } : {}),
-          }),
-        });
-        if (join.asGuest && join.guestToken) setGuestToken(join.guestToken);
+        let membershipId = '';
+        // Anonymous host already has a token from /rooms creation — skip the
+        // join step entirely.
+        if (!hostToken) {
+          const join = await api<{
+            membershipId: string;
+            asGuest: boolean;
+            guestToken?: string;
+          }>(`/rooms/${params.slug}/join`, {
+            method: 'POST',
+            token: token ?? undefined,
+            body: JSON.stringify({
+              ...(pin ? { pin } : {}),
+              ...(!user ? { displayName: guestName } : {}),
+            }),
+          });
+          membershipId = join.membershipId;
+          if (join.asGuest && join.guestToken) setGuestToken(join.guestToken);
+        }
 
         const hist = await api<{ messages: ChatMessage[]; nextCursor: string | null }>(
           `/messages?roomId=${room.id}`,
@@ -104,7 +141,7 @@ export default function RoomPage() {
         socketRef.current = socket;
 
         socket.on('connect', () => {
-          socket.emit('room:join', { roomId: room.id, membershipId: join.membershipId, identity });
+          socket.emit('room:join', { roomId: room.id, membershipId, identity });
         });
         socket.on('room:state', ({ members }) => setMembers(members));
         socket.on('presence:update', ({ member, online }) => {
@@ -183,9 +220,9 @@ export default function RoomPage() {
     return () => clearInterval(t);
   }, [messages]);
 
-  // The token used for chat actions: user JWT if logged in, otherwise the
-  // guest JWT issued at join time.
-  const chatAuth = token ?? guestToken;
+  // The token used for chat actions: user JWT > host JWT (anon creator) >
+  // guest JWT (visitor that joined the room).
+  const chatAuth = token ?? hostToken?.token ?? guestToken;
 
   // Keep wallet balance in sync (used for the tip dialog + the header chip).
   const refreshWallet = useCallback(async () => {
@@ -311,10 +348,23 @@ export default function RoomPage() {
   }, [tipEurCents, tipTarget, room, chatAuth, refreshWallet]);
 
   const confirmCloseRoom = useCallback(async () => {
-    if (!room || !token) return;
+    if (!room || !chatAuth) return;
     setClosingRoom(true);
     try {
-      await api(`/rooms/${room.id}/close`, { method: 'POST', token, body: '{}' });
+      await api(`/rooms/${room.id}/close`, { method: 'POST', token: chatAuth, body: '{}' });
+      // Clean up host token from localStorage after closing.
+      if (hostToken && typeof window !== 'undefined') {
+        try {
+          const raw = window.localStorage.getItem(HOST_TOKENS_KEY);
+          if (raw) {
+            const tokens = JSON.parse(raw) as Record<string, HostTokenEntry>;
+            delete tokens[params.slug];
+            window.localStorage.setItem(HOST_TOKENS_KEY, JSON.stringify(tokens));
+          }
+        } catch {
+          /* ignore */
+        }
+      }
       router.push('/');
     } catch (err) {
       setClosingRoom(false);
@@ -323,7 +373,7 @@ export default function RoomPage() {
         'No se pudo cerrar la sala: ' + (err instanceof Error ? err.message : 'error'),
       );
     }
-  }, [room, token, router]);
+  }, [room, chatAuth, router, hostToken, params.slug]);
 
   const startGuestTopup = useCallback(async () => {
     if (!room || !topupEmail || !guestToken) return;
@@ -443,7 +493,8 @@ export default function RoomPage() {
           <Link href="/wallet" className="rounded-md bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-900 hover:bg-amber-200 dark:bg-amber-900 dark:text-amber-100">
             Monedero
           </Link>
-          {user && room.creator.id === user.id && (
+          {((user && room.creator?.kind === 'user' && room.creator.id === user.id) ||
+            (hostToken && room.creator?.kind === 'guest')) && (
             <button
               onClick={() => setShowCloseConfirm(true)}
               className="flex items-center gap-1 rounded-md bg-red-100 px-3 py-1 text-sm font-semibold text-red-900 hover:bg-red-200 dark:bg-red-950 dark:text-red-200"

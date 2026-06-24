@@ -48,6 +48,14 @@ async function resolveTipTarget(
   }
   const room = await prisma.room.findUnique({ where: { id: targetId } });
   if (!room) throw app.httpErrors.notFound('Target room not found');
+  if (!room.creatorId) {
+    // Anonymous-host rooms — the creator hasn't claimed an account yet, so
+    // we can't credit Tipsys to a real wallet. The UI should prompt them to
+    // upgrade their guest session before accepting tips.
+    throw app.httpErrors.badRequest(
+      'El anfitrión necesita registrarse para recibir propinas',
+    );
+  }
   return { receiverId: room.creatorId };
 }
 
