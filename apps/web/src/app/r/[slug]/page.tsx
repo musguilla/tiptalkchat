@@ -228,6 +228,19 @@ export default function RoomPage() {
   // guest JWT (visitor that joined the room).
   const chatAuth = token ?? hostToken?.token ?? guestToken;
 
+  // The viewer is the owner of this room if either:
+  //   - they're logged in as the user that originally created it, OR
+  //   - they have an anon host-token stored for this slug.
+  const isOwner = useMemo(
+    () =>
+      Boolean(
+        (user && room?.creator?.kind === 'user' && room.creator.id === user.id) ||
+          (hostToken && room?.creator?.kind === 'guest'),
+      ),
+    [user, hostToken, room?.creator],
+  );
+
+
   // Keep wallet balance in sync (used for the tip dialog + the header chip).
   const refreshWallet = useCallback(async () => {
     if (!chatAuth) return;
@@ -555,8 +568,7 @@ export default function RoomPage() {
               Iniciar sesión
             </button>
           )}
-          {((user && room.creator?.kind === 'user' && room.creator.id === user.id) ||
-            (hostToken && room.creator?.kind === 'guest')) && (
+          {isOwner && (
             <button
               onClick={() => setShowCloseConfirm(true)}
               className="flex items-center gap-1 rounded-md bg-red-100 px-3 py-1 text-sm font-semibold text-red-900 hover:bg-red-200 dark:bg-red-950 dark:text-red-200"
@@ -590,6 +602,7 @@ export default function RoomPage() {
                 onTip={(msg) => setTipTarget({ kind: 'message', id: msg.id })}
                 onRetry={retryMessage}
                 onJoinCall={joinCallFromInvite}
+                canTip={!isOwner}
               />
             ))}
           </div>
@@ -606,14 +619,16 @@ export default function RoomPage() {
             }}
             className="flex items-center gap-2 border-t border-zinc-200 bg-white p-2 dark:border-zinc-800 dark:bg-zinc-900"
           >
-            <button
-              type="button"
-              onClick={() => setTipTarget({ kind: 'room', id: room.id })}
-              className="grid h-10 w-10 place-items-center rounded-md bg-amber-100 text-amber-900 hover:bg-amber-200 dark:bg-amber-900 dark:text-amber-100"
-              title="Propina al chat"
-            >
-              <Coins className="h-5 w-5" />
-            </button>
+            {!isOwner && (
+              <button
+                type="button"
+                onClick={() => setTipTarget({ kind: 'room', id: room.id })}
+                className="grid h-10 w-10 place-items-center rounded-md bg-amber-100 text-amber-900 hover:bg-amber-200 dark:bg-amber-900 dark:text-amber-100"
+                title="Propina al chat"
+              >
+                <Coins className="h-5 w-5" />
+              </button>
+            )}
             {chatAuth && (
               <AttachButton
                 token={chatAuth}
@@ -644,7 +659,7 @@ export default function RoomPage() {
           />
         )}
 
-        <Sidebar members={members} />
+        <Sidebar members={members} creator={room.creator} />
 
         {/* Tip animation overlay */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">

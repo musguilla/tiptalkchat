@@ -27,11 +27,14 @@ export function ChatMessageItem({
   onTip,
   onRetry,
   onJoinCall,
+  canTip = true,
 }: {
   msg: ChatMessage;
   onTip: (msg: ChatMessage) => void;
   onRetry?: (msg: ChatMessage) => void;
   onJoinCall?: (mode: 'audio' | 'video') => void;
+  /** False for the owner of the room — they can't tip themselves. */
+  canTip?: boolean;
 }) {
   // System call-invite messages get their own bubble (no avatar / no tip btn).
   if (msg.kind === 'system') {
@@ -137,7 +140,7 @@ export function ChatMessageItem({
           </span>
         )}
       </div>
-      {!isSending && !isFailed && (
+      {!isSending && !isFailed && canTip && (
         <button
           onClick={() => onTip(msg)}
           className="opacity-0 transition group-hover:opacity-100"
