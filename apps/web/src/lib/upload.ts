@@ -67,6 +67,9 @@ export async function uploadAvatar(
   if (!/^image\/(jpeg|png|webp|gif)$/.test(file.type)) {
     throw new Error('Formato no soportado (jpeg, png, webp, gif)');
   }
+  if (file.size > 2 * 1024 * 1024) {
+    throw new Error('La foto no puede pesar más de 2 MB');
+  }
   const ticket = await api<{ upload: UploadTicket; publicUrl: string }>(
     '/auth/me/avatar/upload',
     {

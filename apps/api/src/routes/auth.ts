@@ -29,7 +29,7 @@ const updateMeBody = z.object({
 
 const avatarUploadBody = z.object({
   contentType: z.enum(['image/jpeg', 'image/png', 'image/webp', 'image/gif']),
-  bytes: z.number().int().positive().max(8 * 1024 * 1024),
+  bytes: z.number().int().positive().max(2 * 1024 * 1024),
 });
 
 const loginBody = z.object({
