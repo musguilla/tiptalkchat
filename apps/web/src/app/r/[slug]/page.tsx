@@ -550,23 +550,15 @@ export default function RoomPage() {
             <button
               onClick={() => setAuthOverlay('upgrade')}
               className="btn-tactile rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-3.5 py-1.5 text-xs font-semibold text-white shadow-soft hover:shadow-vivid"
-              title="Activar pagos y recibir propinas"
+              title="Activar propinas para esta sala"
             >
-              Activar pagos
+              Activar propinas en el chat
             </button>
           )}
           {token && (
             <Link href="/wallet" className="rounded-md bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-900 hover:bg-amber-200 dark:bg-amber-900 dark:text-amber-100">
               Monedero
             </Link>
-          )}
-          {!token && (
-            <button
-              onClick={() => setAuthOverlay('login')}
-              className="rounded-md px-3 py-1 text-sm font-medium text-ink-muted hover:text-ink"
-            >
-              Iniciar sesión
-            </button>
           )}
           {isOwner && (
             <button
