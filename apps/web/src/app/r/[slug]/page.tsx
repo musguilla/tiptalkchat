@@ -10,6 +10,7 @@ import { useAuth } from '@/lib/auth-store';
 import { Sidebar } from '@/components/Sidebar';
 import { Logo } from '@/components/Logo';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { AuthOverlay } from '@/components/AuthOverlay';
 import { ChatMessageItem } from '@/components/ChatMessageItem';
 import { AttachButton } from '@/components/AttachButton';
 import { CallPanel } from '@/components/CallPanel';
@@ -76,6 +77,9 @@ export default function RoomPage() {
   const [showTopup, setShowTopup] = useState(false);
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
   const [closingRoom, setClosingRoom] = useState(false);
+  // Auth overlay state: 'login' | 'signup' | 'upgrade' | null
+  // 'upgrade' is the host-claim flow (transfers the anonymous room to a new user account).
+  const [authOverlay, setAuthOverlay] = useState<'login' | 'signup' | 'upgrade' | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [activeCall, setActiveCall] = useState<'audio' | 'video' | null>(null);
   const socketRef = useRef<Socket | null>(null);
@@ -341,8 +345,15 @@ export default function RoomPage() {
       const msg = err instanceof Error ? err.message : 'error';
       if (msg.includes('402')) {
         setShowTopup(true);
+      } else if (msg.includes('400')) {
+        // Most likely the room creator is anonymous and can't receive yet.
+        setTipTarget(null);
+        setUploadError(
+          'Este anfitrión aún no ha activado los pagos. Pídele que pulse "Activar pagos" en la sala.',
+        );
       } else {
-        alert('No se pudo enviar la propina: ' + msg);
+        setTipTarget(null);
+        setUploadError('No se pudo enviar la propina: ' + msg);
       }
     }
   }, [tipEurCents, tipTarget, room, chatAuth, refreshWallet]);
@@ -490,9 +501,29 @@ export default function RoomPage() {
               </button>
             </>
           )}
-          <Link href="/wallet" className="rounded-md bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-900 hover:bg-amber-200 dark:bg-amber-900 dark:text-amber-100">
-            Monedero
-          </Link>
+          {/* Anonymous host: prominent CTA to claim payouts */}
+          {hostToken && !user && room.creator?.kind === 'guest' && (
+            <button
+              onClick={() => setAuthOverlay('upgrade')}
+              className="btn-tactile rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-3.5 py-1.5 text-xs font-semibold text-white shadow-soft hover:shadow-vivid"
+              title="Activar pagos y recibir propinas"
+            >
+              Activar pagos
+            </button>
+          )}
+          {token && (
+            <Link href="/wallet" className="rounded-md bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-900 hover:bg-amber-200 dark:bg-amber-900 dark:text-amber-100">
+              Monedero
+            </Link>
+          )}
+          {!token && (
+            <button
+              onClick={() => setAuthOverlay('login')}
+              className="rounded-md px-3 py-1 text-sm font-medium text-ink-muted hover:text-ink"
+            >
+              Iniciar sesión
+            </button>
+          )}
           {((user && room.creator?.kind === 'user' && room.creator.id === user.id) ||
             (hostToken && room.creator?.kind === 'guest')) && (
             <button
@@ -729,6 +760,33 @@ export default function RoomPage() {
         busy={closingRoom}
         onConfirm={confirmCloseRoom}
         onCancel={() => setShowCloseConfirm(false)}
+      />
+
+      <AuthOverlay
+        open={authOverlay !== null}
+        initialMode={authOverlay === 'login' ? 'login' : 'signup'}
+        upgradeFromGuestToken={authOverlay === 'upgrade' ? hostToken?.token ?? null : null}
+        onClose={() => setAuthOverlay(null)}
+        onSuccess={() => {
+          // If we just upgraded an anon host, clear the host token (the user
+          // is now the canonical owner).
+          if (authOverlay === 'upgrade' && hostToken && typeof window !== 'undefined') {
+            try {
+              const raw = window.localStorage.getItem(HOST_TOKENS_KEY);
+              if (raw) {
+                const tokens = JSON.parse(raw) as Record<string, HostTokenEntry>;
+                delete tokens[params.slug];
+                window.localStorage.setItem(HOST_TOKENS_KEY, JSON.stringify(tokens));
+              }
+            } catch {
+              /* ignore */
+            }
+            setHostToken(null);
+          }
+          setAuthOverlay(null);
+          // Refresh the room so the creator block updates (kind: 'guest' → 'user').
+          api<RoomData>(`/rooms/${params.slug}`).then(setRoom).catch(() => undefined);
+        }}
       />
     </main>
   );
