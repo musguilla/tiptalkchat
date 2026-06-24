@@ -21,6 +21,11 @@ const claimGuestRoomsBody = z.object({
   guestToken: z.string(),
 });
 
+const updateMeBody = z.object({
+  displayName: z.string().min(1).max(40).optional(),
+  avatarUrl: z.string().url().nullable().optional(),
+});
+
 const loginBody = z.object({
   email: z.string().email(),
   password: z.string().min(1),
@@ -77,6 +82,23 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
         kycStatus: true,
         wallet: { select: { balance: true } },
       },
+    });
+    return user;
+  });
+
+  app.patch('/me', async (req) => {
+    const { userId } = await app.requireUser(req);
+    const body = updateMeBody.parse(req.body);
+    if (body.displayName === undefined && body.avatarUrl === undefined) {
+      throw app.httpErrors.badRequest('No fields to update');
+    }
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...(body.displayName !== undefined ? { displayName: body.displayName } : {}),
+        ...(body.avatarUrl !== undefined ? { avatarUrl: body.avatarUrl } : {}),
+      },
+      select: { id: true, email: true, displayName: true, avatarUrl: true, role: true },
     });
     return user;
   });

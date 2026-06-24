@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { io, type Socket } from 'socket.io-client';
-import { Send, Coins, Phone, Video, X as XIcon } from 'lucide-react';
+import { Send, Coins, Phone, Video, X as XIcon, LogOut } from 'lucide-react';
 import { REALTIME_BASE, api } from '@/lib/api';
 import { TIP_BUTTONS, eurCentsToTipsys, formatEur, formatTipsysAsEur } from '@/lib/money';
 import { useAuth } from '@/lib/auth-store';
@@ -12,6 +12,8 @@ import { Logo } from '@/components/Logo';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { AuthOverlay } from '@/components/AuthOverlay';
 import { WalletOverlay } from '@/components/WalletOverlay';
+import { ProfileOverlay } from '@/components/ProfileOverlay';
+import { UserChip } from '@/components/UserChip';
 import { ChatMessageItem } from '@/components/ChatMessageItem';
 import { AttachButton } from '@/components/AttachButton';
 import { CallPanel } from '@/components/CallPanel';
@@ -82,6 +84,7 @@ export default function RoomPage() {
   // 'upgrade' is the host-claim flow (transfers the anonymous room to a new user account).
   const [authOverlay, setAuthOverlay] = useState<'login' | 'signup' | 'upgrade' | null>(null);
   const [walletOpen, setWalletOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [activeCall, setActiveCall] = useState<'audio' | 'video' | null>(null);
   const socketRef = useRef<Socket | null>(null);
@@ -600,16 +603,22 @@ export default function RoomPage() {
               Cerrar sala
             </button>
           )}
-          {token && (
-            <button
-              onClick={() => {
-                clear();
-                router.push('/');
-              }}
-              className="rounded-md px-3 py-1 text-sm text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
-            >
-              Salir
-            </button>
+          {user && (
+            <>
+              <UserChip user={user} onClick={() => setProfileOpen(true)} />
+              <button
+                type="button"
+                onClick={() => {
+                  clear();
+                  router.push('/');
+                }}
+                className="grid h-9 w-9 place-items-center rounded-md text-ink-muted transition hover:bg-surface-soft hover:text-ink"
+                title="Cerrar sesión"
+                aria-label="Cerrar sesión"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </>
           )}
         </div>
       </header>
@@ -861,6 +870,7 @@ export default function RoomPage() {
       />
 
       <WalletOverlay open={walletOpen} onClose={() => setWalletOpen(false)} />
+      <ProfileOverlay open={profileOpen} onClose={() => setProfileOpen(false)} />
     </main>
   );
 }
