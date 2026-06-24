@@ -259,14 +259,20 @@ export default function RoomPage() {
   // with the server's response when it arrives. If it fails, the bubble
   // turns red with a retry link.
   const sendTextMessage = useCallback(
-    async (text: string, tempIdHint?: string) => {
+    async (text: string, retryId?: string) => {
       if (!text.trim() || !room || !chatAuth || !identity) return;
-      const tempId =
-        tempIdHint ?? `tmp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      // Stable id — same value drives the optimistic bubble, the immediate
+      // socket broadcast, and the eventual API row. That way receivers
+      // dedup naturally and we never need to swap an optimistic id for a
+      // real one.
+      const msgId =
+        retryId ??
+        (typeof crypto !== 'undefined' && crypto.randomUUID
+          ? crypto.randomUUID()
+          : `c-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`);
 
-      // 1) Optimistic insert (or re-insert on retry).
-      const tempMsg: ChatMessage = {
-        id: tempId,
+      const optimisticMsg: ChatMessage = {
+        id: msgId,
         roomId: room.id,
         kind: 'text',
         body: text,
@@ -278,31 +284,39 @@ export default function RoomPage() {
         clientStatus: 'sending',
       };
       setMessages((prev) => {
-        if (tempIdHint) {
-          // Retry path — flip status, keep position
+        if (retryId) {
           return prev.map((m) =>
-            m.id === tempIdHint ? { ...m, clientStatus: 'sending' } : m,
+            m.id === retryId ? { ...m, clientStatus: 'sending' } : m,
           );
         }
-        return [...prev, tempMsg];
+        return [...prev, optimisticMsg];
       });
 
-      // 2) Fire-and-forget POST + socket broadcast.
+      // Immediately broadcast over the socket so receivers see the message
+      // with sub-100ms latency — we don't wait for the API round-trip. The
+      // API write will broadcast again with the same id; receivers dedup.
+      // We strip clientStatus so receivers don't see a "sending" badge.
+      socketRef.current?.emit(
+        'message:send',
+        { ...optimisticMsg, clientStatus: undefined },
+        () => undefined,
+      );
+
       try {
         const msg = await api<ChatMessage>('/messages', {
           method: 'POST',
           token: chatAuth,
-          body: JSON.stringify({ roomId: room.id, kind: 'text', body: text }),
+          body: JSON.stringify({ id: msgId, roomId: room.id, kind: 'text', body: text }),
         });
-        // Replace the temp message with the server-authoritative one.
-        setMessages((prev) => {
-          const withoutDuplicate = prev.filter((m) => m.id !== msg.id);
-          return withoutDuplicate.map((m) => (m.id === tempId ? msg : m));
-        });
-        socketRef.current?.emit('message:send', msg, () => undefined);
+        // Clear the sending badge on the sender's local copy. We don't
+        // replace the whole message — same id, same content — just flip
+        // clientStatus to undefined so the optimistic bubble settles.
+        setMessages((prev) =>
+          prev.map((m) => (m.id === msgId ? { ...msg, clientStatus: undefined } : m)),
+        );
       } catch {
         setMessages((prev) =>
-          prev.map((m) => (m.id === tempId ? { ...m, clientStatus: 'failed' } : m)),
+          prev.map((m) => (m.id === msgId ? { ...m, clientStatus: 'failed' } : m)),
         );
       }
     },

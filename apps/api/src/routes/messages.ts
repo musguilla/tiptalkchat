@@ -6,6 +6,10 @@ import { broadcastToRoom } from '../lib/realtime.js';
 
 const createBody = z.object({
   roomId: z.string(),
+  // Optional client-supplied id (UUID). When set we use it as the row's
+  // primary key so the client can broadcast the optimistic message
+  // immediately and have the eventual API echo dedup by id.
+  id: z.string().min(8).max(64).optional(),
   kind: z.enum(['text', 'image', 'video', 'system']),
   body: z.string().max(4000).optional(),
   mediaId: z.string().optional(),
@@ -38,6 +42,7 @@ export async function messageRoutes(app: FastifyInstance): Promise<void> {
       }
       const msg = await prisma.message.create({
         data: {
+          ...(body.id ? { id: body.id } : {}),
           roomId: body.roomId,
           guestId: actor.guestId,
           kind: body.kind,
@@ -69,6 +74,7 @@ export async function messageRoutes(app: FastifyInstance): Promise<void> {
 
     const msg = await prisma.message.create({
       data: {
+        ...(body.id ? { id: body.id } : {}),
         roomId: body.roomId,
         authorId: userId,
         kind: body.kind,
