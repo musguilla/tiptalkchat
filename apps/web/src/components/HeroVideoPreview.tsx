@@ -10,20 +10,8 @@ export function HeroVideoPreview() {
     <div className="relative mx-auto w-full max-w-md">
       {/* Video card */}
       <div className="relative aspect-[4/5] overflow-hidden rounded-xl bg-gradient-to-br from-[#3a1408] via-[#1f0a04] to-[#0c0503] shadow-vivid-strong">
-        {/* Hero subject image */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/hero-room.png"
-          alt=""
-          className="absolute inset-0 h-full w-full object-cover opacity-90"
-        />
-        {/* Top fade for legibility of LIVE pill */}
-        <div className="absolute inset-x-0 top-0 z-10 h-24 bg-gradient-to-b from-black/70 to-transparent" />
-        {/* Bottom fade for legibility of stats */}
-        <div className="absolute inset-x-0 bottom-0 z-10 h-24 bg-gradient-to-t from-black/70 to-transparent" />
-
         {/* Top-left LIVE pill */}
-        <div className="absolute left-4 top-4 z-20 flex items-center gap-2 rounded-md bg-black/40 px-3 py-1.5 backdrop-blur-sm">
+        <div className="absolute left-4 top-4 z-10 flex items-center gap-2 rounded-md bg-black/40 px-3 py-1.5 backdrop-blur-sm">
           <span className="relative flex h-2 w-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-secondary-500 opacity-75" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-secondary-500" />
@@ -31,8 +19,19 @@ export function HeroVideoPreview() {
           <span className="label-mono text-white/90">LIVE: SESIÓN PRIVADA</span>
         </div>
 
+        {/* Centred subject circle with radial glow */}
+        <div className="absolute inset-0 grid place-items-center">
+          <div className="relative">
+            <div className="absolute -inset-20 rounded-full bg-[radial-gradient(closest-side,rgba(255,92,0,0.45),transparent_70%)]" />
+            <div className="relative h-44 w-44 overflow-hidden rounded-full shadow-2xl ring-4 ring-primary-500/40">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/hero-room.png" alt="" className="h-full w-full object-cover" />
+            </div>
+          </div>
+        </div>
+
         {/* Bottom stats */}
-        <div className="absolute inset-x-4 bottom-4 z-20 flex items-center justify-between gap-2">
+        <div className="absolute inset-x-4 bottom-4 z-10 flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5 rounded-md bg-black/40 px-3 py-1.5 backdrop-blur-sm">
             <DollarSign className="h-3.5 w-3.5 text-primary-300" />
             <span className="label-mono text-white">$5.50</span>
