@@ -5,7 +5,7 @@ import { formatMediaForClient } from '../lib/media-urls.js';
 
 const createBody = z.object({
   roomId: z.string(),
-  kind: z.enum(['text', 'image', 'video']),
+  kind: z.enum(['text', 'image', 'video', 'system']),
   body: z.string().max(4000).optional(),
   mediaId: z.string().optional(),
 });

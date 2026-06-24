@@ -1,17 +1,79 @@
 'use client';
-import { Coins, Loader2, AlertCircle } from 'lucide-react';
+import { Coins, Loader2, AlertCircle, Phone, Video as VideoIcon } from 'lucide-react';
 import type { ChatMessage } from './types';
 import { HlsPlayer } from './HlsPlayer';
+
+interface CallInvite {
+  type: 'call_invite';
+  mode: 'audio' | 'video';
+  by: string;
+}
+
+function parseCallInvite(body: string | null): CallInvite | null {
+  if (!body) return null;
+  try {
+    const parsed = JSON.parse(body) as Partial<CallInvite>;
+    if (parsed.type === 'call_invite' && (parsed.mode === 'audio' || parsed.mode === 'video')) {
+      return { type: 'call_invite', mode: parsed.mode, by: parsed.by ?? '' };
+    }
+  } catch {
+    /* not JSON */
+  }
+  return null;
+}
 
 export function ChatMessageItem({
   msg,
   onTip,
   onRetry,
+  onJoinCall,
 }: {
   msg: ChatMessage;
   onTip: (msg: ChatMessage) => void;
   onRetry?: (msg: ChatMessage) => void;
+  onJoinCall?: (mode: 'audio' | 'video') => void;
 }) {
+  // System call-invite messages get their own bubble (no avatar / no tip btn).
+  if (msg.kind === 'system') {
+    const invite = parseCallInvite(msg.body);
+    if (invite) {
+      const Icon = invite.mode === 'video' ? VideoIcon : Phone;
+      const label = invite.mode === 'video' ? 'videollamada' : 'llamada de voz';
+      return (
+        <div className="my-2 flex items-center justify-center px-2">
+          <div className="flex w-full max-w-md items-center gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm dark:border-emerald-900/40 dark:bg-emerald-950/30">
+            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-emerald-500 text-white">
+              <Icon className="h-5 w-5" />
+            </div>
+            <div className="flex-1 text-emerald-900 dark:text-emerald-100">
+              <p className="font-semibold">
+                {invite.by || 'Alguien'} ha iniciado una {label}
+              </p>
+              <p className="text-xs text-emerald-800/80 dark:text-emerald-200/70">
+                Pulsa para unirte ahora mismo.
+              </p>
+            </div>
+            {onJoinCall && (
+              <button
+                type="button"
+                onClick={() => onJoinCall(invite.mode)}
+                className="btn-tactile rounded-md bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-600"
+              >
+                Unirse
+              </button>
+            )}
+          </div>
+        </div>
+      );
+    }
+    // Generic system message fallback
+    return (
+      <div className="my-2 flex justify-center px-2 text-xs text-ink-muted">
+        <span className="rounded-full bg-surface-soft px-3 py-1">{msg.body}</span>
+      </div>
+    );
+  }
+
   const isSending = msg.clientStatus === 'sending';
   const isFailed = msg.clientStatus === 'failed';
   return (

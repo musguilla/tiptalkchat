@@ -311,6 +311,37 @@ export default function RoomPage() {
     [sendTextMessage],
   );
 
+  // Start a call AND broadcast an invitation system-message so the other
+  // participants see a green-highlighted bubble in the chat with a "Unirse"
+  // button.
+  const startCall = useCallback(
+    (mode: 'audio' | 'video') => {
+      setActiveCall(mode);
+      if (!room || !chatAuth || !identity) return;
+      const inviteBody = JSON.stringify({
+        type: 'call_invite',
+        mode,
+        by: identity.displayName,
+      });
+      // Fire and forget — best-effort.
+      void api<ChatMessage>('/messages', {
+        method: 'POST',
+        token: chatAuth,
+        body: JSON.stringify({ roomId: room.id, kind: 'system', body: inviteBody }),
+      })
+        .then((msg) => {
+          socketRef.current?.emit('message:send', msg, () => undefined);
+          setMessages((prev) => (prev.some((p) => p.id === msg.id) ? prev : [...prev, msg]));
+        })
+        .catch(() => undefined);
+    },
+    [room, chatAuth, identity],
+  );
+
+  const joinCallFromInvite = useCallback((mode: 'audio' | 'video') => {
+    setActiveCall(mode);
+  }, []);
+
   const sendMediaMessage = useCallback(
     async (kind: 'image' | 'video', mediaId: string) => {
       if (!room || !chatAuth) return;
@@ -486,14 +517,14 @@ export default function RoomPage() {
           {chatAuth && (
             <>
               <button
-                onClick={() => setActiveCall('audio')}
+                onClick={() => startCall('audio')}
                 className="grid h-9 w-9 place-items-center rounded-md bg-emerald-100 text-emerald-900 hover:bg-emerald-200 dark:bg-emerald-900 dark:text-emerald-100"
                 title="Llamada de voz"
               >
                 <Phone className="h-4 w-4" />
               </button>
               <button
-                onClick={() => setActiveCall('video')}
+                onClick={() => startCall('video')}
                 className="grid h-9 w-9 place-items-center rounded-md bg-emerald-100 text-emerald-900 hover:bg-emerald-200 dark:bg-emerald-900 dark:text-emerald-100"
                 title="Videollamada"
               >
@@ -558,6 +589,7 @@ export default function RoomPage() {
                 msg={m}
                 onTip={(msg) => setTipTarget({ kind: 'message', id: msg.id })}
                 onRetry={retryMessage}
+                onJoinCall={joinCallFromInvite}
               />
             ))}
           </div>
@@ -601,6 +633,17 @@ export default function RoomPage() {
             </button>
           </form>
         </section>
+
+        {/* Call sidebar — sits between the chat and the users sidebar. */}
+        {activeCall && chatAuth && (
+          <CallPanel
+            roomId={room.id}
+            token={chatAuth}
+            mode={activeCall}
+            onClose={() => setActiveCall(null)}
+          />
+        )}
+
         <Sidebar members={members} />
 
         {/* Tip animation overlay */}
@@ -739,15 +782,6 @@ export default function RoomPage() {
           </div>
         )}
 
-        {/* Call panel */}
-        {activeCall && chatAuth && (
-          <CallPanel
-            roomId={room.id}
-            token={chatAuth}
-            mode={activeCall}
-            onClose={() => setActiveCall(null)}
-          />
-        )}
       </div>
 
       <ConfirmDialog

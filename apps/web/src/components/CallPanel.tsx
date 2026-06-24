@@ -6,7 +6,6 @@ import {
   Track,
   type RemoteParticipant,
   type RemoteTrack,
-  type RemoteTrackPublication,
   type LocalTrackPublication,
 } from 'livekit-client';
 import { Mic, MicOff, Video, VideoOff, PhoneOff } from 'lucide-react';
@@ -26,6 +25,11 @@ interface ParticipantTile {
   audioEl?: HTMLAudioElement | null;
 }
 
+/**
+ * Sidebar-style call panel: sits between the chat column and the users
+ * sidebar on desktop, full-width on mobile. Vertical stack of participant
+ * tiles, controls at the bottom.
+ */
 export function CallPanel({ roomId, token, mode, onClose }: CallPanelProps) {
   const [error, setError] = useState<string | null>(null);
   const [micOn, setMicOn] = useState(true);
@@ -44,10 +48,7 @@ export function CallPanel({ roomId, token, mode, onClose }: CallPanelProps) {
           { method: 'POST', token, body: JSON.stringify({ roomId }) },
         );
 
-        const room = new Room({
-          adaptiveStream: true,
-          dynacast: true,
-        });
+        const room = new Room({ adaptiveStream: true, dynacast: true });
         roomRef.current = room;
 
         room.on(RoomEvent.TrackSubscribed, (track, _pub, participant) => {
@@ -107,7 +108,7 @@ export function CallPanel({ roomId, token, mode, onClose }: CallPanelProps) {
         const el = document.createElement('video');
         el.autoplay = true;
         el.playsInline = true;
-        el.className = 'h-full w-full rounded-lg object-cover bg-zinc-800';
+        el.className = 'h-full w-full rounded-md object-cover bg-zinc-800';
         track.attach(el);
         tile.videoEl = el;
       } else if (track.kind === Track.Kind.Audio) {
@@ -136,22 +137,22 @@ export function CallPanel({ roomId, token, mode, onClose }: CallPanelProps) {
   }, [camOn]);
 
   return (
-    <div className="absolute inset-0 z-50 flex flex-col bg-black/90 backdrop-blur">
-      <div className="flex items-center justify-between border-b border-white/10 px-4 py-2 text-white">
+    <aside className="flex w-full flex-col border-l border-zinc-800 bg-zinc-950 text-white md:w-80">
+      <div className="flex items-center justify-between border-b border-white/10 px-4 py-2">
         <span className="text-sm font-semibold">
           {mode === 'video' ? 'Videollamada' : 'Llamada de voz'}
         </span>
         <span className="text-xs text-white/60">
-          {peers.length === 0 ? 'Esperando a otros...' : `${peers.length} participante(s) más`}
+          {peers.length === 0 ? 'Esperando…' : `${peers.length + 1} en llamada`}
         </span>
       </div>
 
       {error ? (
-        <div className="grid flex-1 place-items-center p-6 text-center text-red-300">
+        <div className="grid flex-1 place-items-center p-4 text-center text-sm text-red-300">
           {error}
         </div>
       ) : (
-        <div className="grid flex-1 grid-cols-1 gap-2 overflow-auto p-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="flex-1 space-y-2 overflow-auto p-3">
           <Tile label="Tú" innerRef={localVideoRef} muted hideIfNoVideo={!camOn} />
           {peers.map((p) => (
             <RemoteTile key={p.identity} tile={p} />
@@ -162,33 +163,33 @@ export function CallPanel({ roomId, token, mode, onClose }: CallPanelProps) {
       <div className="flex items-center justify-center gap-3 border-t border-white/10 bg-zinc-900/90 px-4 py-3">
         <button
           onClick={toggleMic}
-          className={`grid h-12 w-12 place-items-center rounded-full ${
+          className={`btn-tactile grid h-11 w-11 place-items-center rounded-full ${
             micOn ? 'bg-zinc-700 text-white' : 'bg-red-600 text-white'
           }`}
           title={micOn ? 'Silenciar' : 'Activar mic'}
         >
-          {micOn ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
+          {micOn ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
         </button>
         {mode === 'video' && (
           <button
             onClick={toggleCam}
-            className={`grid h-12 w-12 place-items-center rounded-full ${
+            className={`btn-tactile grid h-11 w-11 place-items-center rounded-full ${
               camOn ? 'bg-zinc-700 text-white' : 'bg-red-600 text-white'
             }`}
             title={camOn ? 'Apagar cámara' : 'Encender cámara'}
           >
-            {camOn ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
+            {camOn ? <Video className="h-4 w-4" /> : <VideoOff className="h-4 w-4" />}
           </button>
         )}
         <button
           onClick={onClose}
-          className="grid h-12 w-12 place-items-center rounded-full bg-red-600 text-white"
+          className="btn-tactile grid h-11 w-11 place-items-center rounded-full bg-red-600 text-white"
           title="Colgar"
         >
-          <PhoneOff className="h-5 w-5" />
+          <PhoneOff className="h-4 w-4" />
         </button>
       </div>
-    </div>
+    </aside>
   );
 }
 
@@ -204,7 +205,7 @@ function Tile({
   hideIfNoVideo?: boolean;
 }) {
   return (
-    <div className="relative aspect-video overflow-hidden rounded-lg bg-zinc-800">
+    <div className="relative aspect-video overflow-hidden rounded-md bg-zinc-800">
       <video
         ref={innerRef as React.RefObject<HTMLVideoElement>}
         muted={muted}
@@ -213,11 +214,11 @@ function Tile({
         className={`h-full w-full object-cover ${hideIfNoVideo ? 'opacity-0' : ''}`}
       />
       {hideIfNoVideo && (
-        <div className="absolute inset-0 grid place-items-center text-3xl text-white/60">
+        <div className="absolute inset-0 grid place-items-center text-2xl text-white/60">
           {label[0]?.toUpperCase()}
         </div>
       )}
-      <span className="absolute bottom-2 left-2 rounded bg-black/60 px-2 py-0.5 text-xs text-white">
+      <span className="absolute bottom-1.5 left-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] text-white">
         {label}
       </span>
     </div>
@@ -237,14 +238,14 @@ function RemoteTile({ tile }: { tile: ParticipantTile }) {
     }
   }, [tile.videoEl, tile.audioEl]);
   return (
-    <div className="relative aspect-video overflow-hidden rounded-lg bg-zinc-800">
+    <div className="relative aspect-video overflow-hidden rounded-md bg-zinc-800">
       <div ref={ref} className="absolute inset-0" />
       {!tile.videoEl && (
-        <div className="absolute inset-0 grid place-items-center text-3xl text-white/60">
+        <div className="absolute inset-0 grid place-items-center text-2xl text-white/60">
           {tile.displayName[0]?.toUpperCase()}
         </div>
       )}
-      <span className="absolute bottom-2 left-2 rounded bg-black/60 px-2 py-0.5 text-xs text-white">
+      <span className="absolute bottom-1.5 left-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] text-white">
         {tile.displayName}
       </span>
     </div>
