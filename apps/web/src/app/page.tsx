@@ -13,6 +13,7 @@ import {
 import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
 import { HeroVideoPreview } from '@/components/HeroVideoPreview';
+import { LiveRoomsBadge } from '@/components/LiveRoomsBadge';
 
 export default function HomePage() {
   return (
@@ -49,25 +50,10 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* SOCIAL PROOF */}
+      {/* LIVE COUNTER */}
       <section className="border-y border-surface-container bg-surface-soft">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-6 py-6">
-          <div>
-            <p className="font-display text-base font-bold text-ink">
-              Más de 10,000 creadores
-            </p>
-            <p className="text-sm text-ink-muted">ya están monetizando su tiempo y talento.</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="flex -space-x-3">
-              <Avatar gradient="from-primary-400 to-primary-600" letter="A" />
-              <Avatar gradient="from-secondary-400 to-secondary-600" letter="B" />
-              <Avatar gradient="from-blue-400 to-blue-600" letter="C" />
-            </div>
-            <span className="label-mono rounded-full bg-primary-500 px-3 py-1 text-white">
-              +10k
-            </span>
-          </div>
+        <div className="mx-auto flex max-w-7xl items-center justify-center px-6 py-6">
+          <LiveRoomsBadge />
         </div>
       </section>
 
@@ -163,16 +149,6 @@ export default function HomePage() {
 
       <SiteFooter />
     </div>
-  );
-}
-
-function Avatar({ gradient, letter }: { gradient: string; letter: string }) {
-  return (
-    <span
-      className={`grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br ${gradient} text-xs font-bold text-white ring-2 ring-surface-soft`}
-    >
-      {letter}
-    </span>
   );
 }
 
