@@ -205,7 +205,7 @@ export function CallPanel({ roomId, token, mode, onClose }: CallPanelProps) {
   return (
     <aside
       style={isMobile ? undefined : { width: `${width}px` }}
-      className="relative order-1 flex w-full max-w-full flex-col bg-zinc-950 text-white max-md:h-[65vh] max-md:border-b max-md:border-zinc-800 md:order-2 md:h-full md:flex-shrink-0 md:border-l md:border-zinc-800"
+      className="relative flex w-full max-w-full flex-col bg-zinc-950 text-white max-md:order-1 max-md:h-[65vh] max-md:border-b max-md:border-zinc-800 md:h-full md:flex-shrink-0 md:border-l md:border-zinc-800"
     >
       {/* Drag handle on the left edge. */}
       <div

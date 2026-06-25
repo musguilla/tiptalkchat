@@ -634,7 +634,7 @@ export default function RoomPage() {
       </header>
 
       <div className="relative flex flex-1 flex-col overflow-hidden md:flex-row">
-        <section className="order-2 flex flex-1 flex-col min-h-0 md:order-1">
+        <section className="flex flex-1 flex-col min-h-0 max-md:order-2">
           <div ref={scrollRef} className="flex-1 overflow-y-auto px-2 py-3">
             {messages.map((m) => (
               <ChatMessageItem
