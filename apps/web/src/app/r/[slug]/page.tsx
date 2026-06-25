@@ -59,6 +59,7 @@ export default function RoomPage() {
   const router = useRouter();
   const { token, user, clear } = useAuth();
   const [room, setRoom] = useState<RoomData | null>(null);
+  const [roomGone, setRoomGone] = useState(false);
   const [needsName, setNeedsName] = useState(false);
   const [guestName, setGuestName] = useState('');
   // Guest JWT issued by the API on join. Lives in component state only
@@ -108,7 +109,10 @@ export default function RoomPage() {
         // Anon host already authenticated via stored token → skip nick prompt.
         if (!user && !guestName && !ht) setNeedsName(true);
       })
-      .catch(() => setRoom(null));
+      .catch(() => {
+        setRoom(null);
+        setRoomGone(true);
+      });
   }, [params.slug, pin, user, guestName]);
 
   useEffect(() => {
@@ -497,6 +501,10 @@ export default function RoomPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  if (roomGone) {
+    return <RoomGoneScreen onDone={() => router.push('/')} />;
+  }
+
   if (!room) {
     return (
       <main className="grid min-h-screen place-items-center">
@@ -873,6 +881,62 @@ export default function RoomPage() {
 
       <WalletOverlay open={walletOpen} onClose={() => setWalletOpen(false)} />
       <ProfileOverlay open={profileOpen} onClose={() => setProfileOpen(false)} />
+    </main>
+  );
+}
+
+/**
+ * Friendly 'this room is gone' screen. Shows a poofing brand bubble and
+ * auto-redirects to home after the countdown. The user can click 'Volver
+ * ya' to short-circuit.
+ */
+function RoomGoneScreen({ onDone }: { onDone: () => void }) {
+  const [seconds, setSeconds] = useState(5);
+  useEffect(() => {
+    if (seconds <= 0) {
+      onDone();
+      return;
+    }
+    const id = window.setTimeout(() => setSeconds((s) => s - 1), 1000);
+    return () => window.clearTimeout(id);
+  }, [seconds, onDone]);
+
+  return (
+    <main className="grid min-h-screen place-items-center overflow-hidden bg-canvas px-6 text-center">
+      <div className="relative flex max-w-md flex-col items-center">
+        {/* Poof aura — three concentric ping rings + a gradient orb */}
+        <div className="relative mb-8 h-40 w-40">
+          <span className="absolute inset-0 animate-ping rounded-full bg-primary-500/20 [animation-duration:2.4s]" />
+          <span className="absolute inset-4 animate-ping rounded-full bg-secondary-500/30 [animation-duration:1.8s]" />
+          <span className="absolute inset-8 animate-ping rounded-full bg-primary-500/40 [animation-duration:1.4s]" />
+          <span className="absolute inset-12 grid place-items-center rounded-full bg-gradient-to-br from-secondary-500 to-primary-500 shadow-vivid-strong">
+            <span className="font-display text-4xl font-extrabold text-white">✨</span>
+          </span>
+        </div>
+
+        <h1 className="font-display text-3xl font-extrabold tracking-tight">
+          ¡Puf! Esta sala ya no existe
+        </h1>
+        <p className="mt-3 text-base text-ink-muted">
+          Se ha cerrado o ha caducado. Te llevamos al inicio en{' '}
+          <span className="font-semibold text-primary-500">{seconds}s</span>.
+        </p>
+
+        {/* Bouncing dot row for vibe */}
+        <div className="mt-6 flex items-center gap-1.5">
+          <span className="h-2 w-2 animate-bounce rounded-full bg-primary-500 [animation-delay:-0.3s]" />
+          <span className="h-2 w-2 animate-bounce rounded-full bg-secondary-500 [animation-delay:-0.15s]" />
+          <span className="h-2 w-2 animate-bounce rounded-full bg-primary-500" />
+        </div>
+
+        <button
+          type="button"
+          onClick={onDone}
+          className="btn-tactile mt-8 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-6 py-3 text-sm font-bold text-white shadow-vivid hover:shadow-vivid-strong"
+        >
+          Volver ya
+        </button>
+      </div>
     </main>
   );
 }
