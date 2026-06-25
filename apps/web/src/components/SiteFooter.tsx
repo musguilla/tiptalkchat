@@ -10,7 +10,7 @@ export function SiteFooter() {
           <div className="col-span-2">
             <Logo className="text-2xl" />
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-ink-muted">
-              La plataforma líder para monetizar conexiones privadas 1-on-1.
+              Salas de chats privadas con tips.
             </p>
             <div className="mt-5 flex gap-3">
               <a
@@ -43,8 +43,6 @@ export function SiteFooter() {
           </FooterColumn>
 
           <FooterColumn title="Soporte">
-            <FooterLink href="mailto:hola@tiptalk.chat">Atención al cliente</FooterLink>
-            <FooterLink href="/ayuda">Centro de ayuda</FooterLink>
             <FooterLink href="/contacto">Contacto</FooterLink>
           </FooterColumn>
         </div>

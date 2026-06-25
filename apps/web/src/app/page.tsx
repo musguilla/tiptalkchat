@@ -2,7 +2,7 @@ import Link from 'next/link';
 import {
   Lock,
   Share2,
-  Coins,
+  MessageCircle,
   Video,
   ShieldCheck,
   CreditCard,
@@ -83,7 +83,7 @@ export default function HomePage() {
             />
             <StepCard
               color="bg-blue-500"
-              icon={<Coins className="h-5 w-5" />}
+              icon={<MessageCircle className="h-5 w-5" />}
               title="Empieza a chatear"
               body="Chat de voz y video con sistema de propinas integrado."
             />
