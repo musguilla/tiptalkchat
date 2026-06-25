@@ -62,30 +62,30 @@ export default function HomePage() {
         <div className="mx-auto max-w-7xl px-6">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="font-display text-4xl font-extrabold tracking-tight sm:text-5xl">
-              Empieza en minutos
+              Empieza a chatear
             </h2>
             <p className="mt-4 text-base text-ink-muted">
-              Sin complicaciones técnicas. Diseñado para que te enfoques en lo que mejor sabes hacer.
+              Lo tienes a 2 clicks.
             </p>
           </div>
           <div className="mt-14 grid gap-6 md:grid-cols-3">
             <StepCard
               color="bg-primary-500"
               icon={<Lock className="h-5 w-5" />}
-              title="Crea tu espacio"
-              body="Configura tu perfil en segundos. Define tus intereses y disponibilidad sin configuraciones complejas."
+              title="Crea tu sala privada"
+              body="Dale un nombre y listo!"
             />
             <StepCard
               color="bg-secondary-500"
               icon={<Share2 className="h-5 w-5" />}
               title="Comparte tu enlace"
-              body="Lleva tu audiencia a tu espacio privado. Comparte tu link personalizado en Instagram, Twitter o tu bio."
+              body="Comparte tu enlace con quien tu quieras."
             />
             <StepCard
               color="bg-blue-500"
               icon={<Coins className="h-5 w-5" />}
-              title="Recibe propinas"
-              body="Chat de voz y video fluido con sistema de pagos integrado y liquidaciones instantáneas."
+              title="Empieza a chatear"
+              body="Chat de voz y video con sistema de propinas integrado."
             />
           </div>
         </div>
@@ -98,7 +98,7 @@ export default function HomePage() {
             <FeaturePill icon={<Video className="h-4 w-4" />} title="HD Video" sub="Calidad premium garantizada." />
             <FeaturePill icon={<Lock className="h-4 w-4" />} title="Privacidad" sub="Encriptación de punta a punta." />
             <FeaturePill icon={<ShieldCheck className="h-4 w-4" />} title="Pagos Seguros" sub="Protección contra fraudes." />
-            <FeaturePill icon={<Zap className="h-4 w-4" />} title="Instantáneo" sub="Retiros sin esperas." />
+            <FeaturePill icon={<Zap className="h-4 w-4" />} title="Instantáneo" sub="Cerca de tus seguidores." />
           </div>
           <div>
             <h2 className="font-display text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl">
