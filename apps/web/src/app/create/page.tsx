@@ -6,6 +6,7 @@ import { Check, Copy, ArrowRight } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
 import { useAuth } from '@/lib/auth-store';
 import { Logo } from '@/components/Logo';
+import { AuthOverlay } from '@/components/AuthOverlay';
 
 const ANON_DISCLAIMER = 'No necesitas cuenta. Solo pon tu nick y un nombre para la sala.';
 
@@ -29,11 +30,14 @@ export default function CreateRoomPage() {
   const [created, setCreated] = useState<CreatedRoom | null>(null);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sessionExpired, setSessionExpired] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
 
   async function submit(e: React.FormEvent): Promise<void> {
     e.preventDefault();
     setError(null);
+    setSessionExpired(false);
     setLoading(true);
     try {
       const res = await api<CreatedRoom>('/rooms', {
@@ -58,6 +62,7 @@ export default function CreateRoomPage() {
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
         clearAuth();
+        setSessionExpired(true);
         setError('Tu sesión ha caducado. Vuelve a iniciar sesión o crea la sala como invitado.');
       } else {
         const msg =
@@ -189,7 +194,20 @@ export default function CreateRoomPage() {
             />
           </label>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && (
+            <div className="space-y-2">
+              <p className="text-sm text-red-600">{error}</p>
+              {sessionExpired && (
+                <button
+                  type="button"
+                  onClick={() => setAuthOpen(true)}
+                  className="btn-tactile inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-4 py-2.5 text-sm font-bold text-white shadow-soft hover:shadow-vivid"
+                >
+                  Iniciar sesión
+                </button>
+              )}
+            </div>
+          )}
 
           <button
             disabled={loading}
@@ -199,6 +217,17 @@ export default function CreateRoomPage() {
           </button>
         </form>
       </div>
+
+      <AuthOverlay
+        open={authOpen}
+        initialMode="login"
+        onClose={() => setAuthOpen(false)}
+        onSuccess={() => {
+          setAuthOpen(false);
+          setError(null);
+          setSessionExpired(false);
+        }}
+      />
     </main>
   );
 }
