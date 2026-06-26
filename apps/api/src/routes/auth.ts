@@ -58,7 +58,13 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
     reply.code(201);
     return {
       token,
-      user: { id: user.id, email: user.email, displayName: user.displayName, role: user.role },
+      user: {
+        id: user.id,
+        email: user.email,
+        displayName: user.displayName,
+        avatarUrl: user.avatarUrl,
+        role: user.role,
+      },
     };
   });
 
@@ -71,7 +77,13 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
     const token = app.jwt.sign({ sub: user.id, role: user.role }, { expiresIn: env.JWT_ACCESS_TTL });
     return {
       token,
-      user: { id: user.id, email: user.email, displayName: user.displayName, role: user.role },
+      user: {
+        id: user.id,
+        email: user.email,
+        displayName: user.displayName,
+        avatarUrl: user.avatarUrl,
+        role: user.role,
+      },
     };
   });
 
@@ -227,7 +239,13 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
     reply.code(201);
     return {
       token: newToken,
-      user: { id: user.id, email: user.email, displayName: user.displayName, role: user.role },
+      user: {
+        id: user.id,
+        email: user.email,
+        displayName: user.displayName,
+        avatarUrl: user.avatarUrl,
+        role: user.role,
+      },
       upgraded: true,
     };
   });
