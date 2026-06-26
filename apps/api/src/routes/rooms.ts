@@ -124,6 +124,35 @@ export async function roomRoutes(app: FastifyInstance): Promise<void> {
     return { available: !existing, slug };
   });
 
+  /**
+   * Open rooms owned by the caller. Used by the profile page to surface
+   * 'your live chats' so the user can come back to any of them.
+   */
+  app.get('/mine', async (req) => {
+    const { userId } = await app.requireUser(req);
+    const rooms = await prisma.room.findMany({
+      where: { creatorId: userId, closedAt: null },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        createdAt: true,
+        _count: { select: { memberships: true, messages: true } },
+      },
+    });
+    return {
+      rooms: rooms.map((r) => ({
+        id: r.id,
+        slug: r.slug,
+        name: r.name,
+        createdAt: r.createdAt,
+        membersCount: r._count.memberships,
+        messagesCount: r._count.messages,
+      })),
+    };
+  });
+
   app.get('/:slug', async (req) => {
     const slug = (req.params as { slug: string }).slug;
     const room = await prisma.room.findUnique({

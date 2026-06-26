@@ -605,7 +605,7 @@ export default function RoomPage() {
           )}
           {user && (
             <>
-              <UserChip user={user} onClick={() => setProfileOpen(true)} />
+              <UserChip user={user} />
               <button
                 type="button"
                 onClick={() => {

@@ -75,9 +75,14 @@ export async function cleanupRoom(roomId: string): Promise<CleanupResult> {
  */
 export async function sweepExpiredRooms(): Promise<Array<{ roomId: string } & CleanupResult>> {
   const cutoff = new Date(Date.now() - DEFAULT_ROOM_TTL_HOURS * 3600 * 1000);
+  // Rooms owned by a registered user persist until the owner explicitly
+  // hits 'Cerrar sala'. The 24h sweep only catches anonymous-host rooms
+  // (creatorId null) — those have no way to come back without the host
+  // token, so they'd dangle forever otherwise.
   const expired = await prisma.room.findMany({
     where: {
       closedAt: null,
+      creatorId: null,
       OR: [{ expiresAt: { lt: new Date() } }, { createdAt: { lt: cutoff } }],
     },
     select: { id: true },

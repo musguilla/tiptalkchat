@@ -88,9 +88,13 @@ export function ChatMessageItem({
       {(() => {
         const who = msg.author ?? msg.guest;
         const isGuest = !msg.author && !!msg.guest;
-        return who?.avatarUrl ? (
+        const node = who?.avatarUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={who.avatarUrl} alt="" className="mt-1 h-8 w-8 shrink-0 rounded-full" />
+          <img
+            src={who.avatarUrl}
+            alt=""
+            className="mt-1 h-8 w-8 shrink-0 rounded-full object-cover"
+          />
         ) : (
           <span
             className={`mt-1 grid h-8 w-8 shrink-0 place-items-center rounded-full text-xs font-bold text-white ${
@@ -100,6 +104,22 @@ export function ChatMessageItem({
             {who?.displayName[0]?.toUpperCase() ?? '?'}
           </span>
         );
+        // Real users get a clickable avatar that opens their public
+        // profile in a new tab. Guests don't have a profile to show.
+        if (msg.author) {
+          return (
+            <a
+              href={`/u/${msg.author.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="shrink-0 transition hover:opacity-80"
+              title={`Ver perfil de ${msg.author.displayName}`}
+            >
+              {node}
+            </a>
+          );
+        }
+        return node;
       })()}
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline gap-2">

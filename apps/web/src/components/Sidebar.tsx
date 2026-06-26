@@ -42,26 +42,44 @@ export function Sidebar({
         <ul className="space-y-1">
           {members.map((m) => {
             const owner = isMemberTheOwner(m, creator);
+            // Real users have plain ids; guest identities are prefixed
+            // with 'host:' or 'guest:' (see /r/[slug] identity memo).
+            const isRealUser = !m.isGuest && !m.id.startsWith('host:') && !m.id.startsWith('guest:');
+            const avatarBlock = (
+              <span className="relative">
+                {m.avatarUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={m.avatarUrl}
+                    alt=""
+                    className="h-7 w-7 rounded-full object-cover"
+                  />
+                ) : (
+                  <span className="grid h-7 w-7 place-items-center rounded-full bg-primary-500 text-xs font-bold text-white">
+                    {m.displayName[0]?.toUpperCase()}
+                  </span>
+                )}
+                <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-zinc-900" />
+              </span>
+            );
             return (
               <li
                 key={m.id}
                 className="flex items-center gap-2 rounded px-2 py-1 hover:bg-zinc-100 dark:hover:bg-zinc-800"
               >
-                <span className="relative">
-                  {m.avatarUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={m.avatarUrl}
-                      alt=""
-                      className="h-7 w-7 rounded-full object-cover"
-                    />
-                  ) : (
-                    <span className="grid h-7 w-7 place-items-center rounded-full bg-primary-500 text-xs font-bold text-white">
-                      {m.displayName[0]?.toUpperCase()}
-                    </span>
-                  )}
-                  <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-zinc-900" />
-                </span>
+                {isRealUser ? (
+                  <a
+                    href={`/u/${m.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={`Ver perfil de ${m.displayName}`}
+                    className="shrink-0 transition hover:opacity-80"
+                  >
+                    {avatarBlock}
+                  </a>
+                ) : (
+                  avatarBlock
+                )}
                 <span className="text-sm">{m.displayName}</span>
                 {owner ? (
                   <span className="ml-auto flex items-center gap-1 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-900 dark:bg-amber-900/50 dark:text-amber-100">

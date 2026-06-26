@@ -18,6 +18,7 @@ import { muxWebhookRoute } from './routes/mux-webhook.js';
 import { mediaRoutes } from './routes/media.js';
 import { callTokenRoutes } from './routes/calls.js';
 import { contactRoutes } from './routes/contact.js';
+import { userRoutes } from './routes/users.js';
 import { authPlugin } from './plugins/auth.js';
 
 /**
@@ -102,6 +103,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(payoutRoutes, { prefix: '/payouts' });
   await app.register(connectRoutes, { prefix: '/connect' });
   await app.register(contactRoutes, { prefix: '/contact' });
+  await app.register(userRoutes, { prefix: '/users' });
 
   return app;
 }

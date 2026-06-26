@@ -41,7 +41,7 @@ export function SiteHeader({ variant = 'landing' }: { variant?: 'landing' | 'min
                   >
                     Monedero
                   </Link>
-                  <UserChip user={user} onClick={() => setProfileOpen(true)} />
+                  <UserChip user={user} />
                   <button
                     type="button"
                     onClick={() => {
