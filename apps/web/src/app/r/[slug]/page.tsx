@@ -92,7 +92,7 @@ export default function RoomPage() {
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
   const identity: Identity | null = useMemo(() => {
-    if (user) return { id: user.id, displayName: user.displayName, avatarUrl: null, isGuest: false };
+    if (user) return { id: user.id, displayName: user.displayName, avatarUrl: user.avatarUrl ?? null, isGuest: false };
     if (hostToken)
       return { id: `host:${hostToken.displayName}`, displayName: hostToken.displayName, avatarUrl: null, isGuest: true };
     if (guestName) return { id: `guest:${guestName}`, displayName: guestName, avatarUrl: null, isGuest: true };
@@ -603,16 +603,6 @@ export default function RoomPage() {
               Monedero
             </button>
           )}
-          {isOwner && (
-            <button
-              onClick={() => setShowCloseConfirm(true)}
-              className="flex items-center gap-1 rounded-md bg-red-100 px-3 py-1 text-sm font-semibold text-red-900 hover:bg-red-200 dark:bg-red-950 dark:text-red-200"
-              title="Cerrar sala"
-            >
-              <XIcon className="h-3.5 w-3.5" />
-              Cerrar sala
-            </button>
-          )}
           {user && (
             <>
               <UserChip user={user} onClick={() => setProfileOpen(true)} />
@@ -700,7 +690,12 @@ export default function RoomPage() {
           />
         )}
 
-        <Sidebar members={members} creator={room.creator} />
+        <Sidebar
+          members={members}
+          creator={room.creator}
+          canCloseRoom={isOwner}
+          onCloseRoom={() => setShowCloseConfirm(true)}
+        />
 
         {/* Tip animation overlay */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
