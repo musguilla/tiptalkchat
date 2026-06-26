@@ -1,10 +1,42 @@
 import Link from 'next/link';
 import { Globe, X as XIcon } from 'lucide-react';
 import { Logo } from './Logo';
+import { seoFooterColumns, seoPageMap } from '@/lib/seo-pages';
 
 export function SiteFooter() {
   return (
     <footer className="bg-canvas">
+      {/* SEO link grid — above legal so crawlers find it on every page. */}
+      <div className="border-t border-surface-container">
+        <div className="mx-auto max-w-7xl px-6 py-12">
+          <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
+            {seoFooterColumns.map((col) => (
+              <div key={col.title}>
+                <h4 className="mb-3 text-xs font-bold uppercase tracking-wider text-ink-muted">
+                  {col.title}
+                </h4>
+                <ul className="space-y-1.5 text-sm text-ink">
+                  {col.slugs.map((slug) => {
+                    const page = seoPageMap[slug];
+                    if (!page) return null;
+                    return (
+                      <li key={slug}>
+                        <Link
+                          href={`/c/${slug}`}
+                          className="transition hover:text-primary-500"
+                        >
+                          {page.label}
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
       <div className="mx-auto max-w-7xl px-6 py-16">
         <div className="grid grid-cols-2 gap-10 md:grid-cols-4">
           <div className="col-span-2">

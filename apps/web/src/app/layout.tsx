@@ -24,8 +24,9 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'tiptalk.chat — Salas privadas con propinas',
-  description: 'Crea una sala, comparte el enlace y recibe propinas. Sin instalar nada.',
+  title: 'Salas chat privadas con propinas - Tiptalk',
+  description:
+    'Crea una sala de chat privada, comparte el enlace y recibe propinas en directo. Chat, voz y vídeo en tiptalk.chat. Sin registro, sin instalar nada.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
