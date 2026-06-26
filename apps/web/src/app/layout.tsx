@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Plus_Jakarta_Sans, Inter, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
+import { AuthBoot } from '@/components/AuthBoot';
 
 const display = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -36,7 +37,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       suppressHydrationWarning
       className={`${display.variable} ${body.variable} ${mono.variable}`}
     >
-      <body className="bg-canvas font-body text-ink antialiased">{children}</body>
+      <body className="bg-canvas font-body text-ink antialiased">
+        <AuthBoot />
+        {children}
+      </body>
     </html>
   );
 }
