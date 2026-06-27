@@ -1,6 +1,6 @@
 'use client';
 import { useEffect } from 'react';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Loader2 } from 'lucide-react';
 
 export interface ConfirmDialogProps {
   open: boolean;
@@ -79,9 +79,10 @@ export function ConfirmDialog({
             type="button"
             onClick={onConfirm}
             disabled={busy}
-            className={`btn-tactile rounded-md px-4 py-2 text-sm font-semibold transition disabled:opacity-50 ${confirmClasses}`}
+            className={`btn-tactile inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-80 ${confirmClasses}`}
           >
-            {busy ? '…' : confirmLabel}
+            {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+            <span>{confirmLabel}</span>
           </button>
         </div>
       </div>

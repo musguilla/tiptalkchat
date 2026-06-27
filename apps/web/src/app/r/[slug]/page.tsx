@@ -449,7 +449,10 @@ export default function RoomPage() {
           /* ignore */
         }
       }
-      router.push('/');
+      // After a successful close, send the owner to their profile —
+      // they probably want to spin up the next sala or jump into one
+      // of their other open ones.
+      router.push(user ? `/u/${user.id}` : '/');
     } catch (err) {
       setClosingRoom(false);
       setShowCloseConfirm(false);
