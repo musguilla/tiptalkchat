@@ -35,6 +35,16 @@ export interface StorageProvider {
    * swept up by room-cleanup logic.
    */
   createAvatarUploadTicket(input: { contentType: string; bytes: number }): Promise<UploadTicket>;
+  /**
+   * Gallery photo in the user's public profile. Same bucket as the
+   * avatar but under a `gallery/<userId>/` prefix so it's easy to
+   * audit and clean up per-user.
+   */
+  createGalleryUploadTicket(input: {
+    contentType: string;
+    bytes: number;
+    userId: string;
+  }): Promise<UploadTicket>;
   getPublicUrl(storageKey: string): string;
   /** Delete an object. Best-effort: missing-object errors are swallowed. */
   deleteObject(storageKey: string): Promise<void>;
@@ -99,6 +109,17 @@ function buildSupabaseProvider(): StorageProvider {
     };
   }
 
+  async function deleteFromBucket(bucket: string, storageKey: string): Promise<void> {
+    try {
+      await fetch(`${base}/storage/v1/object/${bucket}/${storageKey}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${env.SUPABASE_SERVICE_KEY}` },
+      });
+    } catch {
+      /* swallow */
+    }
+  }
+
   return {
     createImageUploadTicket({ contentType }) {
       return signUpload(mediaBucket, 'images', contentType);
@@ -106,17 +127,20 @@ function buildSupabaseProvider(): StorageProvider {
     createAvatarUploadTicket({ contentType }) {
       return signUpload(profileBucket, 'avatars', contentType);
     },
+    createGalleryUploadTicket({ contentType, userId }) {
+      return signUpload(profileBucket, `gallery/${userId}`, contentType);
+    },
     getPublicUrl(storageKey: string) {
       return `${base}/storage/v1/object/public/${mediaBucket}/${storageKey}`;
     },
     async deleteObject(storageKey: string) {
-      try {
-        await fetch(`${base}/storage/v1/object/${mediaBucket}/${storageKey}`, {
-          method: 'DELETE',
-          headers: { Authorization: `Bearer ${env.SUPABASE_SERVICE_KEY}` },
-        });
-      } catch {
-        /* swallow */
+      // Storage keys for gallery/avatar items start with 'gallery/' or
+      // 'avatars/' — route the delete to the profiles bucket so it
+      // actually hits the right place.
+      if (storageKey.startsWith('gallery/') || storageKey.startsWith('avatars/')) {
+        await deleteFromBucket(profileBucket, storageKey);
+      } else {
+        await deleteFromBucket(mediaBucket, storageKey);
       }
     },
   };
@@ -159,6 +183,9 @@ function buildS3Provider(): StorageProvider {
     },
     createAvatarUploadTicket({ contentType }) {
       return s3Upload('avatars', contentType);
+    },
+    createGalleryUploadTicket({ contentType, userId }) {
+      return s3Upload(`gallery/${userId}`, contentType);
     },
     getPublicUrl(storageKey: string) {
       return `${env.S3_PUBLIC_URL.replace(/\/$/, '')}/${storageKey}`;

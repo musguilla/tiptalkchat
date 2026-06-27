@@ -54,6 +54,34 @@ export async function uploadImage(
 }
 
 /**
+ * Gallery-photo upload to the profile galería. Returns the URL + storage
+ * key so the caller can register the photo with POST /users/me/photos.
+ */
+export async function uploadGalleryPhoto(
+  file: File,
+  token: string,
+  onProgress?: (pct: number) => void,
+): Promise<{ publicUrl: string; storageKey: string }> {
+  if (!/^image\/(jpeg|png|webp|gif)$/.test(file.type)) {
+    throw new Error('Formato no soportado (jpeg, png, webp, gif)');
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    throw new Error('La foto no puede pesar más de 10 MB');
+  }
+  const ticket = await api<{
+    upload: UploadTicket;
+    publicUrl: string;
+    storageKey: string;
+  }>('/users/me/photos/upload', {
+    method: 'POST',
+    token,
+    body: JSON.stringify({ contentType: file.type, bytes: file.size }),
+  });
+  await uploadBytes(ticket.upload, file, onProgress);
+  return { publicUrl: ticket.publicUrl, storageKey: ticket.storageKey };
+}
+
+/**
  * Profile-avatar upload. Goes through /auth/me/avatar/upload which signs
  * against the public `profiles` Supabase bucket (separate from chat media).
  * After the bytes land, the caller should PATCH /auth/me { avatarUrl }

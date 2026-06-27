@@ -2,21 +2,14 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import {
-  ArrowLeft,
-  MessageCircle,
-  ExternalLink,
-  Lock,
-  Image as ImageIcon,
-  Settings,
-  LogIn,
-} from 'lucide-react';
+import { ArrowLeft, MessageCircle, ExternalLink, Lock, Settings, LogIn } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
 import { useAuth } from '@/lib/auth-store';
 import { Logo } from '@/components/Logo';
 import { SiteFooter } from '@/components/SiteFooter';
 import { ProfileOverlay } from '@/components/ProfileOverlay';
 import { AuthOverlay } from '@/components/AuthOverlay';
+import { ProfileGallery } from '@/components/ProfileGallery';
 
 interface PublicUser {
   id: string;
@@ -248,24 +241,13 @@ export default function UserProfilePage() {
           </section>
         )}
 
-        {/* === Gallery placeholder (phase 2) === */}
-        <section className="mt-12">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="font-display text-2xl font-extrabold tracking-tight">
-              Galería de fotos
-            </h2>
-          </div>
-          <div className="grid place-items-center rounded-xl border border-dashed border-surface-container bg-white px-6 py-12 text-center">
-            <div className="grid h-12 w-12 place-items-center rounded-full bg-primary-50 text-primary-500">
-              {isSelf ? <ImageIcon className="h-6 w-6" /> : <Lock className="h-6 w-6" />}
-            </div>
-            <p className="mt-3 max-w-sm text-sm text-ink-muted">
-              {isSelf
-                ? 'Sube fotos a tu galería y elige cuáles ver el público y cuáles solo tú. Próximamente.'
-                : 'Este usuario aún no ha subido fotos a su galería.'}
-            </p>
-          </div>
-        </section>
+        {/* === Gallery === */}
+        <ProfileGallery
+          userId={params.id}
+          isSelf={isSelf}
+          token={token}
+          ownRooms={rooms}
+        />
       </main>
 
       <SiteFooter />

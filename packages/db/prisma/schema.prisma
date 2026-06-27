@@ -52,6 +52,20 @@ model User {
   reports         Report[]        @relation("Reporter")
   reported        Report[]        @relation("Reported")
   refreshTokens   RefreshToken[]
+  profilePhotos   ProfilePhoto[]
+}
+
+model ProfilePhoto {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  publicUrl  String
+  storageKey String
+  isPublic   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([userId, createdAt])
 }
 
 model GuestSession {
