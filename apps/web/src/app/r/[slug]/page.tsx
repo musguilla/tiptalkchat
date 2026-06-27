@@ -102,12 +102,18 @@ export default function RoomPage() {
   useEffect(() => {
     const ht = readHostToken(params.slug);
     if (ht) setHostToken(ht);
+    // If we already know who we are, drop any nick prompt that may have
+    // lingered from a pre-hydration render where user was momentarily null.
+    if (user || guestName || ht) setNeedsName(false);
     api<RoomData>(`/rooms/${params.slug}`)
       .then((r) => {
         setRoom(r);
         if (r.hasPin && !pin) setNeedsPin(true);
-        // Anon host already authenticated via stored token → skip nick prompt.
-        if (!user && !guestName && !ht) setNeedsName(true);
+        // Re-check fresh state inside the .then so we don't ask for a
+        // nick when the auth store hydrated after the fetch was kicked
+        // off.
+        const fresh = useAuth.getState();
+        if (!fresh.user && !guestName && !ht) setNeedsName(true);
       })
       .catch(() => {
         setRoom(null);
