@@ -9,12 +9,14 @@ import {
   Lock,
   Image as ImageIcon,
   Settings,
+  LogIn,
 } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
 import { useAuth } from '@/lib/auth-store';
 import { Logo } from '@/components/Logo';
 import { SiteFooter } from '@/components/SiteFooter';
 import { ProfileOverlay } from '@/components/ProfileOverlay';
+import { AuthOverlay } from '@/components/AuthOverlay';
 
 interface PublicUser {
   id: string;
@@ -41,19 +43,20 @@ export default function UserProfilePage() {
   const [notFound, setNotFound] = useState(false);
   const [rooms, setRooms] = useState<OpenRoom[]>([]);
   const [editOpen, setEditOpen] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
   const meAvatarUrl = useAuth((s) => s.user?.avatarUrl);
   const meDisplayName = useAuth((s) => s.user?.displayName);
 
   const isSelf = meId === params.id;
 
   useEffect(() => {
-    if (!params.id) return;
-    api<PublicUser>(`/users/${params.id}`)
+    if (!params.id || !token) return;
+    api<PublicUser>(`/users/${params.id}`, { token })
       .then(setUser)
       .catch((err) => {
         if (err instanceof ApiError && err.status === 404) setNotFound(true);
       });
-  }, [params.id]);
+  }, [params.id, token]);
 
   useEffect(() => {
     if (!isSelf || !token) return;
@@ -79,6 +82,48 @@ export default function UserProfilePage() {
             Volver al inicio
           </Link>
         </div>
+      </main>
+    );
+  }
+
+  // Auth gate — profiles are visible only to logged-in users.
+  if (!token) {
+    return (
+      <main className="grid min-h-screen place-items-center bg-canvas p-6 text-center">
+        <div className="max-w-md">
+          <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-primary-50 text-primary-500">
+            <Lock className="h-8 w-8" />
+          </div>
+          <h1 className="mt-5 font-display text-3xl font-extrabold tracking-tight">
+            Perfil privado
+          </h1>
+          <p className="mt-3 text-base text-ink-muted">
+            Los perfiles de tiptalk.chat solo se ven con una cuenta. Inicia sesión o
+            crea una en menos de un minuto.
+          </p>
+          <div className="mt-7 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+            <button
+              type="button"
+              onClick={() => setAuthOpen(true)}
+              className="btn-tactile inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-6 py-3 text-sm font-bold text-white shadow-vivid hover:shadow-vivid-strong"
+            >
+              <LogIn className="h-4 w-4" />
+              Iniciar sesión
+            </button>
+            <Link
+              href="/"
+              className="text-sm font-medium text-ink-muted transition hover:text-ink"
+            >
+              Volver al inicio
+            </Link>
+          </div>
+        </div>
+        <AuthOverlay
+          open={authOpen}
+          initialMode="login"
+          onClose={() => setAuthOpen(false)}
+          onSuccess={() => setAuthOpen(false)}
+        />
       </main>
     );
   }
