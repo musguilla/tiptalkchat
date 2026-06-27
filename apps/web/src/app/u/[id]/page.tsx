@@ -197,9 +197,9 @@ export default function UserProfilePage() {
               </h2>
               <Link
                 href="/create"
-                className="text-sm font-semibold text-primary-500 hover:underline"
+                className="btn-tactile inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-4 py-2 text-sm font-bold text-white shadow-vivid hover:shadow-vivid-strong"
               >
-                + Crear sala
+                <span className="text-base leading-none">+</span> Crear sala
               </Link>
             </div>
             {rooms.length === 0 ? (

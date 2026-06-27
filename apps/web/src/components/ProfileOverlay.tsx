@@ -23,6 +23,7 @@ export function ProfileOverlay({ open, onClose }: Props) {
   const patchUser = useAuth((s) => s.patchUser);
 
   const [displayName, setDisplayName] = useState('');
+  const [email, setEmail] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string | null | undefined>(undefined);
   const [busy, setBusy] = useState(false);
   const [uploadPct, setUploadPct] = useState<number | null>(null);
@@ -32,6 +33,7 @@ export function ProfileOverlay({ open, onClose }: Props) {
   useEffect(() => {
     if (!open || !user) return;
     setDisplayName(user.displayName);
+    setEmail(user.email);
     setAvatarUrl(user.avatarUrl ?? null);
     setMsg(null);
     const onKey = (e: KeyboardEvent) => {
@@ -62,8 +64,9 @@ export function ProfileOverlay({ open, onClose }: Props) {
     setBusy(true);
     setMsg(null);
     try {
-      const patch: { displayName?: string; avatarUrl?: string | null } = {};
+      const patch: { displayName?: string; email?: string; avatarUrl?: string | null } = {};
       if (displayName !== user.displayName) patch.displayName = displayName.trim();
+      if (email.trim() !== user.email) patch.email = email.trim();
       if (avatarUrl !== (user.avatarUrl ?? null)) patch.avatarUrl = avatarUrl ?? null;
       if (Object.keys(patch).length === 0) {
         onClose();
@@ -74,10 +77,18 @@ export function ProfileOverlay({ open, onClose }: Props) {
         token,
         body: JSON.stringify(patch),
       });
-      patchUser({ displayName: updated.displayName, avatarUrl: updated.avatarUrl ?? null });
+      patchUser({
+        displayName: updated.displayName,
+        email: updated.email,
+        avatarUrl: updated.avatarUrl ?? null,
+      });
       onClose();
     } catch (err) {
-      setMsg(err instanceof Error ? err.message : 'No se pudo guardar');
+      const apiMsg =
+        err && typeof err === 'object' && 'payload' in err
+          ? ((err as { payload?: { message?: string } }).payload?.message ?? null)
+          : null;
+      setMsg(apiMsg ?? (err instanceof Error ? err.message : 'No se pudo guardar'));
     } finally {
       setBusy(false);
     }
@@ -159,9 +170,16 @@ export function ProfileOverlay({ open, onClose }: Props) {
           />
         </label>
 
-        <p className="mt-4 text-xs text-ink-muted">
-          {user.email}
-        </p>
+        <label className="mt-4 block space-y-1.5 text-sm">
+          <span className="font-medium text-ink">Email</span>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            maxLength={120}
+            className="w-full rounded-md border border-transparent bg-surface-soft p-2.5 outline-none transition focus:border-primary-500 focus:bg-white"
+          />
+        </label>
 
         {msg && <p className="mt-3 text-sm text-red-600">{msg}</p>}
 

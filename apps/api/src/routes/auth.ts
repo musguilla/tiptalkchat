@@ -24,6 +24,7 @@ const claimGuestRoomsBody = z.object({
 
 const updateMeBody = z.object({
   displayName: z.string().min(1).max(40).optional(),
+  email: z.string().email().max(120).optional(),
   avatarUrl: z.string().url().nullable().optional(),
 });
 
@@ -107,13 +108,27 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
   app.patch('/me', async (req) => {
     const { userId } = await app.requireUser(req);
     const body = updateMeBody.parse(req.body);
-    if (body.displayName === undefined && body.avatarUrl === undefined) {
+    if (
+      body.displayName === undefined &&
+      body.avatarUrl === undefined &&
+      body.email === undefined
+    ) {
       throw app.httpErrors.badRequest('No fields to update');
+    }
+    // Email changes need to be unique across users.
+    if (body.email !== undefined) {
+      const existing = await prisma.user.findUnique({ where: { email: body.email } });
+      if (existing && existing.id !== userId) {
+        throw app.httpErrors.conflict('Ese email ya está en uso');
+      }
     }
     const user = await prisma.user.update({
       where: { id: userId },
       data: {
         ...(body.displayName !== undefined ? { displayName: body.displayName } : {}),
+        ...(body.email !== undefined
+          ? { email: body.email, emailVerified: false }
+          : {}),
         ...(body.avatarUrl !== undefined ? { avatarUrl: body.avatarUrl } : {}),
       },
       select: { id: true, email: true, displayName: true, avatarUrl: true, role: true },
