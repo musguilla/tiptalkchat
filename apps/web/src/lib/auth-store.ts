@@ -1,7 +1,7 @@
 'use client';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { api } from './api';
+import { api, ApiError } from './api';
 
 export interface SessionUser {
   id: string;
@@ -39,8 +39,13 @@ export const useAuth = create<AuthState>()(
           set((s) =>
             s.user ? { user: { ...s.user, ...fresh } } : { user: fresh },
           );
-        } catch {
-          /* token may be invalid; the global 401 handler will clear it */
+        } catch (err) {
+          // Defense in depth: api.ts already clears on 401, but if the
+          // dynamic import there ever fails or runs after our chip-aware
+          // code reads the store, drop the stale session here too.
+          if (err instanceof ApiError && err.status === 401) {
+            set({ token: null, user: null });
+          }
         }
       },
     }),

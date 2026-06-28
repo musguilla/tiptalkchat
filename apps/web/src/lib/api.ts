@@ -23,14 +23,14 @@ export async function api<T>(
   const text = await res.text();
   const payload = text ? safeJson(text) : null;
   if (!res.ok) {
-    // The JWT we sent was rejected. Drop the local session immediately so
-    // the UI stops pretending the user is logged in.
+    // The JWT we sent was rejected. Drop the in-memory session AND the
+    // persisted copy so the chip/sidebar stop pretending the user is
+    // logged in. Dynamic import avoids a static circular import with
+    // auth-store (which itself imports api).
     if (res.status === 401 && init.token && typeof window !== 'undefined') {
-      try {
-        window.localStorage.removeItem('tiptalk-auth');
-      } catch {
-        /* ignore */
-      }
+      void import('./auth-store')
+        .then((mod) => mod.useAuth.getState().clear())
+        .catch(() => undefined);
     }
     throw new ApiError(res.status, payload);
   }
