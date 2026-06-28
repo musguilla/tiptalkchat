@@ -704,6 +704,9 @@ export default function RoomPage() {
           creator={room.creator}
           canCloseRoom={isOwner}
           onCloseRoom={() => setShowCloseConfirm(true)}
+          meUserId={user?.id ?? null}
+          token={token}
+          onSendGalleryPhoto={(url) => sendTextMessage(url)}
         />
 
         {/* Tip animation overlay */}

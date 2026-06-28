@@ -1,6 +1,7 @@
 'use client';
 import { Crown, X as XIcon } from 'lucide-react';
 import type { Identity } from './types';
+import { GalleryPicker } from './GalleryPicker';
 
 interface RoomCreator {
   id: string;
@@ -27,11 +28,20 @@ export function Sidebar({
   creator,
   canCloseRoom = false,
   onCloseRoom,
+  meUserId,
+  token,
+  onSendGalleryPhoto,
 }: {
   members: Identity[];
   creator: RoomCreator | null;
   canCloseRoom?: boolean;
   onCloseRoom?: () => void;
+  /** Logged-in user id; when set, the sidebar shows the gallery picker. */
+  meUserId?: string | null;
+  /** Auth token for the gallery API calls. */
+  token?: string | null;
+  /** Called when the user picks a photo from their gallery. */
+  onSendGalleryPhoto?: (url: string) => Promise<void> | void;
 }) {
   return (
     <aside className="hidden w-64 shrink-0 flex-col border-l border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900 md:flex">
@@ -96,6 +106,10 @@ export function Sidebar({
           })}
         </ul>
       </div>
+
+      {meUserId && token && onSendGalleryPhoto && (
+        <GalleryPicker userId={meUserId} token={token} onSend={onSendGalleryPhoto} />
+      )}
 
       {canCloseRoom && onCloseRoom && (
         <div className="border-t border-zinc-200 p-3 dark:border-zinc-800">

@@ -135,7 +135,7 @@ export function ChatMessageItem({
             {new Date(msg.createdAt).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
           </span>
         </div>
-        {msg.kind === 'text' && <p className="break-words text-sm">{msg.body}</p>}
+        {msg.kind === 'text' && <TextOrImage body={msg.body} />}
         {msg.kind === 'image' && <MediaImage msg={msg} />}
         {msg.kind === 'video' && <MediaVideo msg={msg} />}
         {isFailed && (
@@ -166,6 +166,29 @@ export function ChatMessageItem({
       )}
     </div>
   );
+}
+
+/**
+ * Detect bare image URLs in text bodies and render them inline. Used so
+ * 'Send to chat' from the gallery picker / profile produces a real image
+ * bubble instead of a clickable URL. Anything else falls back to plain
+ * text.
+ */
+function TextOrImage({ body }: { body: string | null }) {
+  if (!body) return null;
+  const trimmed = body.trim();
+  if (/^https?:\/\/\S+\.(?:jpe?g|png|webp|gif)(?:\?\S*)?$/i.test(trimmed)) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={trimmed}
+        alt=""
+        className="mt-1 max-h-72 cursor-zoom-in rounded-lg"
+        onClick={() => window.open(trimmed, '_blank', 'noopener,noreferrer')}
+      />
+    );
+  }
+  return <p className="break-words text-sm">{body}</p>;
 }
 
 function MediaImage({ msg }: { msg: ChatMessage }) {
