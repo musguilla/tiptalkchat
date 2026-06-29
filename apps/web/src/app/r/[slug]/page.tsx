@@ -169,10 +169,22 @@ export default function RoomPage() {
         });
         socketRef.current = socket;
 
+        // Optimistic self in the sidebar so 'CONECTADOS (1)' shows up
+        // instantly. The authoritative roster from the server arrives
+        // ~100-500ms later via room:state and replaces this list.
+        setMembers((prev) =>
+          prev.some((m) => m.id === identity.id) ? prev : [identity],
+        );
+
         socket.on('connect', () => {
           socket.emit('room:join', { roomId: room.id, membershipId, identity });
         });
-        socket.on('room:state', ({ members }) => setMembers(members));
+        socket.on('room:state', ({ members: roster }) => {
+          // Merge — if the server roster is empty (eventual consistency
+          // on Upstash) keep the optimistic self so the list never
+          // 'flashes back' to 0.
+          setMembers(roster.length === 0 ? [identity] : roster);
+        });
         socket.on('presence:update', ({ member, online }) => {
           setMembers((prev) => {
             const exists = prev.some((m) => m.id === member.id);
