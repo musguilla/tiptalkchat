@@ -37,8 +37,15 @@ export default function UserProfilePage() {
   const [rooms, setRooms] = useState<OpenRoom[]>([]);
   const [editOpen, setEditOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
   const meAvatarUrl = useAuth((s) => s.user?.avatarUrl);
   const meDisplayName = useAuth((s) => s.user?.displayName);
+
+  // Mark hydrated after first client effect so we don't paint the gate
+  // with a momentarily-null token during Zustand persist hydration.
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
 
   const isSelf = meId === params.id;
 
@@ -75,6 +82,18 @@ export default function UserProfilePage() {
             Volver al inicio
           </Link>
         </div>
+      </main>
+    );
+  }
+
+  // Wait for the auth-store to hydrate from localStorage before deciding
+  // whether to show the gate. Otherwise the first render (during SSR or
+  // before persist rehydrates) sees token=null and paints 'Perfil
+  // privado' even for logged users.
+  if (!hydrated) {
+    return (
+      <main className="grid min-h-screen place-items-center bg-canvas">
+        <div className="h-6 w-6 animate-pulse rounded-full bg-primary-200" />
       </main>
     );
   }
