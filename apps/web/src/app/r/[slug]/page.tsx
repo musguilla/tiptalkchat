@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { io, type Socket } from 'socket.io-client';
-import { Send, Coins, Phone, Video, X as XIcon, LogOut } from 'lucide-react';
+import { Send, Coins, Phone, Video, X as XIcon, LogOut, Users } from 'lucide-react';
 import { REALTIME_BASE, api } from '@/lib/api';
 import { TIP_BUTTONS, eurCentsToTipsys, formatEur, formatTipsysAsEur } from '@/lib/money';
 import { useAuth } from '@/lib/auth-store';
@@ -86,6 +86,7 @@ export default function RoomPage() {
   const [authOverlay, setAuthOverlay] = useState<'login' | 'signup' | 'upgrade' | null>(null);
   const [walletOpen, setWalletOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [activeCall, setActiveCall] = useState<'audio' | 'video' | null>(null);
   const socketRef = useRef<Socket | null>(null);
@@ -603,6 +604,15 @@ export default function RoomPage() {
               </button>
             </>
           )}
+          {/* Mobile-only: open the sidebar drawer (members + gallery + close) */}
+          <button
+            onClick={() => setMobileSidebarOpen(true)}
+            className="grid h-9 w-9 place-items-center rounded-md bg-surface-soft text-ink-muted hover:bg-surface-container hover:text-ink md:hidden"
+            title="Personas y galería"
+            aria-label="Abrir panel"
+          >
+            <Users className="h-4 w-4" />
+          </button>
           {/* Anonymous host: prominent CTA to claim payouts */}
           {hostToken && !user && room.creator?.kind === 'guest' && (
             <button
@@ -725,10 +735,18 @@ export default function RoomPage() {
           members={members}
           creator={room.creator}
           canCloseRoom={isOwner}
-          onCloseRoom={() => setShowCloseConfirm(true)}
+          onCloseRoom={() => {
+            setMobileSidebarOpen(false);
+            setShowCloseConfirm(true);
+          }}
           meUserId={user?.id ?? null}
           token={token}
-          onSendGalleryPhoto={(url) => sendTextMessage(url)}
+          onSendGalleryPhoto={async (url) => {
+            setMobileSidebarOpen(false);
+            await sendTextMessage(url);
+          }}
+          mobileOpen={mobileSidebarOpen}
+          onMobileClose={() => setMobileSidebarOpen(false)}
         />
 
         {/* Tip animation overlay */}

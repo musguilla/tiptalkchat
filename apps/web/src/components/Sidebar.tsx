@@ -1,4 +1,5 @@
 'use client';
+import { useEffect } from 'react';
 import { Crown, X as XIcon } from 'lucide-react';
 import type { Identity } from './types';
 import { GalleryPicker } from './GalleryPicker';
@@ -31,6 +32,8 @@ export function Sidebar({
   meUserId,
   token,
   onSendGalleryPhoto,
+  mobileOpen = false,
+  onMobileClose,
 }: {
   members: Identity[];
   creator: RoomCreator | null;
@@ -42,9 +45,43 @@ export function Sidebar({
   token?: string | null;
   /** Called when the user picks a photo from their gallery. */
   onSendGalleryPhoto?: (url: string) => Promise<void> | void;
+  /** Mobile drawer state — when true, the sidebar slides in from the right. */
+  mobileOpen?: boolean;
+  /** Close the mobile drawer (backdrop click, room action, etc). */
+  onMobileClose?: () => void;
 }) {
+  // Lock body scroll while the mobile drawer is open.
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    if (mobileOpen) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = prev;
+      };
+    }
+    return;
+  }, [mobileOpen]);
+
   return (
-    <aside className="hidden w-64 shrink-0 flex-col border-l border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900 md:flex">
+    <>
+      {/* Mobile backdrop */}
+      {mobileOpen && onMobileClose && (
+        <button
+          type="button"
+          onClick={onMobileClose}
+          aria-label="Cerrar panel"
+          className="fixed inset-0 z-40 bg-ink/40 backdrop-blur-sm md:hidden"
+        />
+      )}
+
+      <aside
+        className={`flex-col border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900 ${
+          mobileOpen
+            ? 'fixed inset-y-0 right-0 z-50 flex w-72 border-l shadow-2xl'
+            : 'hidden'
+        } md:relative md:z-auto md:flex md:w-64 md:shrink-0 md:border-l md:shadow-none`}
+      >
       <div className="flex-1 overflow-y-auto p-3">
         <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-zinc-500">
           Conectados ({members.length})
@@ -124,6 +161,19 @@ export function Sidebar({
           </button>
         </div>
       )}
-    </aside>
+
+      {/* Mobile-only close button (only visible inside the drawer) */}
+      {onMobileClose && (
+        <button
+          type="button"
+          onClick={onMobileClose}
+          aria-label="Cerrar panel"
+          className="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-md text-zinc-500 hover:bg-surface-soft md:hidden"
+        >
+          <XIcon className="h-4 w-4" />
+        </button>
+      )}
+      </aside>
+    </>
   );
 }
