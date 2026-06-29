@@ -102,24 +102,34 @@ export default function RoomPage() {
   useEffect(() => {
     const ht = readHostToken(params.slug);
     if (ht) setHostToken(ht);
-    // If we already know who we are, drop any nick prompt that may have
-    // lingered from a pre-hydration render where user was momentarily null.
-    if (user || guestName || ht) setNeedsName(false);
+    // If we already know who we are from an OUTSIDE source (logged user
+    // or stored host token), drop any nick prompt that may have lingered
+    // from a pre-hydration render. We DO NOT include guestName here —
+    // that's controlled by the form below; auto-dismissing the prompt as
+    // soon as the user types one character would skip the 'Entrar' click
+    // and join with a partial nick.
+    if (user || ht) setNeedsName(false);
     api<RoomData>(`/rooms/${params.slug}`)
       .then((r) => {
         setRoom(r);
         if (r.hasPin && !pin) setNeedsPin(true);
         // Re-check fresh state inside the .then so we don't ask for a
         // nick when the auth store hydrated after the fetch was kicked
-        // off.
+        // off. guestName uses its closure value (initially '') — that's
+        // fine because the form's onSubmit is what flips needsName false,
+        // not the effect.
         const fresh = useAuth.getState();
-        if (!fresh.user && !guestName && !ht) setNeedsName(true);
+        const freshHt = readHostToken(params.slug);
+        if (!fresh.user && !freshHt) setNeedsName(true);
       })
       .catch(() => {
         setRoom(null);
         setRoomGone(true);
       });
-  }, [params.slug, pin, user, guestName]);
+    // guestName intentionally NOT in deps — typing in the form must not
+    // re-run room fetch or auto-dismiss the prompt.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.slug, pin, user]);
 
   useEffect(() => {
     if (!room || !identity || needsName || needsPin) return;
