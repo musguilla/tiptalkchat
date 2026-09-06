@@ -266,7 +266,11 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       _count: { select: { memberships: true, messages: true } },
     } satisfies Prisma.RoomSelect;
 
-    const [presence, user, openRooms, closedRooms, tipsReceived, tipsSent, recentLedger] =
+    // Every relation is fetched as its own top-level query so they all run in
+    // ONE parallel round-trip. Nesting them under user.findUnique looks like
+    // one query but Prisma loads each relation sequentially (user → wallet →
+    // connect → photos → payouts), which is ~5 round-trips to Supabase.
+    const [presence, user, wallet, connect, profilePhotos, payouts, rooms, tipsReceived, tipsSent, recentLedger] =
       await Promise.all([
         fetchPresence(),
         prisma.user.findUnique({
@@ -281,36 +285,35 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
             emailVerified: true,
             blockedAt: true,
             createdAt: true,
-            wallet: { select: { balance: true } },
-            connect: { select: { stripeAccountId: true, status: true, payoutsEnabled: true } },
-            profilePhotos: {
-              orderBy: { createdAt: 'desc' },
-              select: { id: true, publicUrl: true, isPublic: true, createdAt: true },
-            },
-            payouts: {
-              orderBy: { createdAt: 'desc' },
-              select: {
-                id: true,
-                tipsys: true,
-                netEurCents: true,
-                status: true,
-                createdAt: true,
-                paidAt: true,
-              },
-            },
           },
         }),
-        // Open first, then closed — each group createdAt desc, 50 overall.
-        prisma.room.findMany({
-          where: { creatorId: id, closedAt: null },
-          orderBy: { createdAt: 'desc' },
-          take: 50,
-          select: roomSelect,
+        prisma.wallet.findUnique({ where: { userId: id }, select: { id: true, balance: true } }),
+        prisma.connectAccount.findUnique({
+          where: { userId: id },
+          select: { stripeAccountId: true, status: true, payoutsEnabled: true },
         }),
-        prisma.room.findMany({
-          where: { creatorId: id, closedAt: { not: null } },
+        prisma.profilePhoto.findMany({
+          where: { userId: id },
           orderBy: { createdAt: 'desc' },
-          take: 50,
+          select: { id: true, publicUrl: true, isPublic: true, createdAt: true },
+        }),
+        prisma.payoutRequest.findMany({
+          where: { userId: id },
+          orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            tipsys: true,
+            netEurCents: true,
+            status: true,
+            createdAt: true,
+            paidAt: true,
+          },
+        }),
+        // One query for all the user's rooms; partitioned open-first below.
+        prisma.room.findMany({
+          where: { creatorId: id },
+          orderBy: { createdAt: 'desc' },
+          take: 100,
           select: roomSelect,
         }),
         prisma.tip.aggregate({
@@ -332,10 +335,12 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       ]);
     if (!user) throw app.httpErrors.notFound('User not found');
 
-    const { wallet, connect, profilePhotos, payouts, ...profile } = user;
+    // Open first, then closed — each group keeps createdAt desc, 50 overall.
+    const openRooms = rooms.filter((r) => r.closedAt === null);
+    const closedRooms = rooms.filter((r) => r.closedAt !== null);
 
     return {
-      user: profile,
+      user,
       online: presence.onlineUserIds.includes(id),
       wallet: { balance: wallet?.balance ?? 0 },
       connect: connect
