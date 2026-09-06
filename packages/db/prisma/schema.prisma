@@ -37,6 +37,7 @@ model User {
   locale          String          @default("es")
   role            String          @default("user") // user | mod | admin
   kycStatus       String          @default("none") // none | pending | verified | rejected
+  blockedAt       DateTime?
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 
@@ -66,6 +67,18 @@ model ProfilePhoto {
 
   @@index([userId])
   @@index([userId, createdAt])
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String
+  status    String   @default("new") // new | read | archived
+  createdAt DateTime @default(now())
+
+  @@index([status, createdAt])
 }
 
 model GuestSession {

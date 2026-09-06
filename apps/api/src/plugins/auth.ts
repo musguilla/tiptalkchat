@@ -11,6 +11,8 @@ declare module 'fastify' {
     requireUser: (req: FastifyRequest) => Promise<{ userId: string; role: string }>;
     /** Throws unless the request is authenticated as user OR guest. */
     requireActor: (req: FastifyRequest) => Promise<SessionActor>;
+    /** Throws unless the request is authenticated as a user with role=admin. */
+    requireAdmin: (req: FastifyRequest) => Promise<{ userId: string; role: string }>;
   }
   interface FastifyRequest {
     sessionUser: { userId: string; role: string } | null;
@@ -72,6 +74,19 @@ async function plugin(app: FastifyInstance): Promise<void> {
     const a = (req as Augmented).sessionActor;
     if (!a) throw app.httpErrors.unauthorized('Authentication required');
     return a;
+  });
+
+  // Role comes from the JWT (signed at login), so a user promoted to admin
+  // needs to log in again to pick up the new role. We deliberately don't hit
+  // the DB here — keeps the guard cheap for the admin dashboard's many calls.
+  app.decorate('requireAdmin', async (req: FastifyRequest) => {
+    type Augmented = FastifyRequest & {
+      sessionUser: { userId: string; role: string } | null;
+    };
+    const u = (req as Augmented).sessionUser;
+    if (!u) throw app.httpErrors.unauthorized('Authentication required');
+    if (u.role !== 'admin') throw app.httpErrors.forbidden('Admin only');
+    return u;
   });
 }
 

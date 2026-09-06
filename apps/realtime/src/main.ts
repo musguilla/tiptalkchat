@@ -60,6 +60,40 @@ const http = createServer((req, res) => {
     });
     return;
   }
+  // Presence snapshot for the admin panel: which registered users have at
+  // least one live socket, and how many sockets each room currently has.
+  if (req.url === '/internal/presence' && req.method === 'GET') {
+    const auth = req.headers.authorization;
+    if (auth !== `Bearer ${env.JWT_ACCESS_SECRET}`) {
+      res.statusCode = 401;
+      res.end();
+      return;
+    }
+    io.fetchSockets()
+      .then((sockets) => {
+        const onlineUserIds = new Set<string>();
+        const roomCounts: Record<string, number> = {};
+        for (const s of sockets) {
+          const d = s.data as SocketData;
+          if (d.userId) onlineUserIds.add(d.userId);
+          for (const r of d.rooms ?? []) roomCounts[r] = (roomCounts[r] ?? 0) + 1;
+        }
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.end(
+          JSON.stringify({
+            onlineUserIds: [...onlineUserIds],
+            roomCounts,
+            totalSockets: sockets.length,
+          }),
+        );
+      })
+      .catch(() => {
+        res.statusCode = 500;
+        res.end();
+      });
+    return;
+  }
   if (req.url === '/health' || req.url === '/') {
     res.statusCode = 200;
     res.end('ok');

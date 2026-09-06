@@ -10,7 +10,7 @@ export default function robots(): MetadataRoute.Robots {
         allow: '/',
         // /r/<slug> is per-conversation; not useful for search and we
         // don't want stale room URLs accumulating in the index.
-        disallow: ['/r/', '/wallet', '/login', '/signup'],
+        disallow: ['/r/', '/wallet', '/login', '/signup', '/admin', '/u/'],
       },
     ],
     sitemap: `${BASE}/sitemap.xml`,

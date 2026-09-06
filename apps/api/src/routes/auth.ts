@@ -75,6 +75,9 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
     if (!user) throw app.httpErrors.unauthorized('Invalid credentials');
     const ok = await verifyPassword(user.passwordHash, body.password);
     if (!ok) throw app.httpErrors.unauthorized('Invalid credentials');
+    if (user.blockedAt) {
+      throw app.httpErrors.forbidden('Esta cuenta ha sido bloqueada. Contacta con soporte.');
+    }
     const token = app.jwt.sign({ sub: user.id, role: user.role }, { expiresIn: env.JWT_ACCESS_TTL });
     return {
       token,

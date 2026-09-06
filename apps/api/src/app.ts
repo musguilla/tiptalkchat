@@ -4,6 +4,7 @@ import helmet from '@fastify/helmet';
 import jwt from '@fastify/jwt';
 import rateLimit from '@fastify/rate-limit';
 import sensible from '@fastify/sensible';
+import { ZodError } from 'zod';
 import { loadEnv } from '@tiptalk/config';
 import { authRoutes } from './routes/auth.js';
 import { roomRoutes } from './routes/rooms.js';
@@ -19,6 +20,7 @@ import { mediaRoutes } from './routes/media.js';
 import { callTokenRoutes } from './routes/calls.js';
 import { contactRoutes } from './routes/contact.js';
 import { userRoutes } from './routes/users.js';
+import { adminRoutes } from './routes/admin.js';
 import { authPlugin } from './plugins/auth.js';
 
 /**
@@ -87,6 +89,31 @@ export async function buildApp(): Promise<FastifyInstance> {
   });
   await app.register(authPlugin);
 
+  // Zod validation failures (`schema.parse(req.body)`) used to surface as
+  // 500s because Fastify doesn't know what a ZodError is. Map them to a 400
+  // with the first issue's path+message so clients get something actionable.
+  // Errors that already carry a statusCode (sensible's httpErrors, Fastify's
+  // own) pass through untouched; everything else stays a 500.
+  app.setErrorHandler((error, req, reply) => {
+    if (error instanceof ZodError) {
+      const first = error.issues[0];
+      const where = first?.path.length ? `${first.path.join('.')}: ` : '';
+      return reply.status(400).send({
+        statusCode: 400,
+        error: 'Bad Request',
+        message: `${where}${first?.message ?? 'Invalid request'}`,
+        issues: error.issues.map((i) => ({ path: i.path.join('.'), message: i.message })),
+      });
+    }
+    const status = typeof error.statusCode === 'number' ? error.statusCode : 500;
+    if (status >= 500) req.log.error(error);
+    return reply.status(status).send({
+      statusCode: status,
+      error: error.name ?? 'Error',
+      message: status >= 500 && env.NODE_ENV === 'production' ? 'Internal Server Error' : error.message,
+    });
+  });
+
   app.get('/healthz', async () => ({ ok: true, ts: Date.now() }));
 
   await app.register(stripeWebhookRoute, { prefix: '/webhooks/stripe' });
@@ -104,6 +131,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(connectRoutes, { prefix: '/connect' });
   await app.register(contactRoutes, { prefix: '/contact' });
   await app.register(userRoutes, { prefix: '/users' });
+  await app.register(adminRoutes, { prefix: '/admin' });
 
   return app;
 }
