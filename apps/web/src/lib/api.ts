@@ -23,13 +23,16 @@ export async function api<T>(
   const text = await res.text();
   const payload = text ? safeJson(text) : null;
   if (!res.ok) {
-    // The JWT we sent was rejected. Drop the in-memory session AND the
-    // persisted copy so the chip/sidebar stop pretending the user is
-    // logged in. Dynamic import avoids a static circular import with
-    // auth-store (which itself imports api).
+    // A rejected JWT drops the session — but ONLY when the token that was
+    // rejected is the session token itself. Room pages also send guest and
+    // anonymous-host tokens (chatAuth), which have their own short lifetime
+    // tied to the room; one of those expiring must never log the user out.
     if (res.status === 401 && init.token && typeof window !== 'undefined') {
       void import('./auth-store')
-        .then((mod) => mod.useAuth.getState().clear())
+        .then((mod) => {
+          const state = mod.useAuth.getState();
+          if (state.token && state.token === init.token) state.clear();
+        })
         .catch(() => undefined);
     }
     throw new ApiError(res.status, payload);

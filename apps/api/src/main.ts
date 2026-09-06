@@ -1,5 +1,6 @@
 import { buildApp } from './app.js';
 import { sweepExpiredRooms } from './lib/room-cleanup.js';
+import { loadEnv } from '@tiptalk/config';
 
 const PORT = Number(process.env.PORT ?? 4000);
 const HOST = process.env.HOST ?? '0.0.0.0';
@@ -21,7 +22,27 @@ async function runSweeper(): Promise<void> {
   }
 }
 
+/**
+ * A short JWT_ACCESS_TTL logs everyone out silently and is painful to
+ * diagnose from the outside (it just looks like "the app keeps logging me
+ * out"). Shout about it at boot so it can never hide again.
+ */
+function warnOnShortSessionTtl(): void {
+  const ttl = loadEnv().JWT_ACCESS_TTL.trim();
+  const m = /^(\d+)\s*([smhdw])$/i.exec(ttl);
+  if (!m) return;
+  const mult: Record<string, number> = { s: 1, m: 60, h: 3600, d: 86400, w: 604800 };
+  const seconds = Number(m[1]) * (mult[m[2]!.toLowerCase()] ?? 0);
+  if (seconds > 0 && seconds < 3600) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      `[auth] JWT_ACCESS_TTL=${ttl} — sessions expire in under an hour, users will be logged out constantly. Set it to something like 365d.`,
+    );
+  }
+}
+
 async function start(): Promise<void> {
+  warnOnShortSessionTtl();
   const app = await buildApp();
   try {
     await app.listen({ port: PORT, host: HOST });
