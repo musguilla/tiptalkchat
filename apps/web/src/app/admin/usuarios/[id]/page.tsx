@@ -23,7 +23,7 @@ import { useAuth } from '@/lib/auth-store';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { useAdminFetch } from '../../_components/useAdminFetch';
 import { PageHeader } from '../../_components/PageHeader';
-import { SectionCard } from '../../_components/SectionCard';
+import { SectionCard } from '@/components/SectionCard';
 import { Avatar } from '../../_components/Avatar';
 import { Badge, PayoutStatusBadge } from '../../_components/Badge';
 import { OnlineDot } from '../../_components/OnlineDot';

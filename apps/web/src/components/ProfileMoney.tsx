@@ -2,18 +2,17 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   AlertCircle,
-  ArrowDownLeft,
-  ArrowUpRight,
   BadgeCheck,
   Banknote,
   Clock,
+  Coins,
   ExternalLink,
   Loader2,
-  Plus,
   Wallet,
 } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
 import { formatTipsysAsEur, listPackages } from '@tiptalk/economy';
+import { SectionCard } from './SectionCard';
 
 interface Overview {
   wallet: { balance: number; payoutMin: number; canRequestPayout: boolean };
@@ -26,8 +25,6 @@ interface Overview {
   payouts: Array<{
     id: string;
     tipsys: number;
-    grossEurCents: number;
-    feeEurCents: number;
     netEurCents: number;
     status: string;
     failureReason: string | null;
@@ -47,7 +44,7 @@ interface Overview {
   };
 }
 
-interface ConnectStatus {
+interface PayoutSetupStatus {
   connected: boolean;
   status: string | null;
   payoutsEnabled: boolean;
@@ -55,22 +52,32 @@ interface ConnectStatus {
   pending?: string[];
 }
 
-/** Stripe's requirement codes are opaque; say what they actually mean. */
+/**
+ * The payment provider's requirement codes are opaque; say what they actually
+ * mean. Deliberately provider-agnostic wording — the user never needs to know
+ * which processor is behind the payouts.
+ */
 const REQUIREMENT_LABELS: Record<string, string> = {
   external_account: 'Tu número de cuenta bancaria (IBAN)',
   'individual.verification.document': 'Una foto de tu DNI o pasaporte',
-  'individual.verification.additional_document': 'Un documento adicional de verificación',
-  'individual.id_number': 'Tu número de documento de identidad',
+  'individual.verification.additional_document': 'Un documento adicional',
+  'individual.id_number': 'Tu número de documento',
   'individual.address.line1': 'Tu dirección',
+  'individual.address.city': 'Tu ciudad',
+  'individual.address.postal_code': 'Tu código postal',
   'individual.dob.day': 'Tu fecha de nacimiento',
-  'individual.first_name': 'Tu nombre legal',
+  'individual.dob.month': 'Tu fecha de nacimiento',
+  'individual.dob.year': 'Tu fecha de nacimiento',
+  'individual.first_name': 'Tu nombre',
   'individual.last_name': 'Tus apellidos',
   'individual.email': 'Tu email',
   'individual.phone': 'Tu teléfono',
+  'tos_acceptance.date': 'Aceptar las condiciones de cobro',
+  'tos_acceptance.ip': 'Aceptar las condiciones de cobro',
 };
 
-function requirementLabel(code: string): string {
-  return REQUIREMENT_LABELS[code] ?? code.replace(/_/g, ' ').replace(/\./g, ' › ');
+function requirementLabels(codes: string[]): string[] {
+  return [...new Set(codes.map((c) => REQUIREMENT_LABELS[c] ?? c.replace(/[_.]/g, ' ')))];
 }
 
 function eurCents(cents: number): string {
@@ -106,7 +113,7 @@ const PAYOUT_META: Record<string, { label: string; className: string }> = {
 
 export function ProfileMoney({ token }: { token: string }) {
   const [data, setData] = useState<Overview | null>(null);
-  const [connect, setConnect] = useState<ConnectStatus | null>(null);
+  const [setup, setSetup] = useState<PayoutSetupStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null);
@@ -115,10 +122,10 @@ export function ProfileMoney({ token }: { token: string }) {
     try {
       const [overview, status] = await Promise.all([
         api<Overview>('/users/me/overview', { token }),
-        api<ConnectStatus>('/connect/status', { token }),
+        api<PayoutSetupStatus>('/connect/status', { token }),
       ]);
       setData(overview);
-      setConnect(status);
+      setSetup(status);
     } catch (err) {
       setMsg({
         tone: 'error',
@@ -133,12 +140,12 @@ export function ProfileMoney({ token }: { token: string }) {
     void load();
   }, [load]);
 
-  // Coming back from Stripe onboarding: re-read the live status.
+  // Coming back from the payout-setup flow: re-read the live status.
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const p = new URLSearchParams(window.location.search).get('connect');
     if (p === 'done') {
-      setMsg({ tone: 'ok', text: 'Hemos recibido tus datos. Stripe puede tardar unos minutos en verificarlos.' });
+      setMsg({ tone: 'ok', text: 'Hemos recibido tus datos. La verificación puede tardar unos minutos.' });
       void load();
     } else if (p === 'refresh') {
       setMsg({ tone: 'error', text: 'El proceso se interrumpió. Puedes retomarlo cuando quieras.' });
@@ -155,7 +162,7 @@ export function ProfileMoney({ token }: { token: string }) {
       setBusy(null);
       setMsg({
         tone: 'error',
-        text: err instanceof Error ? err.message : 'No se pudo abrir Stripe',
+        text: err instanceof Error ? err.message : 'No se pudo abrir la configuración de cobros',
       });
     }
   }
@@ -202,23 +209,21 @@ export function ProfileMoney({ token }: { token: string }) {
   if (loading) {
     return (
       <section className="mt-10">
-        <div className="h-40 animate-pulse rounded-xl bg-surface-container" />
+        <div className="h-56 animate-pulse rounded-xl bg-surface-container" />
       </section>
     );
   }
   if (!data) return null;
 
-  const pending = connect?.pending ?? [];
-  const payoutsOn = connect?.payoutsEnabled ?? data.connect.payoutsEnabled;
-  const isConnected = connect?.connected ?? data.connect.connected;
+  const pending = requirementLabels(setup?.pending ?? []);
+  const payoutsOn = setup?.payoutsEnabled ?? data.connect.payoutsEnabled;
+  const started = setup?.connected ?? data.connect.connected;
 
   return (
-    <section className="mt-10 space-y-5">
-      <h2 className="font-display text-2xl font-extrabold tracking-tight">Tu monedero</h2>
-
+    <section className="mt-4 space-y-4">
       {msg && (
         <p
-          className={`rounded-md border px-4 py-3 text-sm ${
+          className={`rounded-md border px-4 py-2.5 text-sm ${
             msg.tone === 'ok'
               ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
               : 'border-red-200 bg-red-50 text-red-700'
@@ -228,160 +233,213 @@ export function ProfileMoney({ token }: { token: string }) {
         </p>
       )}
 
-      {/* Balance + tips */}
-      <div className="grid gap-3 sm:grid-cols-3">
-        <div className="rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-amber-100 p-5">
-          <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-amber-700">
-            <Wallet className="h-3.5 w-3.5" /> Saldo
-          </p>
-          <p className="mt-1 font-display text-3xl font-black text-amber-900">
-            {data.wallet.balance}
-            <span className="ml-1 text-base font-medium opacity-70">Tipsys</span>
-          </p>
-          <p className="text-sm text-amber-800">{formatTipsysAsEur(data.wallet.balance)}</p>
-        </div>
-        <div className="rounded-xl border border-surface-container bg-white p-5">
-          <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-ink-muted">
-            <ArrowDownLeft className="h-3.5 w-3.5 text-emerald-600" /> Recibido
-          </p>
-          <p className="mt-1 font-display text-3xl font-black text-ink">{data.tips.received.tipsys}</p>
-          <p className="text-sm text-ink-muted">
-            {formatTipsysAsEur(data.tips.received.tipsys)} · {data.tips.received.count} propina(s)
-          </p>
-        </div>
-        <div className="rounded-xl border border-surface-container bg-white p-5">
-          <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-ink-muted">
-            <ArrowUpRight className="h-3.5 w-3.5 text-primary-500" /> Enviado
-          </p>
-          <p className="mt-1 font-display text-3xl font-black text-ink">{data.tips.sent.tipsys}</p>
-          <p className="text-sm text-ink-muted">
-            {formatTipsysAsEur(data.tips.sent.tipsys)} · {data.tips.sent.count} propina(s)
-          </p>
-        </div>
-      </div>
+      <div className="grid gap-4 lg:grid-cols-3">
+        {/* ---- Monedero ---- */}
+        <SectionCard
+          title="Monedero"
+          icon={<Wallet className="h-4 w-4" />}
+          className="lg:col-span-2"
+          action={
+            <span className="text-sm text-ink-muted">
+              {data.wallet.balance} Tipsys · {formatTipsysAsEur(data.wallet.balance)}
+            </span>
+          }
+        >
+          <div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="rounded-lg bg-surface-soft p-4">
+                <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Saldo</p>
+                <p className="mt-1 font-display text-2xl font-extrabold tracking-tight text-ink">
+                  {data.wallet.balance} Tipsys
+                </p>
+                <p className="text-sm text-ink-muted">{formatTipsysAsEur(data.wallet.balance)}</p>
+              </div>
 
-      {/* Cobros / Connect */}
-      <div className="rounded-xl border border-surface-container bg-white p-5 shadow-soft">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="min-w-0">
-            <h3 className="flex items-center gap-2 font-display text-lg font-bold text-ink">
-              <Banknote className="h-5 w-5 text-primary-500" />
-              Cobros
-              {payoutsOn ? (
-                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-800">
-                  <BadgeCheck className="h-3 w-3" /> Activos
-                </span>
-              ) : isConnected ? (
-                <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800">
-                  <Clock className="h-3 w-3" /> Verificación pendiente
-                </span>
-              ) : (
-                <span className="rounded-full bg-zinc-200 px-2 py-0.5 text-xs font-semibold text-zinc-700">
-                  Sin activar
-                </span>
-              )}
-            </h3>
-            <p className="mt-1 max-w-lg text-sm text-ink-muted">
-              {payoutsOn
-                ? `Ya puedes retirar tus Tipsys. Mínimo ${data.wallet.payoutMin} Tipsys (${formatTipsysAsEur(data.wallet.payoutMin)}).`
-                : isConnected
-                  ? 'Estamos esperando a que se verifiquen tus datos. Solo hace falta lo obligatorio por ley: tu nombre, tu documento y tu cuenta bancaria.'
-                  : 'Activa los cobros para poder retirar a tu cuenta las propinas que recibas. Te pediremos solo lo obligatorio: nombre, documento e IBAN.'}
-            </p>
-            {!payoutsOn && pending.length > 0 && (
-              <ul className="mt-3 space-y-1 text-sm text-ink-muted">
-                {pending.slice(0, 5).map((code) => (
-                  <li key={code} className="flex items-center gap-2">
-                    <AlertCircle className="h-3.5 w-3.5 shrink-0 text-amber-500" />
-                    {requirementLabel(code)}
+              <div className="rounded-lg bg-surface-soft p-4">
+                <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Cobros</p>
+                <p className="mt-1.5">
+                  {payoutsOn ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-800">
+                      <BadgeCheck className="h-3 w-3" /> Activos
+                    </span>
+                  ) : started ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800">
+                      <Clock className="h-3 w-3" /> Verificación pendiente
+                    </span>
+                  ) : (
+                    <span className="rounded-full bg-zinc-200 px-2 py-0.5 text-xs font-semibold text-zinc-700">
+                      Sin activar
+                    </span>
+                  )}
+                </p>
+
+                {payoutsOn ? (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => void requestPayout()}
+                      disabled={!data.wallet.canRequestPayout || busy !== null}
+                      title={
+                        data.wallet.canRequestPayout
+                          ? undefined
+                          : `Necesitas al menos ${data.wallet.payoutMin} Tipsys`
+                      }
+                      className="btn-tactile inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-3.5 py-1.5 text-xs font-bold text-white shadow-soft hover:shadow-vivid disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {busy === 'payout' && <Loader2 className="h-3 w-3 animate-spin" />}
+                      Solicitar cobro
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void go('dashboard', '/connect/dashboard')}
+                      disabled={busy !== null}
+                      className="btn-tactile inline-flex items-center gap-1.5 rounded-full border border-surface-container bg-white px-3 py-1.5 text-xs font-semibold text-ink hover:bg-surface-soft disabled:opacity-60"
+                    >
+                      {busy === 'dashboard' ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <ExternalLink className="h-3 w-3" />
+                      )}
+                      Gestionar
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <p className="mt-2 text-xs leading-relaxed text-ink-muted">
+                      {started
+                        ? 'Falta verificar tus datos para poder retirar.'
+                        : 'Actívalos para retirar a tu cuenta las propinas que recibas.'}
+                    </p>
+                    {pending.length > 0 && (
+                      <ul className="mt-2 space-y-0.5">
+                        {pending.slice(0, 3).map((label) => (
+                          <li key={label} className="flex items-start gap-1.5 text-xs text-ink-muted">
+                            <AlertCircle className="mt-0.5 h-3 w-3 shrink-0 text-amber-500" />
+                            {label}
+                          </li>
+                        ))}
+                        {pending.length > 3 && (
+                          <li className="pl-4.5 text-xs text-ink-soft">
+                            y {pending.length - 3} más
+                          </li>
+                        )}
+                      </ul>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => void go('onboard', '/connect/onboard')}
+                      disabled={busy !== null}
+                      className="btn-tactile mt-3 inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-3.5 py-1.5 text-xs font-bold text-white shadow-soft hover:shadow-vivid disabled:opacity-60"
+                    >
+                      {busy === 'onboard' && <Loader2 className="h-3 w-3 animate-spin" />}
+                      {started ? 'Continuar' : 'Activar cobros'}
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <h4 className="mt-5 text-xs font-semibold uppercase tracking-wider text-ink-muted">
+              Últimos movimientos
+            </h4>
+            {data.recentLedger.length === 0 ? (
+              <p className="mt-2 text-sm text-ink-muted">Sin movimientos todavía.</p>
+            ) : (
+              <ul className="mt-2 divide-y divide-surface-container rounded-lg border border-surface-container">
+                {data.recentLedger.slice(0, 8).map((e) => (
+                  <li
+                    key={e.id}
+                    className="flex items-center justify-between gap-3 px-3 py-2 text-sm"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-ink">{ledgerLabel(e.kind)}</p>
+                      <p className="text-xs text-ink-muted">
+                        {new Date(e.createdAt).toLocaleString('es-ES')}
+                      </p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p
+                        className={`font-bold tabular-nums ${
+                          e.amount >= 0 ? 'text-emerald-600' : 'text-red-600'
+                        }`}
+                      >
+                        {e.amount > 0 ? '+' : ''}
+                        {e.amount} Tipsys
+                      </p>
+                      <p className="text-xs tabular-nums text-ink-soft">Saldo: {e.balanceAfter}</p>
+                    </div>
                   </li>
                 ))}
               </ul>
             )}
           </div>
+        </SectionCard>
 
-          <div className="flex shrink-0 flex-wrap gap-2">
-            {payoutsOn ? (
-              <>
-                <button
-                  type="button"
-                  onClick={() => void requestPayout()}
-                  disabled={!data.wallet.canRequestPayout || busy !== null}
-                  title={
-                    data.wallet.canRequestPayout
-                      ? undefined
-                      : `Necesitas al menos ${data.wallet.payoutMin} Tipsys`
-                  }
-                  className="btn-tactile inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-5 py-2.5 text-sm font-bold text-white shadow-vivid hover:shadow-vivid-strong disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {busy === 'payout' && <Loader2 className="h-4 w-4 animate-spin" />}
-                  Solicitar cobro
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void go('dashboard', '/connect/dashboard')}
-                  disabled={busy !== null}
-                  className="btn-tactile inline-flex items-center gap-2 rounded-full border border-surface-container bg-white px-4 py-2.5 text-sm font-semibold text-ink hover:bg-surface-soft disabled:opacity-60"
-                >
-                  {busy === 'dashboard' ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <ExternalLink className="h-4 w-4" />
-                  )}
-                  Gestionar cuenta
-                </button>
-              </>
-            ) : (
-              <button
-                type="button"
-                onClick={() => void go('onboard', '/connect/onboard')}
-                disabled={busy !== null}
-                className="btn-tactile inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-5 py-2.5 text-sm font-bold text-white shadow-vivid hover:shadow-vivid-strong disabled:opacity-60"
-              >
-                {busy === 'onboard' && <Loader2 className="h-4 w-4 animate-spin" />}
-                {isConnected ? 'Continuar verificación' : 'Activar cobros'}
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
+        {/* ---- Tips + comprar ---- */}
+        <SectionCard title="Tips" icon={<Coins className="h-4 w-4" />}>
+          <div className="space-y-3">
+            <div className="rounded-lg bg-surface-soft p-4">
+              <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
+                Recibidos
+              </p>
+              <p className="mt-1 font-display text-2xl font-extrabold tracking-tight text-ink">
+                {data.tips.received.count}
+              </p>
+              <p className="text-sm text-ink-muted">
+                {data.tips.received.tipsys} Tipsys · {formatTipsysAsEur(data.tips.received.tipsys)}
+              </p>
+            </div>
+            <div className="rounded-lg bg-surface-soft p-4">
+              <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
+                Enviados
+              </p>
+              <p className="mt-1 font-display text-2xl font-extrabold tracking-tight text-ink">
+                {data.tips.sent.count}
+              </p>
+              <p className="text-sm text-ink-muted">
+                {data.tips.sent.tipsys} Tipsys · {formatTipsysAsEur(data.tips.sent.tipsys)}
+              </p>
+            </div>
 
-      {/* Comprar Tipsys */}
-      <div className="rounded-xl border border-surface-container bg-white p-5 shadow-soft">
-        <h3 className="flex items-center gap-2 font-display text-lg font-bold text-ink">
-          <Plus className="h-5 w-5 text-primary-500" /> Comprar Tipsys
-        </h3>
-        <p className="mt-1 text-sm text-ink-muted">
-          Para enviar propinas a otras personas. 1 € son 8 Tipsys.
-        </p>
-        <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {listPackages().map((p) => (
-            <button
-              key={p.eurCents}
-              type="button"
-              onClick={() => void buy(p.eurCents)}
-              disabled={busy !== null}
-              className="btn-tactile rounded-lg border border-surface-container bg-white p-3 text-left transition hover:border-primary-400 hover:shadow-soft disabled:opacity-60"
-            >
-              <div className="font-display text-xl font-extrabold text-ink">{p.tipsys}</div>
-              <div className="text-xs text-ink-muted">Tipsys</div>
-              <div className="mt-1 text-sm font-semibold text-primary-500">
-                {busy === `buy-${p.eurCents}` ? '…' : eurCents(p.eurCents)}
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
+                Comprar Tipsys
+              </p>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                {listPackages().map((p) => (
+                  <button
+                    key={p.eurCents}
+                    type="button"
+                    onClick={() => void buy(p.eurCents)}
+                    disabled={busy !== null}
+                    className="btn-tactile rounded-lg border border-surface-container bg-white px-2 py-2 text-center transition hover:border-primary-400 hover:shadow-soft disabled:opacity-60"
+                  >
+                    <span className="block font-display text-sm font-extrabold text-ink">
+                      {p.tipsys}
+                    </span>
+                    <span className="block text-[11px] font-semibold text-primary-500">
+                      {busy === `buy-${p.eurCents}` ? '…' : eurCents(p.eurCents)}
+                    </span>
+                  </button>
+                ))}
               </div>
-            </button>
-          ))}
-        </div>
+            </div>
+          </div>
+        </SectionCard>
       </div>
 
-      {/* Payouts */}
+      {/* ---- Cobros (solo si los hay) ---- */}
       {data.payouts.length > 0 && (
-        <div className="rounded-xl border border-surface-container bg-white p-5 shadow-soft">
-          <h3 className="font-display text-lg font-bold text-ink">Tus cobros</h3>
-          <div className="mt-3 overflow-x-auto">
-            <table className="w-full min-w-[520px] text-sm">
+        <SectionCard
+          title="Cobros"
+          icon={<Banknote className="h-4 w-4" />}
+          action={<span className="text-sm text-ink-muted">{data.payouts.length} solicitud(es)</span>}
+        >
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[460px] text-sm">
               <thead>
                 <tr className="border-b border-surface-container text-left text-xs uppercase tracking-wider text-ink-muted">
-                  <th className="pb-2 font-semibold">Solicitado</th>
+                  <th className="pb-2 font-semibold">Fecha</th>
                   <th className="pb-2 font-semibold">Tipsys</th>
                   <th className="pb-2 font-semibold">Neto</th>
                   <th className="pb-2 font-semibold">Estado</th>
@@ -395,12 +453,14 @@ export function ProfileMoney({ token }: { token: string }) {
                   };
                   return (
                     <tr key={p.id}>
-                      <td className="py-2.5 text-ink-muted">
+                      <td className="py-2 text-ink-muted">
                         {new Date(p.createdAt).toLocaleDateString('es-ES')}
                       </td>
-                      <td className="py-2.5 font-medium text-ink">{p.tipsys}</td>
-                      <td className="py-2.5 font-semibold text-ink">{eurCents(p.netEurCents)}</td>
-                      <td className="py-2.5">
+                      <td className="py-2 font-medium tabular-nums text-ink">{p.tipsys}</td>
+                      <td className="py-2 font-semibold tabular-nums text-ink">
+                        {eurCents(p.netEurCents)}
+                      </td>
+                      <td className="py-2">
                         <span
                           className={`inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${meta.className}`}
                         >
@@ -416,35 +476,7 @@ export function ProfileMoney({ token }: { token: string }) {
               </tbody>
             </table>
           </div>
-        </div>
-      )}
-
-      {/* Movimientos */}
-      {data.recentLedger.length > 0 && (
-        <div className="rounded-xl border border-surface-container bg-white p-5 shadow-soft">
-          <h3 className="font-display text-lg font-bold text-ink">Últimos movimientos</h3>
-          <ul className="mt-3 divide-y divide-surface-container">
-            {data.recentLedger.map((e) => (
-              <li key={e.id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
-                <div className="min-w-0">
-                  <p className="truncate font-medium text-ink">{ledgerLabel(e.kind)}</p>
-                  <p className="text-xs text-ink-muted">
-                    {new Date(e.createdAt).toLocaleString('es-ES')}
-                  </p>
-                </div>
-                <div className="shrink-0 text-right">
-                  <p
-                    className={`font-bold ${e.amount >= 0 ? 'text-emerald-600' : 'text-red-600'}`}
-                  >
-                    {e.amount > 0 ? '+' : ''}
-                    {e.amount} Tipsys
-                  </p>
-                  <p className="text-xs text-ink-soft">Saldo: {e.balanceAfter}</p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
+        </SectionCard>
       )}
     </section>
   );

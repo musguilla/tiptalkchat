@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { uploadGalleryPhoto } from '@/lib/upload';
+import { SectionCard } from './SectionCard';
 
 interface GalleryPhoto {
   id: string;
@@ -142,41 +143,47 @@ export function ProfileGallery({
   }
 
   return (
-    <section className="mt-12">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-display text-2xl font-extrabold tracking-tight">
-          Galería de fotos
-        </h2>
-        {isSelf && (
+    <SectionCard
+      title="Galería"
+      icon={<ImageIcon className="h-4 w-4" />}
+      className="mt-4"
+      action={
+        <>
+          <span className="text-sm text-ink-muted">
+            {photos.length} foto(s) · {photos.filter((p) => p.isPublic).length} pública(s)
+          </span>
+          {isSelf && (
           <button
             type="button"
             onClick={() => fileRef.current?.click()}
             disabled={uploadPct !== null}
-            className="btn-tactile inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-4 py-2 text-sm font-bold text-white shadow-soft hover:shadow-vivid disabled:opacity-60"
+            className="btn-tactile inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-3.5 py-1.5 text-xs font-bold text-white shadow-soft hover:shadow-vivid disabled:opacity-60"
           >
             {uploadPct !== null ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" /> {uploadPct}%
+                <Loader2 className="h-3 w-3 animate-spin" /> {uploadPct}%
               </>
             ) : (
               <>
-                <Plus className="h-4 w-4" /> Subir foto
+                <Plus className="h-3 w-3" /> Subir foto
               </>
             )}
           </button>
-        )}
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/jpeg,image/png,image/webp,image/gif"
-          multiple
-          className="hidden"
-          onChange={(e) => {
-            void pickFiles(e.target.files);
-            if (fileRef.current) fileRef.current.value = '';
-          }}
-        />
-      </div>
+          )}
+        </>
+      }
+    >
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        multiple
+        className="hidden"
+        onChange={(e) => {
+          void pickFiles(e.target.files);
+          if (fileRef.current) fileRef.current.value = '';
+        }}
+      />
 
       {uploadError && (
         <p className="mb-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
@@ -185,11 +192,11 @@ export function ProfileGallery({
       )}
 
       {!loaded ? (
-        <div className="grid place-items-center rounded-xl border border-dashed border-surface-container bg-white px-6 py-12">
+        <div className="grid place-items-center rounded-lg border border-dashed border-surface-container bg-surface-soft/50 px-6 py-12">
           <Loader2 className="h-6 w-6 animate-spin text-ink-muted" />
         </div>
       ) : photos.length === 0 ? (
-        <div className="grid place-items-center rounded-xl border border-dashed border-surface-container bg-white px-6 py-12 text-center">
+        <div className="grid place-items-center rounded-lg border border-dashed border-surface-container bg-surface-soft/50 px-6 py-12 text-center">
           <div className="grid h-12 w-12 place-items-center rounded-full bg-primary-50 text-primary-500">
             {isSelf ? <ImageIcon className="h-6 w-6" /> : <Lock className="h-6 w-6" />}
           </div>
@@ -305,6 +312,6 @@ export function ProfileGallery({
           ))}
         </ul>
       )}
-    </section>
+    </SectionCard>
   );
 }

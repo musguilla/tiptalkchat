@@ -2,7 +2,15 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { ArrowLeft, MessageCircle, ExternalLink, Lock, Settings, LogIn } from 'lucide-react';
+import {
+  ArrowLeft,
+  MessageCircle,
+  MessagesSquare,
+  ExternalLink,
+  Lock,
+  Settings,
+  LogIn,
+} from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
 import { useAuth } from '@/lib/auth-store';
 import { Logo } from '@/components/Logo';
@@ -11,6 +19,7 @@ import { ProfileOverlay } from '@/components/ProfileOverlay';
 import { AuthOverlay } from '@/components/AuthOverlay';
 import { ProfileGallery } from '@/components/ProfileGallery';
 import { ProfileMoney } from '@/components/ProfileMoney';
+import { SectionCard } from '@/components/SectionCard';
 
 interface PublicUser {
   id: string;
@@ -213,20 +222,24 @@ export default function UserProfilePage() {
 
         {/* === Open rooms (self only) === */}
         {isSelf && (
-          <section className="mt-10">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="font-display text-2xl font-extrabold tracking-tight">
-                Tus chats abiertos
-              </h2>
-              <Link
-                href="/create"
-                className="btn-tactile inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-4 py-2 text-sm font-bold text-white shadow-vivid hover:shadow-vivid-strong"
-              >
-                <span className="text-base leading-none">+</span> Crear sala
-              </Link>
-            </div>
+          <div className="mt-4">
+          <SectionCard
+            title="Salas"
+            icon={<MessagesSquare className="h-4 w-4" />}
+            action={
+              <>
+                <span className="text-sm text-ink-muted">{rooms.length} abierta(s)</span>
+                <Link
+                  href="/create"
+                  className="btn-tactile inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-3.5 py-1.5 text-xs font-bold text-white shadow-soft hover:shadow-vivid"
+                >
+                  <span className="text-sm leading-none">+</span> Crear sala
+                </Link>
+              </>
+            }
+          >
             {rooms.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-surface-container bg-white p-8 text-center">
+              <div className="rounded-lg border border-dashed border-surface-container bg-surface-soft/50 p-8 text-center">
                 <MessageCircle className="mx-auto h-10 w-10 text-ink-soft" />
                 <p className="mt-3 text-sm text-ink-muted">
                   No tienes salas abiertas ahora mismo.
@@ -261,7 +274,8 @@ export default function UserProfilePage() {
                 ))}
               </ul>
             )}
-          </section>
+          </SectionCard>
+          </div>
         )}
 
         {/* === Gallery === */}
