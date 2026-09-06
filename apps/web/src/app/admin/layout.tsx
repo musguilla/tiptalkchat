@@ -8,6 +8,7 @@ import {
   Lock,
   LogIn,
   LogOut,
+  Image as ImageIcon,
   Mail,
   Menu,
   MessagesSquare,
@@ -33,6 +34,7 @@ const NAV: ReadonlyArray<NavItem> = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
   { href: '/admin/usuarios', label: 'Usuarios', icon: Users },
   { href: '/admin/salas', label: 'Salas', icon: MessagesSquare },
+  { href: '/admin/media', label: 'Media', icon: ImageIcon },
   { href: '/admin/payouts', label: 'Payouts', icon: Banknote },
   { href: '/admin/contacto', label: 'Contacto', icon: Mail },
 ];

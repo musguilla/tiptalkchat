@@ -56,6 +56,17 @@ const contactsQuery = z.object({
   status: z.enum(['new', 'read', 'archived', 'all']).default('new'),
 });
 
+const mediaQuery = z.object({
+  source: z.enum(['all', 'chat', 'avatar', 'gallery']).default('all'),
+  kind: z.enum(['all', 'image', 'video']).default('all'),
+  page: pageParam,
+  limit: z.coerce
+    .number()
+    .int()
+    .default(48)
+    .transform((n) => Math.min(120, Math.max(1, n))),
+});
+
 const roleBody = z.object({
   role: z.enum(USER_ROLES),
 });
@@ -95,6 +106,27 @@ function mapRoomCreator(room: RoomCreatorRow):
   if (room.creator) return { kind: 'user', ...room.creator };
   if (room.creatorGuest) return { kind: 'guest', ...room.creatorGuest };
   return null;
+}
+
+/** One row of the unified media feed (chat upload / avatar / gallery photo). */
+interface AdminMediaItem {
+  id: string;
+  source: 'chat' | 'avatar' | 'gallery';
+  kind: 'image' | 'video';
+  status: string;
+  url: string | null;
+  thumbnailUrl: string | null;
+  mimeType: string | null;
+  bytes: number | null;
+  createdAt: Date;
+  isPublic: boolean | null;
+  owner: {
+    id: string | null;
+    displayName: string;
+    avatarUrl: string | null;
+    isGuest: boolean;
+  } | null;
+  room: { id: string; slug: string; name: string } | null;
 }
 
 const payoutRowSelect = {
@@ -612,6 +644,184 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
     if (!room) throw app.httpErrors.notFound('Room not found');
     if (!room.closedAt) await cleanupRoom(id);
     return { closed: true };
+  });
+
+  // -------------------------------------------------------------------------
+  // Media (chat uploads + profile avatars + gallery photos)
+  // -------------------------------------------------------------------------
+
+  /**
+   * Unified media feed across the three places images live:
+   *   - chat    → MediaAsset rows (images AND videos) attached to messages
+   *   - avatar  → User.avatarUrl (already a public URL, profiles bucket)
+   *   - gallery → ProfilePhoto rows (already public URLs, profiles bucket)
+   *
+   * Pagination merges the sources: we take `page * limit` newest rows from
+   * each active source, merge, sort by date and slice. That's exact — any
+   * item in the global top N is necessarily in the top N of its own source —
+   * at the cost of reading up to 3x the page. Fine at this scale.
+   */
+  app.get('/media', async (req) => {
+    await app.requireAdmin(req);
+    const { source, kind, page, limit } = mediaQuery.parse(req.query);
+
+    const wantChat = source === 'all' || source === 'chat';
+    // Avatars and gallery photos are always images, so a video-only filter
+    // excludes them entirely.
+    const videosOnly = kind === 'video';
+    const wantAvatar = (source === 'all' || source === 'avatar') && !videosOnly;
+    const wantGallery = (source === 'all' || source === 'gallery') && !videosOnly;
+
+    const window = page * limit;
+    const chatWhere: Prisma.MediaAssetWhereInput = kind === 'all' ? {} : { kind };
+
+    const [
+      chatRows,
+      avatarRows,
+      galleryRows,
+      chatCount,
+      avatarCount,
+      galleryCount,
+      chatBytes,
+    ] = await Promise.all([
+      wantChat
+        ? prisma.mediaAsset.findMany({
+            where: chatWhere,
+            orderBy: { createdAt: 'desc' },
+            take: window,
+            include: {
+              messages: {
+                take: 1,
+                orderBy: { createdAt: 'asc' },
+                select: {
+                  room: { select: { id: true, slug: true, name: true } },
+                  author: { select: { id: true, displayName: true, avatarUrl: true } },
+                  guest: { select: { id: true, displayName: true, avatarUrl: true } },
+                },
+              },
+            },
+          })
+        : Promise.resolve([]),
+      wantAvatar
+        ? prisma.user.findMany({
+            where: { avatarUrl: { not: null } },
+            orderBy: { updatedAt: 'desc' },
+            take: window,
+            select: { id: true, displayName: true, avatarUrl: true, updatedAt: true },
+          })
+        : Promise.resolve([]),
+      wantGallery
+        ? prisma.profilePhoto.findMany({
+            orderBy: { createdAt: 'desc' },
+            take: window,
+            select: {
+              id: true,
+              publicUrl: true,
+              isPublic: true,
+              createdAt: true,
+              user: { select: { id: true, displayName: true, avatarUrl: true } },
+            },
+          })
+        : Promise.resolve([]),
+      prisma.mediaAsset.count({ where: chatWhere }),
+      prisma.user.count({ where: { avatarUrl: { not: null } } }),
+      prisma.profilePhoto.count(),
+      prisma.mediaAsset.aggregate({ where: chatWhere, _sum: { bytes: true } }),
+    ]);
+
+    const items: AdminMediaItem[] = [];
+
+    for (const m of chatRows) {
+      const formatted = formatMediaForClient(m);
+      const msg = m.messages[0];
+      const who = msg?.author ?? msg?.guest ?? null;
+      items.push({
+        id: `chat:${m.id}`,
+        source: 'chat',
+        kind: m.kind === 'video' ? 'video' : 'image',
+        status: m.status,
+        url: formatted.publicUrl ?? formatted.hlsUrl,
+        thumbnailUrl: formatted.thumbnailUrl ?? formatted.publicUrl,
+        mimeType: m.mimeType,
+        bytes: m.bytes,
+        createdAt: m.createdAt,
+        isPublic: null,
+        // Guests have no admin profile page, so only users carry an id.
+        owner: who
+          ? {
+              id: msg?.author ? who.id : null,
+              displayName: who.displayName,
+              avatarUrl: who.avatarUrl,
+              isGuest: !msg?.author,
+            }
+          : null,
+        room: msg?.room ?? null,
+      });
+    }
+
+    for (const u of avatarRows) {
+      if (!u.avatarUrl) continue;
+      items.push({
+        id: `avatar:${u.id}`,
+        source: 'avatar',
+        kind: 'image',
+        status: 'ready',
+        url: u.avatarUrl,
+        thumbnailUrl: u.avatarUrl,
+        mimeType: null,
+        bytes: null,
+        // No timestamp is stored for the avatar itself; updatedAt is the
+        // closest proxy for "when this user last changed their profile".
+        createdAt: u.updatedAt,
+        isPublic: null,
+        owner: { id: u.id, displayName: u.displayName, avatarUrl: u.avatarUrl, isGuest: false },
+        room: null,
+      });
+    }
+
+    for (const p of galleryRows) {
+      items.push({
+        id: `gallery:${p.id}`,
+        source: 'gallery',
+        kind: 'image',
+        status: 'ready',
+        url: p.publicUrl,
+        thumbnailUrl: p.publicUrl,
+        mimeType: null,
+        bytes: null,
+        createdAt: p.createdAt,
+        isPublic: p.isPublic,
+        owner: {
+          id: p.user.id,
+          displayName: p.user.displayName,
+          avatarUrl: p.user.avatarUrl,
+          isGuest: false,
+        },
+        room: null,
+      });
+    }
+
+    items.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+    const total =
+      (wantChat ? chatCount : 0) +
+      (wantAvatar ? avatarCount : 0) +
+      (wantGallery ? galleryCount : 0);
+
+    return {
+      items: items.slice((page - 1) * limit, page * limit),
+      total,
+      page,
+      limit,
+      counts: {
+        chat: chatCount,
+        avatar: videosOnly ? 0 : avatarCount,
+        gallery: videosOnly ? 0 : galleryCount,
+        total: chatCount + (videosOnly ? 0 : avatarCount + galleryCount),
+      },
+      // Only chat uploads record their size; avatars/gallery are plain URLs.
+      chatBytes: chatBytes._sum.bytes ?? 0,
+    };
   });
 
   // -------------------------------------------------------------------------
