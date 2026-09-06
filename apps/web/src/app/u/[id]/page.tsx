@@ -10,6 +10,7 @@ import { SiteFooter } from '@/components/SiteFooter';
 import { ProfileOverlay } from '@/components/ProfileOverlay';
 import { AuthOverlay } from '@/components/AuthOverlay';
 import { ProfileGallery } from '@/components/ProfileGallery';
+import { ProfileMoney } from '@/components/ProfileMoney';
 
 interface PublicUser {
   id: string;
@@ -206,6 +207,9 @@ export default function UserProfilePage() {
             </div>
           </div>
         </section>
+
+        {/* === Money: wallet, payouts, Stripe Connect (self only) === */}
+        {isSelf && token && <ProfileMoney token={token} />}
 
         {/* === Open rooms (self only) === */}
         {isSelf && (

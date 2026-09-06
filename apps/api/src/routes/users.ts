@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { prisma } from '@tiptalk/db';
 import { getStorage } from '../lib/storage.js';
+import { canRequestPayout, PAYOUT_MIN_TIPSYS } from '@tiptalk/economy';
 
 /**
  * Profile + gallery endpoints. Everything here requires auth — the
@@ -56,6 +57,80 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
         // The web shows a blurred placeholder instead.
         viewerCanSee: isSelf || p.isPublic,
       })),
+    };
+  });
+
+  /**
+   * Everything the owner of a profile needs to see about their own money, in
+   * a single round-trip: balance, payout eligibility, Connect state, payout
+   * history, recent ledger movements and tip totals. The self-view of
+   * /u/[id] renders straight from this.
+   */
+  app.get('/me/overview', async (req) => {
+    const { userId } = await app.requireUser(req);
+
+    const [wallet, connect, payouts, recentLedger, tipsReceived, tipsSent] =
+      await Promise.all([
+        prisma.wallet.findUnique({ where: { userId }, select: { balance: true } }),
+        prisma.connectAccount.findUnique({
+          where: { userId },
+          select: { status: true, payoutsEnabled: true, createdAt: true },
+        }),
+        prisma.payoutRequest.findMany({
+          where: { userId },
+          orderBy: { createdAt: 'desc' },
+          take: 20,
+          select: {
+            id: true,
+            tipsys: true,
+            grossEurCents: true,
+            feeEurCents: true,
+            netEurCents: true,
+            status: true,
+            failureReason: true,
+            createdAt: true,
+            paidAt: true,
+          },
+        }),
+        prisma.ledgerEntry.findMany({
+          where: { wallet: { userId } },
+          orderBy: { createdAt: 'desc' },
+          take: 20,
+          select: { id: true, kind: true, amount: true, balanceAfter: true, createdAt: true },
+        }),
+        prisma.tip.aggregate({
+          where: { receiverId: userId },
+          _count: { _all: true },
+          _sum: { amount: true },
+        }),
+        prisma.tip.aggregate({
+          where: { senderId: userId },
+          _count: { _all: true },
+          _sum: { amount: true },
+        }),
+      ]);
+
+    const balance = wallet?.balance ?? 0;
+    return {
+      wallet: {
+        balance,
+        payoutMin: PAYOUT_MIN_TIPSYS,
+        canRequestPayout: canRequestPayout(balance),
+      },
+      connect: connect
+        ? {
+            connected: true,
+            status: connect.status,
+            payoutsEnabled: connect.payoutsEnabled,
+            connectedAt: connect.createdAt,
+          }
+        : { connected: false, status: null, payoutsEnabled: false, connectedAt: null },
+      payouts,
+      recentLedger,
+      tips: {
+        received: { count: tipsReceived._count._all, tipsys: tipsReceived._sum.amount ?? 0 },
+        sent: { count: tipsSent._count._all, tipsys: tipsSent._sum.amount ?? 0 },
+      },
     };
   });
 
