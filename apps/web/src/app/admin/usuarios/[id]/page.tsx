@@ -440,15 +440,14 @@ export default function AdminUserDetailPage() {
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <p className="truncate font-display font-bold text-ink">{r.name}</p>
-                      <a
-                        href={`/r/${r.slug}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <Link
+                        href={`/admin/salas/${r.id}`}
                         className="inline-flex items-center gap-1 truncate text-xs text-ink-muted hover:text-primary-600 hover:underline"
+                        title="Ver la conversación como observador (no te une a la sala)"
                       >
                         /r/{r.slug}
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
+                        <Eye className="h-3 w-3" />
+                      </Link>
                     </div>
                     <Badge tone={open ? 'success' : 'neutral'}>{open ? 'Abierta' : 'Cerrada'}</Badge>
                   </div>

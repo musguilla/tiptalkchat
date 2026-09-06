@@ -13,6 +13,8 @@ const PORT = Number(process.env.PORT ?? 4001);
 
 interface SocketData {
   userId: string | null;
+  /** Role claim from the JWT ('user' | 'mod' | 'admin'); null for guests/anon. */
+  role: string | null;
   identity: Identity | null;
   rooms: Set<string>;
   inCalls: Set<string>;
@@ -115,6 +117,7 @@ io.use((socket, next) => {
   data.rooms = new Set();
   data.inCalls = new Set();
   data.userId = null;
+  data.role = null;
   data.identity = null;
 
   const token = socket.handshake.auth?.token as string | undefined;
@@ -123,8 +126,14 @@ io.use((socket, next) => {
     return next();
   }
   try {
-    const decoded = jwt.verify(token, env.JWT_ACCESS_SECRET) as { sub: string };
+    const decoded = jwt.verify(token, env.JWT_ACCESS_SECRET) as {
+      sub: string;
+      role?: string;
+      kind?: string;
+    };
     data.userId = decoded.sub;
+    // Guest JWTs carry kind:'guest' and no role; user JWTs carry role.
+    data.role = decoded.kind === 'guest' ? null : (decoded.role ?? null);
     next();
   } catch {
     next();
@@ -148,6 +157,26 @@ io.on('connection', (socket: Socket<ClientToServerEvents, ServerToClientEvents, 
 
   socket.on('room:leave', ({ roomId }) => {
     leaveRoom(socket, roomId);
+  });
+
+  // Admin read-only observer. Joins the socket.io room so it receives the
+  // same message:new / tip:new / presence:update the members get, but:
+  //   - no identity is set → excluded from sendRosterTo()
+  //   - no presence:update is broadcast → members never see it join/leave
+  //   - roomId is NOT added to data.rooms → not counted by /internal/presence
+  //     and message:send is refused (it checks data.rooms)
+  socket.on('admin:observe', ({ roomId }, ack) => {
+    if (!roomId || socket.data.role !== 'admin') {
+      ack?.(false);
+      return;
+    }
+    socket.join(roomKey(roomId));
+    ack?.(true);
+  });
+
+  socket.on('admin:unobserve', ({ roomId }) => {
+    if (!roomId) return;
+    socket.leave(roomKey(roomId));
   });
 
   socket.on('message:send', (payload, ack) => {

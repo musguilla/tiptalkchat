@@ -1,7 +1,7 @@
 'use client';
 import { Suspense, useCallback, useState } from 'react';
 import Link from 'next/link';
-import { DoorClosed, ExternalLink, MessagesSquare } from 'lucide-react';
+import { DoorClosed, Eye, MessagesSquare } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-store';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
@@ -144,15 +144,14 @@ function RoomsPageInner() {
                           {r.name}
                           <Badge tone={open ? 'success' : 'neutral'}>{open ? 'Abierta' : 'Cerrada'}</Badge>
                         </p>
-                        <a
-                          href={`/r/${r.slug}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <Link
+                          href={`/admin/salas/${r.id}`}
                           className="inline-flex items-center gap-1 text-xs text-ink-muted hover:text-primary-600 hover:underline"
+                          title="Ver la conversación como observador (no te une a la sala)"
                         >
                           /r/{r.slug}
-                          <ExternalLink className="h-3 w-3" />
-                        </a>
+                          <Eye className="h-3 w-3" />
+                        </Link>
                       </div>
                     </Td>
                     <Td>

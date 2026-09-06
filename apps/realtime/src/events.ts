@@ -48,6 +48,14 @@ export interface ClientToServerEvents {
   'call:join': (payload: { roomId: string; socketId: string }) => void;
   'call:leave': (payload: { roomId: string }) => void;
   'call:signal': (payload: RtcSignal) => void;
+  /**
+   * Admin read-only observer. Joins the socket.io room to receive
+   * message:new / tip:new / presence:update but is NOT a member: no
+   * identity, no presence broadcast, not counted in rosters or in
+   * /internal/presence, cannot send. Requires an admin JWT on the handshake.
+   */
+  'admin:observe': (payload: { roomId: string }, ack?: (ok: boolean) => void) => void;
+  'admin:unobserve': (payload: { roomId: string }) => void;
 }
 
 export interface ServerToClientEvents {

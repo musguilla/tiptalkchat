@@ -4,6 +4,7 @@ import { prisma, Prisma } from '@tiptalk/db';
 import { appendLedgerEntry } from '../lib/wallet.js';
 import { fetchPresence } from '../lib/realtime.js';
 import { cleanupRoom } from '../lib/room-cleanup.js';
+import { formatMediaForClient } from '../lib/media-urls.js';
 
 /**
  * Admin panel endpoints. Every handler starts with `app.requireAdmin(req)`;
@@ -487,6 +488,120 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       total,
       page,
       limit,
+    };
+  });
+
+  /**
+   * Room detail for the admin viewer: meta + creator + members (from DB
+   * memberships, flagged online via presence) + live socket count. Does NOT
+   * create a membership or touch presence — the admin is an observer.
+   */
+  app.get('/rooms/:id', async (req) => {
+    await app.requireAdmin(req);
+    const id = (req.params as { id: string }).id;
+
+    const [presence, room, memberships] = await Promise.all([
+      fetchPresence(),
+      prisma.room.findUnique({
+        where: { id },
+        select: {
+          id: true,
+          slug: true,
+          name: true,
+          createdAt: true,
+          closedAt: true,
+          expiresAt: true,
+          creator: { select: { id: true, displayName: true, avatarUrl: true } },
+          creatorGuest: { select: { id: true, displayName: true, avatarUrl: true } },
+          _count: { select: { memberships: true, messages: true } },
+        },
+      }),
+      prisma.roomMembership.findMany({
+        where: { roomId: id },
+        orderBy: { joinedAt: 'asc' },
+        select: {
+          id: true,
+          role: true,
+          status: true,
+          joinedAt: true,
+          user: { select: { id: true, displayName: true, avatarUrl: true } },
+          guest: { select: { id: true, displayName: true, avatarUrl: true } },
+        },
+      }),
+    ]);
+    if (!room) throw app.httpErrors.notFound('Room not found');
+    const online = new Set(presence.onlineUserIds);
+
+    return {
+      room: {
+        id: room.id,
+        slug: room.slug,
+        name: room.name,
+        createdAt: room.createdAt,
+        closedAt: room.closedAt,
+        expiresAt: room.expiresAt,
+        creator: mapRoomCreator(room),
+        membersCount: room._count.memberships,
+        messagesCount: room._count.messages,
+        liveCount: presence.roomCounts[room.id] ?? 0,
+      },
+      members: memberships.map((m) => {
+        const who = m.user ?? m.guest;
+        return {
+          id: m.id,
+          role: m.role,
+          status: m.status,
+          joinedAt: m.joinedAt,
+          kind: m.user ? ('user' as const) : ('guest' as const),
+          userId: m.user?.id ?? null,
+          displayName: who?.displayName ?? 'Desconocido',
+          avatarUrl: who?.avatarUrl ?? null,
+          // Only registered users have a stable socket identity we can match.
+          online: m.user ? online.has(m.user.id) : false,
+        };
+      }),
+    };
+  });
+
+  /**
+   * Message history for the admin viewer. Same shape the chat client uses
+   * (author/guest/media) so the web can reuse ChatMessageItem. Cursor-paged,
+   * newest-first from the DB, returned oldest-first for rendering.
+   */
+  app.get('/rooms/:id/messages', async (req) => {
+    await app.requireAdmin(req);
+    const id = (req.params as { id: string }).id;
+    const { cursor, limit } = z
+      .object({
+        cursor: z.string().optional(),
+        limit: z.coerce.number().int().positive().max(200).default(100),
+      })
+      .parse(req.query);
+
+    const exists = await prisma.room.findUnique({ where: { id }, select: { id: true } });
+    if (!exists) throw app.httpErrors.notFound('Room not found');
+
+    const rows = await prisma.message.findMany({
+      where: { roomId: id, deletedAt: null },
+      orderBy: { createdAt: 'desc' },
+      take: limit + 1,
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+      include: {
+        author: { select: { id: true, displayName: true, avatarUrl: true } },
+        guest: { select: { id: true, displayName: true, avatarUrl: true } },
+        media: true,
+      },
+    });
+    let nextCursor: string | null = null;
+    if (rows.length > limit) {
+      const last = rows.pop();
+      nextCursor = last?.id ?? null;
+    }
+    return {
+      messages: rows
+        .reverse()
+        .map((m) => ({ ...m, media: m.media ? formatMediaForClient(m.media) : null })),
+      nextCursor,
     };
   });
 
