@@ -31,6 +31,15 @@ const CONNECT_MCC = '8999';
  * plainly what the money is for so a Stripe reviewer sees the same thing the
  * transactions show.
  */
+/**
+ * The marketplace URL we declare to Stripe as the seller's business site.
+ * Hard-coded on purpose: it is a fact about the business, not about where
+ * this process happens to run. Deriving it from PUBLIC_BASE_URL would send
+ * Stripe a staging hostname from a staging deploy — and `localhost` from a
+ * dev machine, which Stripe rejects outright with "Not a valid URL".
+ */
+const MARKETPLACE_URL = 'https://tiptalk.chat';
+
 const CONNECT_PRODUCT_DESCRIPTION =
   'Conversaciones privadas uno a uno por texto, voz y vídeo a través de la plataforma tiptalk.chat. Los ingresos proceden de propinas voluntarias enviadas por los participantes durante la conversación.';
 
@@ -56,7 +65,7 @@ export async function connectRoutes(app: FastifyInstance): Promise<void> {
         business_profile: {
           // Stripe requires a URL for every seller. Ours don't have their own
           // site, so we send the marketplace they sell through.
-          url: env.PUBLIC_BASE_URL,
+          url: MARKETPLACE_URL,
           mcc: CONNECT_MCC,
           product_description: CONNECT_PRODUCT_DESCRIPTION,
           name: user.displayName,
