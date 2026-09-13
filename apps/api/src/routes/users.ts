@@ -5,8 +5,9 @@ import { getStorage } from '../lib/storage.js';
 import { canRequestPayout, PAYOUT_MIN_TIPSYS } from '@tiptalk/economy';
 
 /**
- * Profile + gallery endpoints. Everything here requires auth — the
- * profile page is private.
+ * Profile + gallery endpoints. The public surface is deliberately limited
+ * to nick, avatar and photos explicitly marked as public; owner operations
+ * remain authenticated.
  */
 
 const galleryUploadBody = z.object({
@@ -20,15 +21,42 @@ const updatePhotoBody = z.object({
 });
 
 export async function userRoutes(app: FastifyInstance): Promise<void> {
+  /**
+   * Small, deliberately public discovery list for the home page. This only
+   * exposes the information users have elected to surface through an avatar
+   * (nick + avatar) — never email, rooms, wallets or gallery privacy state.
+   * The two seeded demo identities must not leak into the production social
+   * rail, hence the explicit demo-address exclusion instead of a fragile
+   * "skip the first two rows" rule.
+   */
+  app.get('/discover', async () => {
+    const users = await prisma.user.findMany({
+      where: {
+        avatarUrl: { not: null },
+        blockedAt: null,
+        role: { not: 'admin' },
+        email: { notIn: ['alice@tiptalk.demo', 'bob@tiptalk.demo'] },
+      },
+      orderBy: { updatedAt: 'desc' },
+      take: 18,
+      select: { id: true, displayName: true, avatarUrl: true },
+    });
+    return { users };
+  });
+
   app.get('/:id', async (req) => {
-    await app.requireUser(req);
     const id = (req.params as { id: string }).id;
     const user = await prisma.user.findUnique({
       where: { id },
-      select: { id: true, displayName: true, avatarUrl: true, createdAt: true },
+      select: { id: true, displayName: true, avatarUrl: true, createdAt: true, blockedAt: true },
     });
-    if (!user) throw app.httpErrors.notFound('User not found');
-    return user;
+    if (!user || user.blockedAt) throw app.httpErrors.notFound('User not found');
+    return {
+      id: user.id,
+      displayName: user.displayName,
+      avatarUrl: user.avatarUrl,
+      createdAt: user.createdAt,
+    };
   });
 
   /**
@@ -39,11 +67,10 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
    * top; if you want stronger privacy later we can return placeholders.
    */
   app.get('/:id/photos', async (req) => {
-    const me = await app.requireUser(req);
     const id = (req.params as { id: string }).id;
-    const isSelf = me.userId === id;
+    const isSelf = req.sessionUser?.userId === id;
     const photos = await prisma.profilePhoto.findMany({
-      where: { userId: id },
+      where: { userId: id, ...(isSelf ? {} : { isPublic: true }) },
       orderBy: { createdAt: 'desc' },
       select: { id: true, publicUrl: true, isPublic: true, createdAt: true },
     });
@@ -53,9 +80,7 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
         url: p.publicUrl,
         isPublic: p.isPublic,
         createdAt: p.createdAt,
-        // Hide the URL on private photos when viewer is not the owner.
-        // The web shows a blurred placeholder instead.
-        viewerCanSee: isSelf || p.isPublic,
+        viewerCanSee: true,
       })),
     };
   });

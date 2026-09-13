@@ -14,6 +14,7 @@ import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
 import { HeroVideoPreview } from '@/components/HeroVideoPreview';
 import { LiveRoomsBadge } from '@/components/LiveRoomsBadge';
+import { DiscoverPeople } from '@/components/DiscoverPeople';
 
 export default function HomePage() {
   return (
@@ -56,6 +57,8 @@ export default function HomePage() {
           <LiveRoomsBadge />
         </div>
       </section>
+
+      <DiscoverPeople />
 
       {/* EMPIEZA EN MINUTOS */}
       <section id="como-funciona" className="bg-canvas py-20">

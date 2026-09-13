@@ -53,8 +53,8 @@ export function ProfileGallery({
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
-    if (!token || !userId) return;
-    api<{ photos: GalleryPhoto[] }>(`/users/${userId}/photos`, { token })
+    if (!userId) return;
+    api<{ photos: GalleryPhoto[] }>(`/users/${userId}/photos`, token ? { token } : {})
       .then((r) => setPhotos(r.photos))
       .catch(() => undefined)
       .finally(() => setLoaded(true));
