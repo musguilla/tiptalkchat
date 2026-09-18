@@ -3,6 +3,9 @@ import { z } from 'zod';
 import { prisma } from '@tiptalk/db';
 import { getStorage } from '../lib/storage.js';
 import { canRequestPayout, PAYOUT_MIN_TIPSYS } from '@tiptalk/economy';
+import { fetchPresence } from '../lib/realtime.js';
+import { sendEmail, renderNewMessageEmail } from '../lib/email.js';
+import { loadEnv } from '@tiptalk/config';
 
 /**
  * Profile + gallery endpoints. The public surface is deliberately limited
@@ -46,16 +49,20 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
 
   app.get('/:id', async (req) => {
     const id = (req.params as { id: string }).id;
-    const user = await prisma.user.findUnique({
-      where: { id },
-      select: { id: true, displayName: true, avatarUrl: true, createdAt: true, blockedAt: true },
-    });
+    const [user, presence] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id },
+        select: { id: true, displayName: true, avatarUrl: true, createdAt: true, blockedAt: true },
+      }),
+      fetchPresence(),
+    ]);
     if (!user || user.blockedAt) throw app.httpErrors.notFound('User not found');
     return {
       id: user.id,
       displayName: user.displayName,
       avatarUrl: user.avatarUrl,
       createdAt: user.createdAt,
+      online: presence.onlineUserIds.includes(user.id),
     };
   });
 
@@ -248,5 +255,163 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
     await prisma.profilePhoto.delete({ where: { id } });
     reply.code(204);
     return null;
+  });
+  // -------------------------------------------------------------------------
+  // Direct messages (in-app inbox). A message to a user is stored and shown in
+  // their inbox; the recipient also gets a best-effort email nudge.
+  // -------------------------------------------------------------------------
+
+  const sendMessageBody = z.object({ body: z.string().trim().min(1).max(4000) });
+
+  app.post('/:id/messages', async (req, reply) => {
+    const me = await app.requireUser(req);
+    const toUserId = (req.params as { id: string }).id;
+    if (toUserId === me.userId) throw app.httpErrors.badRequest('No puedes enviarte un mensaje a ti mismo');
+    const { body } = sendMessageBody.parse(req.body);
+
+    const [sender, recipient] = await Promise.all([
+      prisma.user.findUnique({ where: { id: me.userId }, select: { displayName: true } }),
+      prisma.user.findUnique({
+        where: { id: toUserId },
+        select: { id: true, email: true, displayName: true, blockedAt: true },
+      }),
+    ]);
+    if (!recipient || recipient.blockedAt) throw app.httpErrors.notFound('Usuario no encontrado');
+
+    const msg = await prisma.profileMessage.create({
+      data: { fromUserId: me.userId, toUserId, body },
+      select: { id: true, body: true, createdAt: true },
+    });
+
+    // Fire-and-forget email nudge. Never blocks or fails the request.
+    const env = loadEnv();
+    const inboxUrl = `${env.PUBLIC_BASE_URL.replace(/\/$/, '')}/mensajes`;
+    const { subject, html } = renderNewMessageEmail({
+      recipientName: recipient.displayName,
+      senderName: sender?.displayName ?? 'Alguien',
+      preview: body,
+      inboxUrl,
+    });
+    void sendEmail({ to: recipient.email, subject, html }).then((r) => {
+      if (!r.ok && !r.skipped) req.log.warn({ err: r.error }, 'message email failed');
+    });
+
+    reply.code(201);
+    return { id: msg.id, body: msg.body, createdAt: msg.createdAt };
+  });
+
+  // Count of unread received messages, for the header badge.
+  app.get('/me/messages/unread-count', async (req) => {
+    const me = await app.requireUser(req);
+    const count = await prisma.profileMessage.count({
+      where: { toUserId: me.userId, readAt: null },
+    });
+    return { count };
+  });
+
+  // Inbox: one thread per counterpart, newest activity first.
+  app.get('/me/messages', async (req) => {
+    const me = await app.requireUser(req);
+    const rows = await prisma.profileMessage.findMany({
+      where: { OR: [{ toUserId: me.userId }, { fromUserId: me.userId }] },
+      orderBy: { createdAt: 'desc' },
+      take: 400,
+      select: {
+        id: true, body: true, createdAt: true, readAt: true,
+        fromUserId: true, toUserId: true,
+      },
+    });
+
+    // Group into per-counterpart threads (keep first = latest per partner).
+    const threads = new Map<string, {
+      partnerId: string; lastBody: string; lastAt: Date; unread: number;
+    }>();
+    for (const m of rows) {
+      const partnerId = m.fromUserId === me.userId ? m.toUserId : m.fromUserId;
+      let t = threads.get(partnerId);
+      if (!t) {
+        t = { partnerId, lastBody: m.body, lastAt: m.createdAt, unread: 0 };
+        threads.set(partnerId, t);
+      }
+      if (m.toUserId === me.userId && m.readAt === null) t.unread += 1;
+    }
+
+    const partnerIds = [...threads.keys()];
+    const [partners, presence] = await Promise.all([
+      partnerIds.length
+        ? prisma.user.findMany({
+            where: { id: { in: partnerIds } },
+            select: { id: true, displayName: true, avatarUrl: true },
+          })
+        : Promise.resolve([]),
+      fetchPresence(),
+    ]);
+    const byId = new Map(partners.map((p) => [p.id, p]));
+    const online = new Set(presence.onlineUserIds);
+
+    const result = [...threads.values()]
+      .map((t) => {
+        const p = byId.get(t.partnerId);
+        return {
+          partner: {
+            id: t.partnerId,
+            displayName: p?.displayName ?? 'Usuario',
+            avatarUrl: p?.avatarUrl ?? null,
+            online: online.has(t.partnerId),
+          },
+          lastBody: t.lastBody,
+          lastAt: t.lastAt,
+          unread: t.unread,
+        };
+      })
+      .sort((a, b) => b.lastAt.getTime() - a.lastAt.getTime());
+
+    return { threads: result };
+  });
+
+  // Full conversation with one counterpart. Marks incoming as read.
+  app.get('/me/messages/:userId', async (req) => {
+    const me = await app.requireUser(req);
+    const partnerId = (req.params as { userId: string }).userId;
+
+    const [partner, presence, messages] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id: partnerId },
+        select: { id: true, displayName: true, avatarUrl: true },
+      }),
+      fetchPresence(),
+      prisma.profileMessage.findMany({
+        where: {
+          OR: [
+            { fromUserId: me.userId, toUserId: partnerId },
+            { fromUserId: partnerId, toUserId: me.userId },
+          ],
+        },
+        orderBy: { createdAt: 'asc' },
+        take: 500,
+        select: { id: true, body: true, createdAt: true, fromUserId: true, readAt: true },
+      }),
+    ]);
+    if (!partner) throw app.httpErrors.notFound('Usuario no encontrado');
+
+    await prisma.profileMessage.updateMany({
+      where: { fromUserId: partnerId, toUserId: me.userId, readAt: null },
+      data: { readAt: new Date() },
+    });
+
+    return {
+      partner: {
+        id: partner.id,
+        displayName: partner.displayName,
+        avatarUrl: partner.avatarUrl,
+        online: presence.onlineUserIds.includes(partner.id),
+      },
+      messages: messages.map((m) => ({
+        id: m.id,
+        body: m.body,
+        createdAt: m.createdAt,
+        mine: m.fromUserId === me.userId,
+      })),
+    };
   });
 }

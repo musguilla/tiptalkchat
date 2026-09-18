@@ -7,6 +7,7 @@ import { useAuth } from '@/lib/auth-store';
 import { Logo } from './Logo';
 import { ProfileOverlay } from './ProfileOverlay';
 import { UserChip } from './UserChip';
+import { MessagesBell } from './MessagesBell';
 
 export function SiteHeader({ variant = 'landing' }: { variant?: 'landing' | 'minimal' }) {
   const router = useRouter();
@@ -41,6 +42,7 @@ export function SiteHeader({ variant = 'landing' }: { variant?: 'landing' | 'min
                   >
                     Monedero
                   </Link>
+                  <MessagesBell />
                   <UserChip user={user} />
                   <button
                     type="button"

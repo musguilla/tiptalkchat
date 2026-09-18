@@ -87,6 +87,12 @@ const baseSchema = z.object({
   LIVEKIT_RECORD_S3_ACCESS_KEY: z.string().optional(),
   LIVEKIT_RECORD_S3_SECRET_KEY: z.string().optional(),
 
+  // --- Transactional email (Resend) ---
+  // Optional: the in-app inbox works without it. When RESEND_API_KEY is set,
+  // recipients get an email nudge to come read/reply to their messages.
+  RESEND_API_KEY: z.string().optional(),
+  EMAIL_FROM: z.string().default('TipTalk <hola@tiptalk.chat>'),
+
   // --- Stripe ---
   STRIPE_SECRET_KEY: z.string().default('sk_test_placeholder'),
   STRIPE_WEBHOOK_SECRET: z.string().default('whsec_placeholder'),

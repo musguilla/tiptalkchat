@@ -54,6 +54,8 @@ model User {
   reported        Report[]        @relation("Reported")
   refreshTokens   RefreshToken[]
   profilePhotos   ProfilePhoto[]
+  sentMessages     ProfileMessage[] @relation("ProfileMsgFrom")
+  receivedMessages ProfileMessage[] @relation("ProfileMsgTo")
 }
 
 model ProfilePhoto {
@@ -67,6 +69,26 @@ model ProfilePhoto {
 
   @@index([userId])
   @@index([userId, createdAt])
+}
+
+// Direct user-to-user messages shown in each user's in-app inbox. A message
+// nudges the recipient by email (best-effort) to come back and reply. Replies
+// are just new ProfileMessage rows in the opposite direction; the inbox groups
+// them into per-counterpart threads.
+model ProfileMessage {
+  id         String    @id @default(cuid())
+  fromUserId String
+  toUserId   String
+  body       String
+  readAt     DateTime?
+  createdAt  DateTime  @default(now())
+
+  fromUser   User      @relation("ProfileMsgFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser     User      @relation("ProfileMsgTo", fields: [toUserId], references: [id], onDelete: Cascade)
+
+  @@index([toUserId, readAt])
+  @@index([fromUserId])
+  @@index([toUserId, fromUserId, createdAt])
 }
 
 model ContactMessage {

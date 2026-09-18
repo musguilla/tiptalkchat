@@ -7,6 +7,7 @@ import {
   MessageCircle,
   MessagesSquare,
   ExternalLink,
+  Send,
   Settings,
 } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
@@ -17,12 +18,16 @@ import { ProfileOverlay } from '@/components/ProfileOverlay';
 import { ProfileGallery } from '@/components/ProfileGallery';
 import { ProfileMoney } from '@/components/ProfileMoney';
 import { SectionCard } from '@/components/SectionCard';
+import { MessageComposerModal } from '@/components/MessageComposerModal';
+import { MessagesBell } from '@/components/MessagesBell';
+import { AuthOverlay } from '@/components/AuthOverlay';
 
 interface PublicUser {
   id: string;
   displayName: string;
   avatarUrl: string | null;
   createdAt: string;
+  online: boolean;
 }
 
 interface OpenRoom {
@@ -43,6 +48,8 @@ export default function UserProfilePage() {
   const [notFound, setNotFound] = useState(false);
   const [rooms, setRooms] = useState<OpenRoom[]>([]);
   const [editOpen, setEditOpen] = useState(false);
+  const [composerOpen, setComposerOpen] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const meAvatarUrl = useAuth((s) => s.user?.avatarUrl);
   const meDisplayName = useAuth((s) => s.user?.displayName);
@@ -111,13 +118,16 @@ export default function UserProfilePage() {
           <Link href="/" className="flex items-center">
             <Logo className="text-xl" />
           </Link>
-          <Link
-            href="/"
-            className="flex items-center gap-1 text-sm text-ink-muted transition hover:text-ink"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Volver
-          </Link>
+          <div className="flex items-center gap-3">
+            <MessagesBell />
+            <Link
+              href="/"
+              className="flex items-center gap-1 text-sm text-ink-muted transition hover:text-ink"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Volver
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -145,6 +155,16 @@ export default function UserProfilePage() {
               <h1 className="font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
                 {(isSelf ? meDisplayName : user?.displayName) ?? '…'}
               </h1>
+              {!isSelf && user && (
+                <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">
+                  <span
+                    className={`h-2 w-2 rounded-full ${
+                      user.online ? 'animate-pulse bg-emerald-300' : 'bg-white/40'
+                    }`}
+                  />
+                  {user.online ? 'Conectado ahora' : 'Desconectado'}
+                </p>
+              )}
               {isSelf && meEmail && (
                 <p className="mt-1 text-sm text-white/80">{meEmail}</p>
               )}
@@ -157,7 +177,7 @@ export default function UserProfilePage() {
                   })}
                 </p>
               )}
-              {isSelf && (
+              {isSelf ? (
                 <button
                   type="button"
                   onClick={() => setEditOpen(true)}
@@ -165,6 +185,15 @@ export default function UserProfilePage() {
                 >
                   <Settings className="h-4 w-4" />
                   Editar perfil
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => (token ? setComposerOpen(true) : setAuthOpen(true))}
+                  className="btn-tactile mt-4 inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-primary-500 shadow-soft transition hover:shadow-vivid"
+                >
+                  <Send className="h-4 w-4" />
+                  Envíale un mensaje para chatear
                 </button>
               )}
             </div>
@@ -244,6 +273,26 @@ export default function UserProfilePage() {
       <SiteFooter />
 
       <ProfileOverlay open={editOpen} onClose={() => setEditOpen(false)} />
+
+      {!isSelf && user && token && (
+        <MessageComposerModal
+          open={composerOpen}
+          onClose={() => setComposerOpen(false)}
+          toUserId={user.id}
+          toName={user.displayName}
+          toAvatarUrl={user.avatarUrl}
+          token={token}
+        />
+      )}
+      <AuthOverlay
+        open={authOpen}
+        initialMode="signup"
+        onClose={() => setAuthOpen(false)}
+        onSuccess={() => {
+          setAuthOpen(false);
+          setComposerOpen(true);
+        }}
+      />
     </div>
   );
 }
