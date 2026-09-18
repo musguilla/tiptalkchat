@@ -1,7 +1,4 @@
 import { prisma } from '@tiptalk/db';
-import { loadEnv } from '@tiptalk/config';
-import { getStorage } from './storage.js';
-import { deleteMuxAssetByUploadId } from './video.js';
 
 export const DEFAULT_ROOM_TTL_HOURS = 24;
 
@@ -11,62 +8,31 @@ export interface CleanupResult {
 }
 
 /**
- * Wipe everything in a room: delete media files (Supabase / Mux / S3), drop
- * MediaAsset rows, delete Message rows, and mark the Room as closed.
+ * Close a room without destroying its media. Deletes the *text* conversation
+ * (text/system messages) for privacy, but KEEPS every MediaAsset (and its file
+ * in storage / Mux) plus the image/video messages that carry it, so the media
+ * stays visible — with its room and uploader context — in the admin Media view
+ * even after the room expires or is closed.
  *
- * Idempotent: re-running it on an already-closed room just becomes no-ops
- * because there will be no media/messages left.
+ * Idempotent: re-running on an already-closed room just deletes nothing more.
  *
- * Tip records persist (audit trail / ledger reference) but their targetId
- * may now point at deleted rows — by design, since the Tipsys have already
- * been credited to the receiver and the spec wants nothing stored after
- * closure beyond the financial trail.
+ * Tip records persist (audit trail / ledger reference) even if their targetId
+ * now points at deleted text rows — by design.
  */
 export async function cleanupRoom(roomId: string): Promise<CleanupResult> {
-  const env = loadEnv();
-  const storage = getStorage();
-
-  const mediaAssets = await prisma.mediaAsset.findMany({
-    where: { messages: { some: { roomId } } },
+  // Media is preserved on purpose (see doc above): we no longer delete files
+  // or MediaAsset rows, and we keep the messages that carry media so the
+  // room/uploader association survives.
+  const msgResult = await prisma.message.deleteMany({
+    where: { roomId, mediaId: null },
   });
-
-  let mediaDeleted = 0;
-  for (const m of mediaAssets) {
-    if (m.kind === 'image') {
-      if (m.originalKey) {
-        await storage.deleteObject(m.originalKey);
-        mediaDeleted += 1;
-      }
-      if (m.thumbnailKey && m.thumbnailKey !== m.originalKey) {
-        await storage.deleteObject(m.thumbnailKey);
-      }
-    } else if (m.kind === 'video') {
-      if (m.hlsManifestKey?.startsWith('mux:')) {
-        if (env.VIDEO_PROVIDER === 'mux' && m.originalKey) {
-          await deleteMuxAssetByUploadId(m.originalKey);
-          mediaDeleted += 1;
-        }
-      } else if (m.originalKey) {
-        await storage.deleteObject(m.originalKey);
-        if (m.hlsManifestKey) await storage.deleteObject(m.hlsManifestKey);
-        if (m.thumbnailKey) await storage.deleteObject(m.thumbnailKey);
-        mediaDeleted += 1;
-      }
-    }
-  }
-
-  await prisma.mediaAsset.deleteMany({
-    where: { id: { in: mediaAssets.map((m) => m.id) } },
-  });
-
-  const msgResult = await prisma.message.deleteMany({ where: { roomId } });
 
   await prisma.room.update({
     where: { id: roomId },
     data: { closedAt: new Date() },
   });
 
-  return { mediaDeleted, messagesDeleted: msgResult.count };
+  return { mediaDeleted: 0, messagesDeleted: msgResult.count };
 }
 
 /**
