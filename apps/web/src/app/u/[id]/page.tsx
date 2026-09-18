@@ -267,6 +267,7 @@ export default function UserProfilePage() {
           isSelf={isSelf}
           token={token}
           ownRooms={rooms}
+          onMessage={() => (token ? setComposerOpen(true) : setAuthOpen(true))}
         />
       </main>
 

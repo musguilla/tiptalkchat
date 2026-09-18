@@ -9,6 +9,7 @@ import {
   Trash2,
   Send,
   Plus,
+  MessageCircle,
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { uploadGalleryPhoto } from '@/lib/upload';
@@ -16,7 +17,7 @@ import { SectionCard } from './SectionCard';
 
 interface GalleryPhoto {
   id: string;
-  url: string;
+  url: string | null;
   isPublic: boolean;
   createdAt: string;
   viewerCanSee: boolean;
@@ -38,11 +39,13 @@ export function ProfileGallery({
   isSelf,
   token,
   ownRooms,
+  onMessage,
 }: {
   userId: string;
   isSelf: boolean;
   token: string | null;
   ownRooms: OpenRoom[];
+  onMessage?: () => void;
 }) {
   const [photos, setPhotos] = useState<GalleryPhoto[]>([]);
   const [loaded, setLoaded] = useState(false);
@@ -216,26 +219,31 @@ export function ProfileGallery({
               {p.viewerCanSee ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={p.url}
+                  src={p.url ?? undefined}
                   alt=""
                   className="h-full w-full object-cover transition group-hover:scale-105"
                 />
               ) : (
-                <>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={p.url}
-                    alt=""
-                    className="h-full w-full object-cover blur-2xl scale-110"
-                    aria-hidden
-                  />
-                  <div className="absolute inset-0 grid place-items-center bg-black/30 text-white">
-                    <Lock className="h-7 w-7" />
+                <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-gradient-to-br from-surface-container to-surface-soft p-3 text-center">
+                  <div className="grid h-10 w-10 place-items-center rounded-full bg-white/70 text-ink-muted shadow-soft">
+                    <Lock className="h-5 w-5" />
                   </div>
-                </>
+                  <p className="text-[11px] font-medium text-ink-muted">Foto privada</p>
+                  {onMessage && (
+                    <button
+                      type="button"
+                      onClick={onMessage}
+                      className="btn-tactile inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-3 py-1.5 text-[11px] font-bold text-white shadow-soft hover:shadow-vivid"
+                    >
+                      <MessageCircle className="h-3 w-3" />
+                      Mensaje
+                    </button>
+                  )}
+                </div>
               )}
 
-              {/* Visibility badge */}
+              {/* Visibility badge — only where the photo itself is shown. */}
+              {p.viewerCanSee && (
               <span
                 className={`absolute left-2 top-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold backdrop-blur-sm ${
                   p.isPublic
@@ -246,6 +254,7 @@ export function ProfileGallery({
                 {p.isPublic ? <Eye className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
                 {p.isPublic ? 'Pública' : 'Privada'}
               </span>
+              )}
 
               {/* Owner controls — visible on hover */}
               {isSelf && (

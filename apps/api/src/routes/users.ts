@@ -76,19 +76,25 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
   app.get('/:id/photos', async (req) => {
     const id = (req.params as { id: string }).id;
     const isSelf = req.sessionUser?.userId === id;
+    // Non-owners get ALL photos, but private ones come back locked: no URL is
+    // ever served (protegidas no se muestran), only the fact that they exist,
+    // so the profile can show a locked card that invites messaging the owner.
     const photos = await prisma.profilePhoto.findMany({
-      where: { userId: id, ...(isSelf ? {} : { isPublic: true }) },
+      where: { userId: id },
       orderBy: { createdAt: 'desc' },
       select: { id: true, publicUrl: true, isPublic: true, createdAt: true },
     });
     return {
-      photos: photos.map((p) => ({
-        id: p.id,
-        url: p.publicUrl,
-        isPublic: p.isPublic,
-        createdAt: p.createdAt,
-        viewerCanSee: true,
-      })),
+      photos: photos.map((p) => {
+        const canSee = isSelf || p.isPublic;
+        return {
+          id: p.id,
+          url: canSee ? p.publicUrl : null,
+          isPublic: p.isPublic,
+          createdAt: p.createdAt,
+          viewerCanSee: canSee,
+        };
+      }),
     };
   });
 
