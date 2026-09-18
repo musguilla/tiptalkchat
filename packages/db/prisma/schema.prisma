@@ -134,6 +134,7 @@ model Room {
   memberships     RoomMembership[]
   messages        Message[]
   callSessions    CallSession[]
+  recordings      CallRecording[]
   tips            Tip[]
   auditLogs       AuditLog[]
 
@@ -231,6 +232,28 @@ model CallParticipant {
   call         CallSession @relation(fields: [callId], references: [id], onDelete: Cascade)
 
   @@index([callId])
+}
+
+// A moderation recording of a live call, produced via LiveKit Egress. The
+// media file lands in object storage; we keep only the pointer + lifecycle
+// here. Disclosed to users in the terms of service (moderation clause).
+model CallRecording {
+  id          String    @id @default(cuid())
+  roomId      String
+  egressId    String    @unique
+  status      String    @default("active") // active | complete | failed | aborted
+  startedById String?   // admin user who started it
+  startedAt   DateTime  @default(now())
+  endedAt     DateTime?
+  fileKey     String?
+  fileUrl     String?
+  durationSec Int?
+  sizeBytes   BigInt?
+
+  room        Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@index([roomId])
+  @@index([status])
 }
 
 // -----------------------------------------------------------------------------

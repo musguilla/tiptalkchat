@@ -76,6 +76,17 @@ const baseSchema = z.object({
   LIVEKIT_API_KEY: z.string().optional(),
   LIVEKIT_API_SECRET: z.string().optional(),
 
+  // --- Call recording (LiveKit Egress → S3-compatible storage) ---
+  // All optional: the admin live-viewer works with just the LiveKit creds
+  // above. Recording only lights up when these are set (e.g. Supabase
+  // Storage S3 access keys). endpoint example:
+  //   https://<project>.supabase.co/storage/v1/s3
+  LIVEKIT_RECORD_S3_ENDPOINT: z.string().optional(),
+  LIVEKIT_RECORD_S3_REGION: z.string().default('us-east-1'),
+  LIVEKIT_RECORD_S3_BUCKET: z.string().optional(),
+  LIVEKIT_RECORD_S3_ACCESS_KEY: z.string().optional(),
+  LIVEKIT_RECORD_S3_SECRET_KEY: z.string().optional(),
+
   // --- Stripe ---
   STRIPE_SECRET_KEY: z.string().default('sk_test_placeholder'),
   STRIPE_WEBHOOK_SECRET: z.string().default('whsec_placeholder'),

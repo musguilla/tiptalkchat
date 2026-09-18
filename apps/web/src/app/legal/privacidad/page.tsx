@@ -26,6 +26,11 @@ export default function PrivacidadPage() {
           (máximo 24h o hasta que el creador la cierre).
         </li>
         <li>Movimientos económicos (compras de Tipsys, propinas, payouts) — auditoría obligatoria.</li>
+        <li>
+          Grabaciones de moderación: cuando una sesión es supervisada o grabada por seguridad o
+          cumplimiento, se conserva el audio/vídeo o la transcripción resultante durante un plazo
+          limitado.
+        </li>
       </ul>
 
       <h2 className="mt-6 text-xl font-bold">3. Cuánto tiempo conservamos los datos</h2>
@@ -34,7 +39,20 @@ export default function PrivacidadPage() {
         movimientos económicos se conservan según la legislación aplicable (mínimo 6 años en España).
       </p>
 
-      <h2 className="mt-6 text-xl font-bold">4. Tus derechos</h2>
+      <h2 className="mt-6 text-xl font-bold">4. Supervisión y moderación</h2>
+      <p>
+        Como plataforma de comunicación entre personas, supervisamos y, cuando es necesario,
+        grabamos las sesiones (texto, voz y vídeo) con fines de <strong>moderación, seguridad y
+        prevención del fraude</strong>. La base jurídica de este tratamiento es nuestro interés
+        legítimo en mantener un servicio seguro y libre de abusos, así como el cumplimiento de las
+        obligaciones legales y de las condiciones impuestas por nuestros proveedores de pago. Un
+        moderador autorizado puede observar una videollamada en directo sin aparecer como
+        participante. Las grabaciones de moderación se conservan solo el tiempo necesario para su
+        finalidad (con carácter general, un máximo de 90 días, salvo que deban conservarse más
+        tiempo por un procedimiento o una obligación legal) y después se eliminan.
+      </p>
+
+      <h2 className="mt-6 text-xl font-bold">5. Tus derechos</h2>
       <p>
         Puedes ejercitar tus derechos de acceso, rectificación, supresión, oposición y portabilidad
         escribiendo a{' '}

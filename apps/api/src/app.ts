@@ -21,6 +21,7 @@ import { callTokenRoutes } from './routes/calls.js';
 import { contactRoutes } from './routes/contact.js';
 import { userRoutes } from './routes/users.js';
 import { adminRoutes } from './routes/admin.js';
+import { adminCallRoutes } from './routes/admin-calls.js';
 import { authPlugin } from './plugins/auth.js';
 
 /**
@@ -132,6 +133,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(contactRoutes, { prefix: '/contact' });
   await app.register(userRoutes, { prefix: '/users' });
   await app.register(adminRoutes, { prefix: '/admin' });
+  await app.register(adminCallRoutes, { prefix: '/admin/calls' });
 
   return app;
 }

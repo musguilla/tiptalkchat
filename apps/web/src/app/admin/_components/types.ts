@@ -194,3 +194,43 @@ export interface AdminContactRow {
 export interface AdminContactsResponse {
   contacts: AdminContactRow[];
 }
+
+// ---------------------------------------------------------------------------
+// GET /admin/calls  (live cameras)
+// ---------------------------------------------------------------------------
+export interface AdminLiveCallCreator {
+  kind: 'user' | 'guest';
+  id: string;
+  displayName: string;
+  avatarUrl: string | null;
+}
+
+export interface AdminLiveCallRecording {
+  id: string;
+  egressId: string;
+  startedAt: string;
+}
+
+export interface AdminLiveCall {
+  roomId: string | null;
+  slug: string;
+  name: string;
+  closed: boolean;
+  participants: number;
+  startedAt: number | null;
+  creator: AdminLiveCallCreator | null;
+  recording: AdminLiveCallRecording | null;
+}
+
+export interface AdminLiveCallsResponse {
+  configured: boolean;
+  recordingAvailable: boolean;
+  calls: AdminLiveCall[];
+}
+
+export interface AdminObserveTokenResponse {
+  token: string;
+  url: string;
+  roomName: string;
+  identity: string;
+}
