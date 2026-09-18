@@ -49,12 +49,21 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
 
   app.get('/:id', async (req) => {
     const id = (req.params as { id: string }).id;
-    const [user, presence] = await Promise.all([
+    const viewerId = req.sessionUser?.userId ?? null;
+    const [user, presence, followerCount, followingCount, follows] = await Promise.all([
       prisma.user.findUnique({
         where: { id },
         select: { id: true, displayName: true, avatarUrl: true, createdAt: true, blockedAt: true },
       }),
       fetchPresence(),
+      prisma.follow.count({ where: { followingId: id } }),
+      prisma.follow.count({ where: { followerId: id } }),
+      viewerId && viewerId !== id
+        ? prisma.follow.findUnique({
+            where: { followerId_followingId: { followerId: viewerId, followingId: id } },
+            select: { id: true },
+          })
+        : Promise.resolve(null),
     ]);
     if (!user || user.blockedAt) throw app.httpErrors.notFound('User not found');
     return {
@@ -63,8 +72,106 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
       avatarUrl: user.avatarUrl,
       createdAt: user.createdAt,
       online: presence.onlineUserIds.includes(user.id),
+      followerCount,
+      followingCount,
+      isFollowing: follows !== null,
     };
   });
+
+  // --- Social graph: follow / unfollow + follower/following lists ---
+
+  app.post('/:id/follow', async (req, reply) => {
+    const me = await app.requireUser(req);
+    const targetId = (req.params as { id: string }).id;
+    if (targetId === me.userId) throw app.httpErrors.badRequest('No puedes seguirte a ti mismo');
+    const target = await prisma.user.findUnique({
+      where: { id: targetId },
+      select: { id: true, blockedAt: true },
+    });
+    if (!target || target.blockedAt) throw app.httpErrors.notFound('Usuario no encontrado');
+    await prisma.follow.upsert({
+      where: { followerId_followingId: { followerId: me.userId, followingId: targetId } },
+      create: { followerId: me.userId, followingId: targetId },
+      update: {},
+    });
+    const followerCount = await prisma.follow.count({ where: { followingId: targetId } });
+    reply.code(201);
+    return { following: true, followerCount };
+  });
+
+  app.delete('/:id/follow', async (req) => {
+    const me = await app.requireUser(req);
+    const targetId = (req.params as { id: string }).id;
+    await prisma.follow
+      .delete({
+        where: { followerId_followingId: { followerId: me.userId, followingId: targetId } },
+      })
+      .catch(() => undefined);
+    const followerCount = await prisma.follow.count({ where: { followingId: targetId } });
+    return { following: false, followerCount };
+  });
+
+  // Followers of :id  (people who follow them).
+  app.get('/:id/followers', async (req) => {
+    const id = (req.params as { id: string }).id;
+    const viewerId = req.sessionUser?.userId ?? null;
+    const [rows, presence] = await Promise.all([
+      prisma.follow.findMany({
+        where: { followingId: id },
+        orderBy: { createdAt: 'desc' },
+        take: 200,
+        select: {
+          follower: { select: { id: true, displayName: true, avatarUrl: true } },
+        },
+      }),
+      fetchPresence(),
+    ]);
+    return buildUserList(rows.map((r) => r.follower), viewerId, presence.onlineUserIds);
+  });
+
+  // Following of :id  (people they follow).
+  app.get('/:id/following', async (req) => {
+    const id = (req.params as { id: string }).id;
+    const viewerId = req.sessionUser?.userId ?? null;
+    const [rows, presence] = await Promise.all([
+      prisma.follow.findMany({
+        where: { followerId: id },
+        orderBy: { createdAt: 'desc' },
+        take: 200,
+        select: {
+          following: { select: { id: true, displayName: true, avatarUrl: true } },
+        },
+      }),
+      fetchPresence(),
+    ]);
+    return buildUserList(rows.map((r) => r.following), viewerId, presence.onlineUserIds);
+  });
+
+  // Shared helper: decorate a user list with online + isFollowing (viewer).
+  async function buildUserList(
+    users: Array<{ id: string; displayName: string; avatarUrl: string | null }>,
+    viewerId: string | null,
+    onlineIds: string[],
+  ): Promise<{ users: Array<{ id: string; displayName: string; avatarUrl: string | null; online: boolean; isFollowing: boolean }> }> {
+    const online = new Set(onlineIds);
+    let followedByViewer = new Set<string>();
+    if (viewerId && users.length) {
+      const mine = await prisma.follow.findMany({
+        where: { followerId: viewerId, followingId: { in: users.map((u) => u.id) } },
+        select: { followingId: true },
+      });
+      followedByViewer = new Set(mine.map((m) => m.followingId));
+    }
+    return {
+      users: users.map((u) => ({
+        id: u.id,
+        displayName: u.displayName,
+        avatarUrl: u.avatarUrl,
+        online: online.has(u.id),
+        isFollowing: followedByViewer.has(u.id),
+      })),
+    };
+  }
 
   /**
    * Public-facing gallery for a profile. Owner sees everything (with

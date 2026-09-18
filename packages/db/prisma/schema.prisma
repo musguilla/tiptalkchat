@@ -56,6 +56,8 @@ model User {
   profilePhotos   ProfilePhoto[]
   sentMessages     ProfileMessage[] @relation("ProfileMsgFrom")
   receivedMessages ProfileMessage[] @relation("ProfileMsgTo")
+  following        Follow[]         @relation("Following")
+  followers        Follow[]         @relation("Followers")
 }
 
 model ProfilePhoto {
@@ -89,6 +91,21 @@ model ProfileMessage {
   @@index([toUserId, readAt])
   @@index([fromUserId])
   @@index([toUserId, fromUserId, createdAt])
+}
+
+// Social graph. A row means followerId follows followingId. Unique per pair.
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  follower    User     @relation("Following", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("Followers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followingId])
+  @@index([followerId])
 }
 
 model ContactMessage {

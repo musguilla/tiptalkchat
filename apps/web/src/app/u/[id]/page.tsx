@@ -21,6 +21,8 @@ import { SectionCard } from '@/components/SectionCard';
 import { MessageComposerModal } from '@/components/MessageComposerModal';
 import { MessagesBell } from '@/components/MessagesBell';
 import { AuthOverlay } from '@/components/AuthOverlay';
+import { FollowButton } from '@/components/FollowButton';
+import { FollowListModal } from '@/components/FollowListModal';
 
 interface PublicUser {
   id: string;
@@ -28,6 +30,9 @@ interface PublicUser {
   avatarUrl: string | null;
   createdAt: string;
   online: boolean;
+  followerCount: number;
+  followingCount: number;
+  isFollowing: boolean;
 }
 
 interface OpenRoom {
@@ -50,6 +55,8 @@ export default function UserProfilePage() {
   const [editOpen, setEditOpen] = useState(false);
   const [composerOpen, setComposerOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
+  const [followModal, setFollowModal] = useState<'followers' | 'following' | null>(null);
+  const [authIntent, setAuthIntent] = useState<'message' | 'follow'>('message');
   const [hydrated, setHydrated] = useState(false);
   const meAvatarUrl = useAuth((s) => s.user?.avatarUrl);
   const meDisplayName = useAuth((s) => s.user?.displayName);
@@ -152,9 +159,27 @@ export default function UserProfilePage() {
               )}
             </div>
             <div className="flex-1">
-              <h1 className="font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
-                {(isSelf ? meDisplayName : user?.displayName) ?? '…'}
-              </h1>
+              <div className="flex flex-wrap items-center justify-center gap-3 sm:justify-start">
+                <h1 className="font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
+                  {(isSelf ? meDisplayName : user?.displayName) ?? '…'}
+                </h1>
+                {!isSelf && user && (
+                  <FollowButton
+                    userId={user.id}
+                    initialFollowing={user.isFollowing}
+                    token={token}
+                    onNeedAuth={() => {
+                      setAuthIntent('follow');
+                      setAuthOpen(true);
+                    }}
+                    onChange={(f, c) =>
+                      setUser((prev) =>
+                        prev ? { ...prev, isFollowing: f, followerCount: c } : prev,
+                      )
+                    }
+                  />
+                )}
+              </div>
               {!isSelf && user && (
                 <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">
                   <span
@@ -164,6 +189,26 @@ export default function UserProfilePage() {
                   />
                   {user.online ? 'Conectado ahora' : 'Desconectado'}
                 </p>
+              )}
+              {user && (
+                <div className="mt-3 flex items-center justify-center gap-5 text-sm sm:justify-start">
+                  <button
+                    type="button"
+                    onClick={() => setFollowModal('followers')}
+                    className="transition hover:opacity-80"
+                  >
+                    <strong className="font-extrabold">{user.followerCount}</strong>{' '}
+                    <span className="text-white/80">seguidores</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFollowModal('following')}
+                    className="transition hover:opacity-80"
+                  >
+                    <strong className="font-extrabold">{user.followingCount}</strong>{' '}
+                    <span className="text-white/80">siguiendo</span>
+                  </button>
+                </div>
               )}
               {isSelf && meEmail && (
                 <p className="mt-1 text-sm text-white/80">{meEmail}</p>
@@ -189,7 +234,9 @@ export default function UserProfilePage() {
               ) : (
                 <button
                   type="button"
-                  onClick={() => (token ? setComposerOpen(true) : setAuthOpen(true))}
+                  onClick={() =>
+                    token ? setComposerOpen(true) : (setAuthIntent('message'), setAuthOpen(true))
+                  }
                   className="btn-tactile mt-4 inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-primary-500 shadow-soft transition hover:shadow-vivid"
                 >
                   <Send className="h-4 w-4" />
@@ -267,7 +314,9 @@ export default function UserProfilePage() {
           isSelf={isSelf}
           token={token}
           ownRooms={rooms}
-          onMessage={() => (token ? setComposerOpen(true) : setAuthOpen(true))}
+          onMessage={() =>
+            token ? setComposerOpen(true) : (setAuthIntent('message'), setAuthOpen(true))
+          }
         />
       </main>
 
@@ -291,9 +340,23 @@ export default function UserProfilePage() {
         onClose={() => setAuthOpen(false)}
         onSuccess={() => {
           setAuthOpen(false);
-          setComposerOpen(true);
+          if (authIntent === 'message') setComposerOpen(true);
         }}
       />
+      {user && (
+        <FollowListModal
+          open={followModal !== null}
+          onClose={() => setFollowModal(null)}
+          userId={user.id}
+          mode={followModal ?? 'followers'}
+          token={token}
+          meId={meId}
+          onNeedAuth={() => {
+            setAuthIntent('follow');
+            setAuthOpen(true);
+          }}
+        />
+      )}
     </div>
   );
 }
