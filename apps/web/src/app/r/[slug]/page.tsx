@@ -667,6 +667,21 @@ export default function RoomPage() {
       <div className="relative flex flex-1 flex-col overflow-hidden md:flex-row">
         <section className="flex flex-1 flex-col min-h-0 max-md:order-2">
           <div ref={scrollRef} className="flex-1 overflow-y-auto px-2 py-3">
+            {!user && (
+              <div className="mx-1 mb-3 rounded-xl border border-primary-200 bg-gradient-to-r from-secondary-50 to-primary-50 px-4 py-3 text-sm text-ink shadow-soft dark:border-primary-900/50 dark:from-zinc-800 dark:to-zinc-800 dark:text-zinc-100">
+                <span className="mr-1.5">👋</span>
+                <span className="font-semibold">¿Te gusta el chat?</span>{' '}
+                <a
+                  href="/signup"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-bold text-primary-600 underline decoration-2 underline-offset-2 hover:text-primary-700 dark:text-primary-300"
+                >
+                  Regístrate gratis
+                </a>{' '}
+                para guardar tu perfil, seguir a otros y estar en contacto con tus amig@s.
+              </div>
+            )}
             {messages.map((m) => (
               <ChatMessageItem
                 key={m.id}
