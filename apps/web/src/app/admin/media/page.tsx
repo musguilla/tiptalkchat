@@ -8,8 +8,12 @@ import {
   Image as ImageIcon,
   Lock,
   MessagesSquare,
+  Trash2,
   User as UserIcon,
 } from 'lucide-react';
+import { api } from '@/lib/api';
+import { useAuth } from '@/lib/auth-store';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { useAdminFetch } from '../_components/useAdminFetch';
 import { readPage, useUrlState } from '../_components/useUrlState';
 import { PageHeader } from '../_components/PageHeader';
@@ -158,7 +162,7 @@ function MediaInner() {
         <>
           <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {data.items.map((item) => (
-              <MediaCard key={item.id} item={item} />
+              <MediaCard key={item.id} item={item} onDeleted={reload} />
             ))}
           </ul>
           <div className="mt-5">
@@ -176,13 +180,30 @@ function MediaInner() {
   );
 }
 
-function MediaCard({ item }: { item: MediaItem }) {
+function MediaCard({ item, onDeleted }: { item: MediaItem; onDeleted: () => void }) {
+  const token = useAuth((s) => s.token);
   const [broken, setBroken] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const meta = SOURCE_META[item.source];
   const SourceIcon = meta.icon;
   const preview = item.thumbnailUrl ?? item.url;
   const weight = formatBytes(item.bytes);
   const processing = item.kind === 'video' && item.status !== 'ready';
+  // item.id is "<source>:<rawId>"; the API deletes by source + rawId.
+  const rawId = item.id.slice(item.source.length + 1);
+
+  async function confirmDelete(): Promise<void> {
+    if (!token) return;
+    setDeleting(true);
+    try {
+      await api(`/admin/media/${item.source}/${rawId}`, { method: 'DELETE', token });
+      setConfirming(false);
+      onDeleted();
+    } catch {
+      setDeleting(false);
+    }
+  }
 
   return (
     <li className="group overflow-hidden rounded-xl border border-surface-container bg-white shadow-soft transition hover:shadow-vivid">
@@ -224,6 +245,15 @@ function MediaCard({ item }: { item: MediaItem }) {
             Procesando
           </span>
         )}
+
+        <button
+          type="button"
+          onClick={() => setConfirming(true)}
+          title="Borrar archivo"
+          className="absolute right-1.5 top-1.5 z-10 grid h-7 w-7 place-items-center rounded-full bg-red-600/90 text-white opacity-0 shadow transition hover:bg-red-700 group-hover:opacity-100"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </button>
 
         {item.url && (
           <a
@@ -280,6 +310,23 @@ function MediaCard({ item }: { item: MediaItem }) {
           )}
         </p>
       </div>
+
+      <ConfirmDialog
+        open={confirming}
+        title="Borrar archivo"
+        description={
+          item.source === 'avatar'
+            ? `Se eliminará el avatar de ${item.owner?.displayName ?? 'este usuario'} y el archivo del almacenamiento. No se puede deshacer.`
+            : 'Se eliminará este archivo del almacenamiento y del registro. No se puede deshacer.'
+        }
+        confirmLabel="Borrar"
+        tone="danger"
+        busy={deleting}
+        onConfirm={() => void confirmDelete()}
+        onCancel={() => {
+          if (!deleting) setConfirming(false);
+        }}
+      />
     </li>
   );
 }

@@ -5,6 +5,9 @@ import { appendLedgerEntry } from '../lib/wallet.js';
 import { fetchPresence } from '../lib/realtime.js';
 import { cleanupRoom } from '../lib/room-cleanup.js';
 import { formatMediaForClient } from '../lib/media-urls.js';
+import { getStorage } from '../lib/storage.js';
+import { deleteMuxAssetByUploadId } from '../lib/video.js';
+import { loadEnv } from '@tiptalk/config';
 
 /**
  * Admin panel endpoints. Every handler starts with `app.requireAdmin(req)`;
@@ -167,6 +170,21 @@ function mapPayoutRow(p: PayoutRow) {
 // ---------------------------------------------------------------------------
 // Routes
 // ---------------------------------------------------------------------------
+
+/**
+ * Derive the storage key from a Supabase public URL, e.g.
+ *   https://x.supabase.co/storage/v1/object/public/profiles/avatars/a.webp
+ *   -> avatars/a.webp   (bucket segment dropped; deleteObject re-routes it)
+ */
+function storageKeyFromPublicUrl(url: string): string | null {
+  const marker = '/object/public/';
+  const idx = url.indexOf(marker);
+  if (idx === -1) return null;
+  const rest = url.slice(idx + marker.length);
+  const slash = rest.indexOf('/');
+  if (slash === -1) return null;
+  return rest.slice(slash + 1);
+}
 
 export async function adminRoutes(app: FastifyInstance): Promise<void> {
   // -------------------------------------------------------------------------
@@ -822,6 +840,66 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       // Only chat uploads record their size; avatars/gallery are plain URLs.
       chatBytes: chatBytes._sum.bytes ?? 0,
     };
+  });
+
+  /**
+   * Delete a single media item from the admin Media view. Handles all three
+   * sources; removes the file from storage AND the DB reference.
+   *   - chat:<mediaAssetId>  -> delete files + MediaAsset row (messages keep
+   *                            their row but lose the image via SetNull)
+   *   - avatar:<userId>      -> clear avatarUrl + best-effort delete the file
+   *   - gallery:<photoId>    -> delete file (by storageKey) + ProfilePhoto row
+   */
+  app.delete('/media/:source/:id', async (req, reply) => {
+    await app.requireAdmin(req);
+    const { source, id } = req.params as { source: string; id: string };
+    const storage = getStorage();
+
+    if (source === 'chat') {
+      const asset = await prisma.mediaAsset.findUnique({ where: { id } });
+      if (!asset) throw app.httpErrors.notFound('Media no encontrada');
+      const env = loadEnv();
+      if (asset.kind === 'video' && asset.hlsManifestKey?.startsWith('mux:')) {
+        if (env.VIDEO_PROVIDER === 'mux' && asset.originalKey) {
+          await deleteMuxAssetByUploadId(asset.originalKey).catch(() => undefined);
+        }
+      } else {
+        if (asset.originalKey) await storage.deleteObject(asset.originalKey).catch(() => undefined);
+        if (asset.thumbnailKey && asset.thumbnailKey !== asset.originalKey) {
+          await storage.deleteObject(asset.thumbnailKey).catch(() => undefined);
+        }
+        if (asset.hlsManifestKey && !asset.hlsManifestKey.startsWith('mux:')) {
+          await storage.deleteObject(asset.hlsManifestKey).catch(() => undefined);
+        }
+      }
+      await prisma.mediaAsset.delete({ where: { id } });
+      reply.code(204);
+      return null;
+    }
+
+    if (source === 'avatar') {
+      const user = await prisma.user.findUnique({
+        where: { id },
+        select: { id: true, avatarUrl: true },
+      });
+      if (!user || !user.avatarUrl) throw app.httpErrors.notFound('Avatar no encontrado');
+      const key = storageKeyFromPublicUrl(user.avatarUrl);
+      if (key) await storage.deleteObject(key).catch(() => undefined);
+      await prisma.user.update({ where: { id }, data: { avatarUrl: null } });
+      reply.code(204);
+      return null;
+    }
+
+    if (source === 'gallery') {
+      const photo = await prisma.profilePhoto.findUnique({ where: { id } });
+      if (!photo) throw app.httpErrors.notFound('Foto no encontrada');
+      await storage.deleteObject(photo.storageKey).catch(() => undefined);
+      await prisma.profilePhoto.delete({ where: { id } });
+      reply.code(204);
+      return null;
+    }
+
+    throw app.httpErrors.badRequest('Fuente de media no válida');
   });
 
   // -------------------------------------------------------------------------
