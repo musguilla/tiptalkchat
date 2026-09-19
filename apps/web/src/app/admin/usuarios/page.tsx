@@ -2,7 +2,7 @@
 import { Suspense, useCallback, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Ban, ShieldOff, Users as UsersIcon } from 'lucide-react';
+import { Ban, Loader2, ShieldOff, Trash2, Users as UsersIcon } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-store';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
@@ -15,6 +15,7 @@ import { Avatar } from '../_components/Avatar';
 import { Badge } from '../_components/Badge';
 import { OnlineDot } from '../_components/OnlineDot';
 import { RolePill } from '../_components/RolePill';
+import { RowMenu } from '../_components/RowMenu';
 import { EmptyState, ErrorBanner, TableSkeleton } from '../_components/Feedback';
 import { TableHead, TableShell, Td, Th, Tr } from '../_components/DataTable';
 import { describeApiError, formatDateShort, formatTipsys, tipsysToEur } from '../_components/format';
@@ -44,6 +45,10 @@ function UsersPageInner() {
   const [pending, setPending] = useState<AdminUserRow | null>(null);
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<AdminUserRow | null>(null);
+  const [deleteMedia, setDeleteMedia] = useState(false);
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const commitSearch = useCallback(
     (next: string) => set({ q: next, page: null }),
@@ -64,6 +69,25 @@ function UsersPageInner() {
       setPending(null);
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function confirmDelete(): Promise<void> {
+    if (!deleteTarget || !token) return;
+    setDeleteBusy(true);
+    setDeleteError(null);
+    try {
+      await api(`/admin/users/${deleteTarget.id}?deleteMedia=${deleteMedia}`, {
+        method: 'DELETE',
+        token,
+      });
+      setDeleteTarget(null);
+      setDeleteMedia(false);
+      reload();
+    } catch (err) {
+      setDeleteError(describeApiError(err));
+    } finally {
+      setDeleteBusy(false);
     }
   }
 
@@ -157,33 +181,40 @@ function UsersPageInner() {
                     </Td>
                     <Td className="whitespace-nowrap text-ink-muted">{formatDateShort(u.createdAt)}</Td>
                     <Td align="right">
-                      {canToggle ? (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setPending(u);
-                          }}
-                          className={`btn-tactile inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition ${
-                            u.blockedAt
-                              ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
-                              : 'bg-red-50 text-red-600 hover:bg-red-100'
-                          }`}
-                        >
-                          {u.blockedAt ? (
-                            <>
-                              <ShieldOff className="h-3.5 w-3.5" />
-                              Desbloquear
-                            </>
-                          ) : (
-                            <>
-                              <Ban className="h-3.5 w-3.5" />
-                              Bloquear
-                            </>
-                          )}
-                        </button>
-                      ) : (
+                      {isSelf ? (
                         <span className="text-xs text-ink-soft">—</span>
+                      ) : (
+                        <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
+                          <RowMenu
+                            items={[
+                              ...(canToggle
+                                ? [
+                                    {
+                                      key: 'block',
+                                      label: u.blockedAt ? 'Desbloquear' : 'Bloquear',
+                                      icon: u.blockedAt ? (
+                                        <ShieldOff className="h-4 w-4" />
+                                      ) : (
+                                        <Ban className="h-4 w-4" />
+                                      ),
+                                      onClick: () => setPending(u),
+                                    },
+                                  ]
+                                : []),
+                              {
+                                key: 'delete',
+                                label: 'Eliminar usuario',
+                                icon: <Trash2 className="h-4 w-4" />,
+                                tone: 'danger' as const,
+                                onClick: () => {
+                                  setDeleteMedia(false);
+                                  setDeleteError(null);
+                                  setDeleteTarget(u);
+                                },
+                              },
+                            ]}
+                          />
+                        </div>
                       )}
                     </Td>
                   </Tr>
@@ -223,6 +254,76 @@ function UsersPageInner() {
           if (!busy) setPending(null);
         }}
       />
+
+      {deleteTarget && (
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4 backdrop-blur-sm"
+          onClick={() => {
+            if (!deleteBusy) setDeleteTarget(null);
+          }}
+        >
+          <div
+            className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-vivid-strong"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="border-b border-surface-container px-5 py-4">
+              <h2 className="flex items-center gap-2 font-display text-lg font-extrabold text-red-600">
+                <Trash2 className="h-5 w-5" /> Eliminar usuario
+              </h2>
+            </div>
+            <div className="p-5">
+              <p className="text-sm text-ink">
+                Vas a eliminar a <strong>{deleteTarget.displayName}</strong> ({deleteTarget.email}) y{' '}
+                <strong>todas sus salas</strong>, mensajes, monedero, propinas y seguidores. Esta acción
+                no se puede deshacer.
+              </p>
+              <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-xl border border-surface-container bg-surface-soft/50 p-3">
+                <input
+                  type="checkbox"
+                  checked={deleteMedia}
+                  onChange={(e) => setDeleteMedia(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 accent-red-600"
+                />
+                <span className="text-sm text-ink">
+                  <span className="font-semibold">Borrar también todo su media</span>
+                  <span className="mt-0.5 block text-xs text-ink-muted">
+                    Avatar, fotos de su galería y los archivos que subió a los chats. Si lo dejas sin
+                    marcar, esos archivos se conservan en el almacenamiento.
+                  </span>
+                </span>
+              </label>
+              {deleteError && (
+                <p className="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                  {deleteError}
+                </p>
+              )}
+              <div className="mt-5 flex justify-end gap-2">
+                <button
+                  type="button"
+                  disabled={deleteBusy}
+                  onClick={() => setDeleteTarget(null)}
+                  className="rounded-full px-4 py-2 text-sm font-semibold text-ink-muted transition hover:bg-surface-soft disabled:opacity-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  disabled={deleteBusy}
+                  onClick={() => void confirmDelete()}
+                  className="btn-tactile inline-flex items-center gap-2 rounded-full bg-red-600 px-5 py-2 text-sm font-bold text-white transition hover:bg-red-700 disabled:opacity-60"
+                >
+                  {deleteBusy ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-4 w-4" />
+                  )}
+                  Eliminar definitivamente
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

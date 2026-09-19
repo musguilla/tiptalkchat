@@ -484,6 +484,67 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
     }
   });
 
+  /**
+   * Permanently delete a user and everything that cascades from them: their
+   * rooms (and messages), gallery rows, wallet, tips, follows, memberships,
+   * profile messages, etc. `deleteMedia=true` also deletes the actual files
+   * from storage — avatar, gallery photos and the chat media they uploaded —
+   * and their MediaAsset rows. With `deleteMedia=false` those files are left
+   * in storage (rows still go via cascade / are orphaned). Irreversible.
+   */
+  app.delete('/users/:id', async (req, reply) => {
+    const me = await app.requireAdmin(req);
+    const id = (req.params as { id: string }).id;
+    if (id === me.userId) {
+      throw app.httpErrors.badRequest('No puedes eliminar tu propia cuenta de administrador');
+    }
+    const deleteMedia = (req.query as { deleteMedia?: string }).deleteMedia === 'true';
+
+    const user = await prisma.user.findUnique({
+      where: { id },
+      select: { id: true, avatarUrl: true },
+    });
+    if (!user) throw app.httpErrors.notFound('Usuario no encontrado');
+
+    if (deleteMedia) {
+      const storage = getStorage();
+      const env = loadEnv();
+
+      if (user.avatarUrl) {
+        const key = storageKeyFromPublicUrl(user.avatarUrl);
+        if (key) await storage.deleteObject(key).catch(() => undefined);
+      }
+
+      const photos = await prisma.profilePhoto.findMany({
+        where: { userId: id },
+        select: { storageKey: true },
+      });
+      for (const p of photos) await storage.deleteObject(p.storageKey).catch(() => undefined);
+
+      const assets = await prisma.mediaAsset.findMany({ where: { ownerId: id } });
+      for (const m of assets) {
+        if (m.kind === 'video' && m.hlsManifestKey?.startsWith('mux:')) {
+          if (env.VIDEO_PROVIDER === 'mux' && m.originalKey) {
+            await deleteMuxAssetByUploadId(m.originalKey).catch(() => undefined);
+          }
+        } else {
+          if (m.originalKey) await storage.deleteObject(m.originalKey).catch(() => undefined);
+          if (m.thumbnailKey && m.thumbnailKey !== m.originalKey) {
+            await storage.deleteObject(m.thumbnailKey).catch(() => undefined);
+          }
+          if (m.hlsManifestKey && !m.hlsManifestKey.startsWith('mux:')) {
+            await storage.deleteObject(m.hlsManifestKey).catch(() => undefined);
+          }
+        }
+      }
+      await prisma.mediaAsset.deleteMany({ where: { ownerId: id } });
+    }
+
+    await prisma.user.delete({ where: { id } });
+    reply.code(204);
+    return null;
+  });
+
   // -------------------------------------------------------------------------
   // Rooms
   // -------------------------------------------------------------------------
