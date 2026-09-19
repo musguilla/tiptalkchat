@@ -144,18 +144,30 @@ export default function UserProfilePage() {
           <div className="absolute -right-12 -top-12 h-44 w-44 rounded-full bg-white/10 blur-2xl" />
           <div className="absolute -bottom-16 -left-8 h-44 w-44 rounded-full bg-white/10 blur-2xl" />
           <div className="relative flex flex-col items-center gap-5 text-center sm:flex-row sm:items-end sm:text-left">
-            <div className="grid h-28 w-28 shrink-0 place-items-center overflow-hidden rounded-full bg-white/20 ring-4 ring-white/40 shadow-2xl sm:h-32 sm:w-32">
-              {(isSelf ? meAvatarUrl : user?.avatarUrl) ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={(isSelf ? meAvatarUrl : user?.avatarUrl) ?? undefined}
-                  alt=""
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <span className="font-display text-5xl font-extrabold">
-                  {(isSelf ? meDisplayName : user?.displayName)?.[0]?.toUpperCase() ?? '?'}
-                </span>
+            <div className="flex shrink-0 flex-col items-center gap-3">
+              <div className="grid h-28 w-28 place-items-center overflow-hidden rounded-full bg-white/20 ring-4 ring-white/40 shadow-2xl sm:h-32 sm:w-32">
+                {(isSelf ? meAvatarUrl : user?.avatarUrl) ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={(isSelf ? meAvatarUrl : user?.avatarUrl) ?? undefined}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <span className="font-display text-5xl font-extrabold">
+                    {(isSelf ? meDisplayName : user?.displayName)?.[0]?.toUpperCase() ?? '?'}
+                  </span>
+                )}
+              </div>
+              {!isSelf && user && (
+                <p className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">
+                  <span
+                    className={`h-2 w-2 rounded-full ${
+                      user.online ? 'animate-pulse bg-emerald-300' : 'bg-white/40'
+                    }`}
+                  />
+                  {user.online ? 'Conectado ahora' : 'Desconectado'}
+                </p>
               )}
             </div>
             <div className="flex-1">
@@ -180,16 +192,6 @@ export default function UserProfilePage() {
                   />
                 )}
               </div>
-              {!isSelf && user && (
-                <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">
-                  <span
-                    className={`h-2 w-2 rounded-full ${
-                      user.online ? 'animate-pulse bg-emerald-300' : 'bg-white/40'
-                    }`}
-                  />
-                  {user.online ? 'Conectado ahora' : 'Desconectado'}
-                </p>
-              )}
               {user && (
                 <div className="mt-3 flex items-center justify-center gap-5 text-sm sm:justify-start">
                   <button

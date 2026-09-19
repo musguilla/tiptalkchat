@@ -30,3 +30,41 @@ h6 {
 .btn-tactile:active {
   transform: scale(0.98);
 }
+
+/* --- Follow CTA: periodic shine + glow to draw the eye, cool hover. --- */
+@keyframes follow-shine {
+  0% { transform: translateX(-160%) skewX(-18deg); }
+  16% { transform: translateX(240%) skewX(-18deg); }
+  100% { transform: translateX(240%) skewX(-18deg); }
+}
+@keyframes follow-glow {
+  0%, 100% { box-shadow: 0 4px 14px rgba(255, 45, 120, 0.30); }
+  50% { box-shadow: 0 6px 22px rgba(255, 122, 26, 0.50); }
+}
+.follow-cta {
+  position: relative;
+  overflow: hidden;
+  animation: follow-glow 3.5s ease-in-out infinite;
+}
+.follow-cta::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 42%;
+  height: 100%;
+  background: linear-gradient(100deg, transparent 0%, rgba(255, 255, 255, 0.65) 50%, transparent 100%);
+  transform: translateX(-160%) skewX(-18deg);
+  animation: follow-shine 3.5s ease-in-out infinite;
+  pointer-events: none;
+}
+.follow-cta:hover {
+  transform: translateY(-2px) scale(1.04);
+  filter: brightness(1.06);
+}
+@media (prefers-reduced-motion: reduce) {
+  .follow-cta,
+  .follow-cta::after {
+    animation: none;
+  }
+}

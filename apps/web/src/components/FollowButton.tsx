@@ -66,7 +66,7 @@ export function FollowButton({
       className={`btn-tactile inline-flex items-center gap-1.5 rounded-full font-bold shadow-soft transition disabled:opacity-60 ${pad} ${
         following
           ? 'bg-white text-primary-600 ring-1 ring-primary-200 hover:bg-primary-50'
-          : 'bg-gradient-to-r from-secondary-500 to-primary-500 text-white ring-2 ring-white/80 hover:shadow-vivid'
+          : 'follow-cta bg-gradient-to-r from-secondary-500 to-primary-500 text-white ring-2 ring-white/80 hover:shadow-vivid'
       } ${className}`}
     >
       {busy ? (
