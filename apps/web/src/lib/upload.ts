@@ -178,6 +178,39 @@ export async function uploadGalleryPhoto(
 }
 
 /**
+ * Age-verification document / selfie upload → PRIVATE bucket. Images are lightly
+ * optimised (kept legible); PDFs are sent as-is. Returns the storageKey to pass
+ * to POST /verification/submit.
+ */
+export async function uploadVerificationFile(
+  file: File,
+  kind: 'document' | 'selfie',
+  token: string,
+  onProgress?: (pct: number) => void,
+): Promise<{ storageKey: string }> {
+  const isPdf = file.type === 'application/pdf';
+  if (!isPdf && !/^image\/(jpeg|png|webp)$/.test(file.type)) {
+    throw new Error('Formato no soportado (jpeg, png, webp o pdf)');
+  }
+  if (file.size > 15 * 1024 * 1024) {
+    throw new Error('El archivo no puede pesar más de 15 MB');
+  }
+  const payload = isPdf
+    ? file
+    : await optimizeImage(file, { maxWidth: 1600, maxHeight: 1600, quality: 0.9 });
+  const ticket = await api<{ upload: UploadTicket; storageKey: string }>(
+    '/verification/upload',
+    {
+      method: 'POST',
+      token,
+      body: JSON.stringify({ kind, contentType: payload.type, bytes: payload.size }),
+    },
+  );
+  await uploadBytes(ticket.upload, payload, onProgress);
+  return { storageKey: ticket.storageKey };
+}
+
+/**
  * Profile-avatar upload. Squared down to 512x512 max + WebP-compressed.
  * After the bytes land, the caller should PATCH /auth/me { avatarUrl }
  * with the returned publicUrl.

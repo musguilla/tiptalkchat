@@ -13,6 +13,7 @@ import {
 import { api, ApiError } from '@/lib/api';
 import { formatTipsysAsEur, listPackages } from '@tiptalk/economy';
 import { SectionCard } from './SectionCard';
+import { AgeVerificationModal } from './AgeVerificationModal';
 
 interface Overview {
   wallet: { balance: number; payoutMin: number; canRequestPayout: boolean };
@@ -117,6 +118,7 @@ export function ProfileMoney({ token }: { token: string }) {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null);
+  const [verifyOpen, setVerifyOpen] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -160,10 +162,14 @@ export function ProfileMoney({ token }: { token: string }) {
       window.location.href = res.url;
     } catch (err) {
       setBusy(null);
-      setMsg({
-        tone: 'error',
-        text: err instanceof Error ? err.message : 'No se pudo abrir la configuración de cobros',
-      });
+      const text = err instanceof Error ? err.message : '';
+      // The API gates monetization behind age verification. Open the flow
+      // instead of surfacing a raw error.
+      if (text.includes('AGE_VERIFICATION_REQUIRED')) {
+        setVerifyOpen(true);
+        return;
+      }
+      setMsg({ tone: 'error', text: text || 'No se pudo abrir la configuración de cobros' });
     }
   }
 
@@ -478,6 +484,13 @@ export function ProfileMoney({ token }: { token: string }) {
           </div>
         </SectionCard>
       )}
+
+      <AgeVerificationModal
+        open={verifyOpen}
+        onClose={() => setVerifyOpen(false)}
+        token={token}
+        onSubmitted={() => load()}
+      />
     </section>
   );
 }

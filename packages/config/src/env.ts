@@ -51,6 +51,9 @@ const baseSchema = z.object({
   SUPABASE_SERVICE_KEY: z.string().optional(),
   SUPABASE_BUCKET: z.string().default('tiptalk-media'),
   SUPABASE_PROFILE_BUCKET: z.string().default('profiles'),
+  // Private bucket for age-verification documents (ID + selfie). Must be
+  // a PRIVATE Supabase bucket — never served publicly, only via signed URLs.
+  SUPABASE_VERIFICATION_BUCKET: z.string().default('verifications'),
 
   // S3 / R2 / MinIO (S3-compatible)
   S3_ENDPOINT: z.string().default('http://localhost:9000'),

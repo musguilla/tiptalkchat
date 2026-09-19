@@ -546,6 +546,109 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // -------------------------------------------------------------------------
+  // Age verification review
+  // -------------------------------------------------------------------------
+
+  app.get('/verifications', async (req) => {
+    await app.requireAdmin(req);
+    const status = (req.query as { status?: string }).status ?? 'pending';
+    const where = status === 'all' ? {} : { status };
+    const rows = await prisma.ageVerification.findMany({
+      where,
+      orderBy: { submittedAt: 'desc' },
+      take: 100,
+      select: {
+        id: true,
+        status: true,
+        submittedAt: true,
+        reviewedAt: true,
+        rejectionReason: true,
+        user: { select: { id: true, displayName: true, email: true, avatarUrl: true, ageStatus: true } },
+      },
+    });
+    return { verifications: rows };
+  });
+
+  // Detail with short-lived signed URLs to view the private documents.
+  app.get('/verifications/:id', async (req) => {
+    await app.requireAdmin(req);
+    const id = (req.params as { id: string }).id;
+    const rec = await prisma.ageVerification.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        status: true,
+        documentKey: true,
+        selfieKey: true,
+        declaredAdult: true,
+        submittedAt: true,
+        reviewedAt: true,
+        rejectionReason: true,
+        user: { select: { id: true, displayName: true, email: true, avatarUrl: true } },
+      },
+    });
+    if (!rec) throw app.httpErrors.notFound('Verificación no encontrada');
+    const storage = getStorage();
+    const [documentUrl, selfieUrl] = await Promise.all([
+      storage.createSignedDownloadUrl(rec.documentKey, 300),
+      rec.selfieKey ? storage.createSignedDownloadUrl(rec.selfieKey, 300) : Promise.resolve(null),
+    ]);
+    return {
+      id: rec.id,
+      status: rec.status,
+      declaredAdult: rec.declaredAdult,
+      submittedAt: rec.submittedAt,
+      reviewedAt: rec.reviewedAt,
+      rejectionReason: rec.rejectionReason,
+      user: rec.user,
+      documentUrl,
+      selfieUrl,
+    };
+  });
+
+  app.post('/verifications/:id/approve', async (req) => {
+    const me = await app.requireAdmin(req);
+    const id = (req.params as { id: string }).id;
+    const rec = await prisma.ageVerification.findUnique({
+      where: { id },
+      select: { id: true, userId: true, status: true },
+    });
+    if (!rec) throw app.httpErrors.notFound('Verificación no encontrada');
+
+    await prisma.$transaction([
+      prisma.ageVerification.update({
+        where: { id },
+        data: { status: 'approved', reviewedAt: new Date(), reviewedById: me.userId, rejectionReason: null },
+      }),
+      prisma.user.update({
+        where: { id: rec.userId },
+        data: { ageStatus: 'verified', ageVerifiedAt: new Date() },
+      }),
+    ]);
+    return { status: 'approved' };
+  });
+
+  app.post('/verifications/:id/reject', async (req) => {
+    const me = await app.requireAdmin(req);
+    const id = (req.params as { id: string }).id;
+    const reason = (req.body as { reason?: string } | undefined)?.reason ?? null;
+    const rec = await prisma.ageVerification.findUnique({
+      where: { id },
+      select: { id: true, userId: true },
+    });
+    if (!rec) throw app.httpErrors.notFound('Verificación no encontrada');
+
+    await prisma.$transaction([
+      prisma.ageVerification.update({
+        where: { id },
+        data: { status: 'rejected', reviewedAt: new Date(), reviewedById: me.userId, rejectionReason: reason },
+      }),
+      prisma.user.update({ where: { id: rec.userId }, data: { ageStatus: 'rejected' } }),
+    ]);
+    return { status: 'rejected' };
+  });
+
+  // -------------------------------------------------------------------------
   // Rooms
   // -------------------------------------------------------------------------
 

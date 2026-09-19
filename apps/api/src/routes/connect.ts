@@ -51,6 +51,12 @@ export async function connectRoutes(app: FastifyInstance): Promise<void> {
     const { userId } = await app.requireUser(req);
     const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
 
+    // Monetization is gated on age verification: you must be a verified adult
+    // to connect a wallet and receive money.
+    if (user.ageStatus !== 'verified') {
+      throw app.httpErrors.forbidden('AGE_VERIFICATION_REQUIRED');
+    }
+
     let connect = await prisma.connectAccount.findUnique({ where: { userId } });
     if (!connect) {
       const account = await stripe.accounts.create({

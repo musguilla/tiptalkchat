@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import {
   Banknote,
   Cctv,
+  BadgeCheck,
   LayoutDashboard,
   Lock,
   LogIn,
@@ -38,6 +39,7 @@ const NAV: ReadonlyArray<NavItem> = [
   { href: '/admin/camaras', label: 'Cámaras', icon: Cctv },
   { href: '/admin/media', label: 'Media', icon: ImageIcon },
   { href: '/admin/payouts', label: 'Payouts', icon: Banknote },
+  { href: '/admin/verificacion', label: 'Verificación', icon: BadgeCheck },
   { href: '/admin/contacto', label: 'Contacto', icon: Mail },
 ];
 

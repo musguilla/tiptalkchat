@@ -22,6 +22,7 @@ import { contactRoutes } from './routes/contact.js';
 import { userRoutes } from './routes/users.js';
 import { adminRoutes } from './routes/admin.js';
 import { adminCallRoutes } from './routes/admin-calls.js';
+import { verificationRoutes } from './routes/verification.js';
 import { authPlugin } from './plugins/auth.js';
 
 /**
@@ -134,6 +135,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(userRoutes, { prefix: '/users' });
   await app.register(adminRoutes, { prefix: '/admin' });
   await app.register(adminCallRoutes, { prefix: '/admin/calls' });
+  await app.register(verificationRoutes, { prefix: '/verification' });
 
   return app;
 }

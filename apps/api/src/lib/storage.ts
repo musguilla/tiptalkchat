@@ -48,6 +48,18 @@ export interface StorageProvider {
   getPublicUrl(storageKey: string): string;
   /** Delete an object. Best-effort: missing-object errors are swallowed. */
   deleteObject(storageKey: string): Promise<void>;
+  /**
+   * Age-verification document (ID / selfie) → PRIVATE bucket. Never public.
+   */
+  createVerificationUploadTicket(input: {
+    contentType: string;
+    bytes: number;
+    userId: string;
+  }): Promise<UploadTicket>;
+  /** Short-lived signed URL to read a private verification object (admin). */
+  createSignedDownloadUrl(storageKey: string, expiresInSec?: number): Promise<string | null>;
+  /** Delete a private verification object. */
+  deleteVerificationObject(storageKey: string): Promise<void>;
 }
 
 let cached: StorageProvider | null = null;
@@ -71,6 +83,7 @@ function buildSupabaseProvider(): StorageProvider {
   const base = env.SUPABASE_URL.replace(/\/$/, '');
   const mediaBucket = env.SUPABASE_BUCKET;
   const profileBucket = env.SUPABASE_PROFILE_BUCKET;
+  const verificationBucket = env.SUPABASE_VERIFICATION_BUCKET;
 
   async function signUpload(
     bucket: string,
@@ -143,6 +156,32 @@ function buildSupabaseProvider(): StorageProvider {
         await deleteFromBucket(mediaBucket, storageKey);
       }
     },
+    createVerificationUploadTicket({ contentType, userId }) {
+      return signUpload(verificationBucket, `kyc/${userId}`, contentType);
+    },
+    async createSignedDownloadUrl(storageKey: string, expiresInSec = 300) {
+      try {
+        const res = await fetch(
+          `${base}/storage/v1/object/sign/${verificationBucket}/${storageKey}`,
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${env.SUPABASE_SERVICE_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ expiresIn: expiresInSec }),
+          },
+        );
+        if (!res.ok) return null;
+        const { signedURL } = (await res.json()) as { signedURL: string };
+        return signedURL.startsWith('http') ? signedURL : `${base}/storage/v1${signedURL}`;
+      } catch {
+        return null;
+      }
+    },
+    async deleteVerificationObject(storageKey: string) {
+      await deleteFromBucket(verificationBucket, storageKey);
+    },
   };
 }
 
@@ -191,6 +230,27 @@ function buildS3Provider(): StorageProvider {
       return `${env.S3_PUBLIC_URL.replace(/\/$/, '')}/${storageKey}`;
     },
     async deleteObject(storageKey: string) {
+      try {
+        await client.send(new DeleteObjectCommand({ Bucket: env.S3_BUCKET, Key: storageKey }));
+      } catch {
+        /* swallow */
+      }
+    },
+    createVerificationUploadTicket({ contentType, userId }) {
+      return s3Upload(`kyc/${userId}`, contentType);
+    },
+    async createSignedDownloadUrl(storageKey: string, expiresInSec = 300) {
+      try {
+        return await getSignedUrl(
+          client,
+          new GetObjectCommand({ Bucket: env.S3_BUCKET, Key: storageKey }),
+          { expiresIn: expiresInSec },
+        );
+      } catch {
+        return null;
+      }
+    },
+    async deleteVerificationObject(storageKey: string) {
       try {
         await client.send(new DeleteObjectCommand({ Bucket: env.S3_BUCKET, Key: storageKey }));
       } catch {
