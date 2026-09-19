@@ -73,19 +73,38 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
    * rail, hence the explicit demo-address exclusion instead of a fragile
    * "skip the first two rows" rule.
    */
-  app.get('/discover', async () => {
-    const users = await prisma.user.findMany({
-      where: {
-        avatarUrl: { not: null },
-        blockedAt: null,
-        role: { not: 'admin' },
-        email: { notIn: ['alice@tiptalk.demo', 'bob@tiptalk.demo'] },
-      },
-      orderBy: { updatedAt: 'desc' },
-      take: 18,
-      select: { id: true, displayName: true, avatarUrl: true },
-    });
-    return { users };
+  app.get('/discover', async (req) => {
+    const viewerId = req.sessionUser?.userId ?? null;
+    const [users, presence] = await Promise.all([
+      prisma.user.findMany({
+        where: {
+          avatarUrl: { not: null },
+          blockedAt: null,
+          role: { not: 'admin' },
+          email: { notIn: ['alice@tiptalk.demo', 'bob@tiptalk.demo'] },
+        },
+        orderBy: { updatedAt: 'desc' },
+        take: 18,
+        select: { id: true, displayName: true, avatarUrl: true },
+      }),
+      fetchPresence(),
+    ]);
+    const online = new Set(presence.onlineUserIds);
+    let followed = new Set<string>();
+    if (viewerId && users.length) {
+      const mine = await prisma.follow.findMany({
+        where: { followerId: viewerId, followingId: { in: users.map((u) => u.id) } },
+        select: { followingId: true },
+      });
+      followed = new Set(mine.map((m) => m.followingId));
+    }
+    return {
+      users: users.map((u) => ({
+        ...u,
+        online: online.has(u.id),
+        isFollowing: followed.has(u.id),
+      })),
+    };
   });
 
   app.get('/:id', async (req) => {

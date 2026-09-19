@@ -37,7 +37,7 @@ export default function HomePage() {
             <div className="mt-10">
               <Link
                 href="/create"
-                className="btn-tactile inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-12 py-5 text-lg font-bold text-white shadow-vivid transition hover:shadow-vivid-strong sm:w-auto sm:min-w-[20rem]"
+                className="btn-tactile inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-12 py-5 text-lg font-bold text-white shadow-vivid transition hover:shadow-vivid-strong sm:w-auto sm:min-w-[24rem]"
               >
                 Crear sala de chat
               </Link>

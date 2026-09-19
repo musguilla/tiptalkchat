@@ -7,7 +7,7 @@ import { DollarSign, Unlock } from 'lucide-react';
  */
 export function HeroVideoPreview() {
   return (
-    <div className="relative mx-auto w-full max-w-md">
+    <div className="relative mx-auto w-full max-w-sm">
       {/* Video card */}
       <div className="relative aspect-[4/5] overflow-hidden rounded-xl bg-gradient-to-br from-[#3a1408] via-[#1f0a04] to-[#0c0503] shadow-vivid-strong">
         {/* Top-left LIVE pill */}
