@@ -1,0 +1,108 @@
+import type { MessageKey } from './es';
+
+export const de: { [K in MessageKey]?: string } = {
+  // --- Common ---
+  'common.loading': 'Wird geladen…',
+  'common.save': 'Speichern',
+  'common.cancel': 'Abbrechen',
+  'common.close': 'Schließen',
+  'common.retry': 'Erneut versuchen',
+  'common.back': 'Zurück',
+  'common.backHome': 'Zurück zur Startseite',
+  'common.send': 'Senden',
+  'common.online': 'Jetzt online',
+  'common.offline': 'Offline',
+  'common.online.short': 'Online',
+
+  // --- Header / nav ---
+  'nav.createChat': 'Chat erstellen',
+  'nav.howItWorks': 'So funktioniert’s',
+  'nav.features': 'Funktionen',
+  'nav.wallet': 'Wallet',
+  'nav.login': 'Anmelden',
+  'nav.logout': 'Abmelden',
+  'nav.messages': 'Nachrichten',
+
+  // --- Footer ---
+  'footer.tagline': 'Private Chaträume mit Trinkgeld.',
+  'footer.col.platform': 'Plattform',
+  'footer.col.legal': 'Rechtliches',
+  'footer.col.support': 'Support',
+  'footer.link.createChat': 'Chat erstellen',
+  'footer.link.howItWorks': 'So funktioniert’s',
+  'footer.link.features': 'Funktionen',
+  'footer.link.terms': 'Nutzungsbedingungen',
+  'footer.link.privacy': 'Datenschutzrichtlinie',
+  'footer.link.creators': 'Leitfaden für Creator',
+  'footer.link.contact': 'Kontakt',
+  'footer.rights': 'Alle Rechte vorbehalten.',
+  'footer.madeWith': 'Mit ❤ für Creator gemacht',
+
+  // --- Home / landing ---
+  'home.hero.title': 'Private 1-zu-1-Chaträume',
+  'home.hero.subtitle': 'Chatte mit wem du willst per Video, Sprache oder nur per Text.',
+  'home.hero.cta': 'Chatraum erstellen',
+  'home.hero.live': 'LIVE: PRIVATE SITZUNG',
+  'home.discover.title': 'Finde neue Freunde',
+  'home.discover.subtitle': 'Folge ihnen oder schreib eine Nachricht zum Chatten.',
+  'home.discover.message': 'Nachricht',
+  'home.finalCta.cta': 'Chatraum erstellen',
+
+  // --- Auth ---
+  'auth.login': 'Anmelden',
+  'auth.signup': 'Konto erstellen',
+  'auth.email': 'E-Mail',
+  'auth.password': 'Passwort',
+  'auth.displayName': 'Dein Name',
+  'auth.haveAccount': 'Hast du schon ein Konto?',
+  'auth.noAccount': 'Noch kein Konto?',
+
+  // --- Profile ---
+  'profile.follow': 'Folgen',
+  'profile.following': 'Folge ich',
+  'profile.message': 'Nachricht',
+  'profile.messageCta': 'Schreib eine Nachricht zum Chatten',
+  'profile.followers': 'Follower',
+  'profile.followingCount': 'gefolgt',
+  'profile.editProfile': 'Profil bearbeiten',
+  'profile.memberSince': 'Auf tiptalk.chat seit {date}',
+  'profile.gallery': 'Galerie',
+  'profile.privatePhoto': 'Privates Foto',
+  'profile.notFound.title': 'Profil nicht gefunden',
+  'profile.notFound.body': 'Dieser Nutzer existiert nicht oder ist nicht mehr verfügbar.',
+
+  // --- Messages / composer ---
+  'msg.composer.title': 'Nachricht an',
+  'msg.composer.label': 'Deine Nachricht',
+  'msg.composer.placeholder': 'Schreib {name}, um zu chatten…',
+  'msg.composer.send': 'Nachricht senden',
+  'msg.composer.sent.title': 'Nachricht gesendet!',
+  'msg.composer.sent.body': '{name} erhält eine E-Mail-Benachrichtigung, um dir zu antworten.',
+  'msg.inbox.title': 'Nachrichten',
+  'msg.inbox.empty': 'Noch keine Nachrichten',
+  'msg.inbox.reply': 'Schreib deine Antwort…',
+
+  // --- Wallet ---
+  'wallet.title': 'Wallet',
+  'wallet.balance': 'Guthaben',
+  'wallet.buy': 'Tipsys kaufen',
+  'wallet.payout.request': 'Auszahlung anfordern',
+  'wallet.activate': 'Auszahlungen aktivieren',
+
+  // --- Room / chat ---
+  'chat.send': 'Senden',
+  'chat.placeholder': 'Schreib eine Nachricht…',
+  'chat.guestCta.q': 'Gefällt dir der Chat?',
+  'chat.guestCta.link': 'Kostenlos registrieren',
+  'chat.guestCta.rest': 'um dein Profil zu speichern, anderen zu folgen und mit deinen Freunden in Kontakt zu bleiben.',
+
+  // --- Legacy keys (kept for existing t() callers) ---
+  'landing.title': 'Private Eins-zu-eins-Chaträume',
+  'landing.subtitle': 'Erstelle einen Raum, teile den Link und erhalte Trinkgeld.',
+  'landing.cta.create': 'Raum erstellen',
+  'landing.cta.join': 'Einem Raum beitreten',
+  'create.name': 'Raumname',
+  'create.submit': 'Raum erstellen',
+  'tip.send': 'Tipsy senden',
+  'wallet.payout.min': 'Mindestens {min} Tipsys',
+};

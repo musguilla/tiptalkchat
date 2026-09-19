@@ -19,6 +19,7 @@ import { AttachButton } from '@/components/AttachButton';
 import { CallPanel } from '@/components/CallPanel';
 import type { ChatMessage, Identity } from '@/components/types';
 import { t } from '@/i18n';
+import { useLocale } from '@/i18n/useLocale';
 
 interface RoomData {
   id: string;
@@ -58,6 +59,7 @@ export default function RoomPage() {
   const params = useParams<{ slug: string }>();
   const router = useRouter();
   const { token, user, clear } = useAuth();
+  const roomLocale = useLocale();
   const [room, setRoom] = useState<RoomData | null>(null);
   const [roomGone, setRoomGone] = useState(false);
   const [needsName, setNeedsName] = useState(false);
@@ -670,16 +672,16 @@ export default function RoomPage() {
             {!user && (
               <div className="mx-1 mb-3 rounded-xl border border-primary-200 bg-gradient-to-r from-secondary-50 to-primary-50 px-4 py-3 text-sm text-ink shadow-soft dark:border-primary-900/50 dark:from-zinc-800 dark:to-zinc-800 dark:text-zinc-100">
                 <span className="mr-1.5">👋</span>
-                <span className="font-semibold">¿Te gusta el chat?</span>{' '}
+                <span className="font-semibold">{t(roomLocale, 'chat.guestCta.q')}</span>{' '}
                 <a
                   href="/signup"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-bold text-primary-600 underline decoration-2 underline-offset-2 hover:text-primary-700 dark:text-primary-300"
                 >
-                  Regístrate gratis
+                  {t(roomLocale, 'chat.guestCta.link')}
                 </a>{' '}
-                para guardar tu perfil, seguir a otros y estar en contacto con tus amig@s.
+                {t(roomLocale, 'chat.guestCta.rest')}
               </div>
             )}
             {messages.map((m) => (

@@ -18,6 +18,7 @@ import { ProfileOverlay } from '@/components/ProfileOverlay';
 import { ProfileGallery } from '@/components/ProfileGallery';
 import { ProfileMoney } from '@/components/ProfileMoney';
 import { SectionCard } from '@/components/SectionCard';
+import { useT } from '@/i18n/useLocale';
 import { MessageComposerModal } from '@/components/MessageComposerModal';
 import { MessagesBell } from '@/components/MessagesBell';
 import { AuthOverlay } from '@/components/AuthOverlay';
@@ -46,6 +47,7 @@ interface OpenRoom {
 
 export default function UserProfilePage() {
   const params = useParams<{ id: string }>();
+  const t = useT();
   const meId = useAuth((s) => s.user?.id);
   const meEmail = useAuth((s) => s.user?.email);
   const token = useAuth((s) => s.token);
@@ -90,10 +92,10 @@ export default function UserProfilePage() {
       <main className="grid min-h-screen place-items-center bg-canvas p-6 text-center">
         <div>
           <h1 className="font-display text-3xl font-extrabold tracking-tight">
-            Perfil no encontrado
+            {t('profile.notFound.title')}
           </h1>
           <p className="mt-3 text-base text-ink-muted">
-            Este usuario no existe o ya no está disponible.
+            {t('profile.notFound.body')}
           </p>
           <Link
             href="/"
@@ -166,7 +168,7 @@ export default function UserProfilePage() {
                       user.online ? 'animate-pulse bg-emerald-300' : 'bg-white/40'
                     }`}
                   />
-                  {user.online ? 'Conectado ahora' : 'Desconectado'}
+                  {user.online ? t('common.online') : t('common.offline')}
                 </p>
               )}
             </div>
@@ -200,7 +202,7 @@ export default function UserProfilePage() {
                     className="transition hover:opacity-80"
                   >
                     <strong className="font-extrabold">{user.followerCount}</strong>{' '}
-                    <span className="text-white/80">seguidores</span>
+                    <span className="text-white/80">{t('profile.followers')}</span>
                   </button>
                   <button
                     type="button"
@@ -208,7 +210,7 @@ export default function UserProfilePage() {
                     className="transition hover:opacity-80"
                   >
                     <strong className="font-extrabold">{user.followingCount}</strong>{' '}
-                    <span className="text-white/80">siguiendo</span>
+                    <span className="text-white/80">{t('profile.followingCount')}</span>
                   </button>
                 </div>
               )}
@@ -231,7 +233,7 @@ export default function UserProfilePage() {
                   className="btn-tactile mt-4 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-primary-500 shadow-soft transition hover:shadow-vivid"
                 >
                   <Settings className="h-4 w-4" />
-                  Editar perfil
+                  {t('profile.editProfile')}
                 </button>
               ) : (
                 <button
@@ -242,7 +244,7 @@ export default function UserProfilePage() {
                   className="btn-tactile mt-4 inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-ink shadow-soft transition hover:-translate-y-0.5 hover:bg-primary-50 hover:shadow-vivid"
                 >
                   <Send className="h-4 w-4 text-primary-500" />
-                  Mensaje
+                  {t('profile.message')}
                 </button>
               )}
             </div>

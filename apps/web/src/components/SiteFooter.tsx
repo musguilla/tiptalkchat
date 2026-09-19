@@ -1,9 +1,15 @@
+'use client';
 import Link from 'next/link';
-import { Globe, X as XIcon } from 'lucide-react';
 import { Logo } from './Logo';
+import { LanguageSwitcher } from './LanguageSwitcher';
 import { seoFooterColumns, seoPageMap } from '@/lib/seo-pages';
+import { useLocale, useT, localizeHref } from '@/i18n/useLocale';
 
 export function SiteFooter() {
+  const locale = useLocale();
+  const t = useT();
+  const L = (href: string): string => localizeHref(href, locale);
+
   return (
     <footer className="bg-canvas">
       {/* SEO link grid — above legal so crawlers find it on every page. */}
@@ -21,10 +27,7 @@ export function SiteFooter() {
                     if (!page) return null;
                     return (
                       <li key={slug}>
-                        <Link
-                          href={`/c/${slug}`}
-                          className="transition hover:text-primary-500"
-                        >
+                        <Link href={L(`/c/${slug}`)} className="transition hover:text-primary-500">
                           {page.label}
                         </Link>
                       </li>
@@ -41,82 +44,45 @@ export function SiteFooter() {
         <div className="grid grid-cols-2 gap-10 md:grid-cols-4">
           <div className="col-span-2">
             <Logo className="text-2xl" />
-            <p className="mt-4 max-w-xs text-sm leading-relaxed text-ink-muted">
-              Salas de chats privadas con tips.
-            </p>
-            <div className="mt-5 flex gap-3">
-              <a
-                href="#"
-                aria-label="Sitio web"
-                className="grid h-8 w-8 place-items-center rounded-full bg-surface-container text-ink-muted transition hover:bg-primary-50 hover:text-primary-500"
-              >
-                <Globe className="h-4 w-4" />
-              </a>
-              <a
-                href="#"
-                aria-label="X / Twitter"
-                className="grid h-8 w-8 place-items-center rounded-full bg-surface-container text-ink-muted transition hover:bg-primary-50 hover:text-primary-500"
-              >
-                <XIcon className="h-4 w-4" />
-              </a>
+            <p className="mt-4 max-w-xs text-sm leading-relaxed text-ink-muted">{t('footer.tagline')}</p>
+            <div className="mt-5">
+              <LanguageSwitcher />
             </div>
           </div>
 
-          <FooterColumn title="Plataforma">
-            <FooterLink href="/create">Crear chat</FooterLink>
-            <FooterLink href="#como-funciona">Cómo funciona</FooterLink>
-            <FooterLink href="#caracteristicas">Características</FooterLink>
-          </FooterColumn>
+          <div>
+            <h4 className="mb-4 text-sm font-bold text-ink">{t('footer.col.platform')}</h4>
+            <ul className="space-y-2.5 text-sm text-ink-muted">
+              <li><Link href={L('/create')} className="transition hover:text-primary-500">{t('footer.link.createChat')}</Link></li>
+              <li><a href="#como-funciona" className="transition hover:text-primary-500">{t('footer.link.howItWorks')}</a></li>
+              <li><a href="#caracteristicas" className="transition hover:text-primary-500">{t('footer.link.features')}</a></li>
+            </ul>
+          </div>
 
-          <FooterColumn title="Legal">
-            <FooterLink href="/legal/terminos">Términos del servicio</FooterLink>
-            <FooterLink href="/legal/privacidad">Política de privacidad</FooterLink>
-            <FooterLink href="/legal/aviso-legal">Guía para creadores</FooterLink>
-          </FooterColumn>
+          <div>
+            <h4 className="mb-4 text-sm font-bold text-ink">{t('footer.col.legal')}</h4>
+            <ul className="space-y-2.5 text-sm text-ink-muted">
+              <li><Link href={L('/legal/terminos')} className="transition hover:text-primary-500">{t('footer.link.terms')}</Link></li>
+              <li><Link href={L('/legal/privacidad')} className="transition hover:text-primary-500">{t('footer.link.privacy')}</Link></li>
+              <li><Link href={L('/legal/aviso-legal')} className="transition hover:text-primary-500">{t('footer.link.creators')}</Link></li>
+            </ul>
+          </div>
 
-          <FooterColumn title="Soporte">
-            <FooterLink href="/contacto">Contacto</FooterLink>
-          </FooterColumn>
+          <div>
+            <h4 className="mb-4 text-sm font-bold text-ink">{t('footer.col.support')}</h4>
+            <ul className="space-y-2.5 text-sm text-ink-muted">
+              <li><Link href={L('/contacto')} className="transition hover:text-primary-500">{t('footer.link.contact')}</Link></li>
+            </ul>
+          </div>
         </div>
       </div>
 
       <div className="border-t border-surface-container">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-6 py-5 text-xs text-ink-muted">
-          <span>© {new Date().getFullYear()} tiptalk.chat — Todos los derechos reservados.</span>
-          <span className="flex items-center gap-1">
-            Hecho con <span className="text-secondary-500">❤</span> para creadores
-          </span>
+          <span>© {new Date().getFullYear()} tiptalk.chat — {t('footer.rights')}</span>
+          <span>{t('footer.madeWith')}</span>
         </div>
       </div>
     </footer>
-  );
-}
-
-function FooterColumn({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <h4 className="mb-4 text-sm font-bold text-ink">{title}</h4>
-      <ul className="space-y-2.5 text-sm text-ink-muted">{children}</ul>
-    </div>
-  );
-}
-
-function FooterLink({ href, children }: { href: string; children: React.ReactNode }) {
-  const isExternal = href.startsWith('mailto:') || href.startsWith('http') || href.startsWith('#');
-  if (isExternal) {
-    return (
-      <li>
-        <a href={href} className="transition hover:text-primary-500">
-          {children}
-        </a>
-      </li>
-    );
-  }
-  return (
-    <li>
-      <Link href={href} className="transition hover:text-primary-500">
-        {children}
-      </Link>
-    </li>
   );
 }

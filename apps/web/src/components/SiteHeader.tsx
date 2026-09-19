@@ -8,12 +8,16 @@ import { Logo } from './Logo';
 import { ProfileOverlay } from './ProfileOverlay';
 import { UserChip } from './UserChip';
 import { MessagesBell } from './MessagesBell';
+import { useT, useLocale, localizeHref } from '@/i18n/useLocale';
 
 export function SiteHeader({ variant = 'landing' }: { variant?: 'landing' | 'minimal' }) {
   const router = useRouter();
   const user = useAuth((s) => s.user);
   const clear = useAuth((s) => s.clear);
   const [profileOpen, setProfileOpen] = useState(false);
+  const t = useT();
+  const locale = useLocale();
+  const L = (href: string): string => localizeHref(href, locale);
   return (
     <header className="sticky top-0 z-40 border-b border-surface-container bg-canvas/80 backdrop-blur-[20px]">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
@@ -23,24 +27,24 @@ export function SiteHeader({ variant = 'landing' }: { variant?: 'landing' | 'min
         {variant === 'landing' ? (
           <>
             <nav className="hidden items-center gap-10 text-sm font-medium text-ink-muted md:flex">
-              <Link href="/create" className="transition hover:text-primary-500">
-                Crear chat
+              <Link href={L('/create')} className="transition hover:text-primary-500">
+                {t('nav.createChat')}
               </Link>
               <a href="#como-funciona" className="transition hover:text-primary-500">
-                Cómo funciona
+                {t('nav.howItWorks')}
               </a>
               <a href="#caracteristicas" className="transition hover:text-primary-500">
-                Características
+                {t('nav.features')}
               </a>
             </nav>
             <div className="flex items-center gap-3">
               {user ? (
                 <>
                   <Link
-                    href="/wallet"
+                    href={L('/wallet')}
                     className="rounded-md bg-amber-100 px-3 py-1.5 text-sm font-semibold text-amber-900 transition hover:bg-amber-200 dark:bg-amber-900 dark:text-amber-100"
                   >
-                    Monedero
+                    {t('nav.wallet')}
                   </Link>
                   <MessagesBell />
                   <UserChip user={user} />
@@ -51,25 +55,25 @@ export function SiteHeader({ variant = 'landing' }: { variant?: 'landing' | 'min
                       router.refresh();
                     }}
                     className="grid h-9 w-9 place-items-center rounded-md text-ink-muted transition hover:bg-surface-soft hover:text-ink"
-                    title="Cerrar sesión"
-                    aria-label="Cerrar sesión"
+                    title={t('nav.logout')}
+                    aria-label={t('nav.logout')}
                   >
                     <LogOut className="h-4 w-4" />
                   </button>
                 </>
               ) : (
                 <Link
-                  href="/login"
+                  href={L('/login')}
                   className="text-sm font-medium text-ink-muted transition hover:text-ink"
                 >
-                  Iniciar sesión
+                  {t('nav.login')}
                 </Link>
               )}
               <Link
-                href="/create"
+                href={L('/create')}
                 className="btn-tactile rounded-full bg-primary-500 px-5 py-2.5 text-sm font-semibold text-white shadow-soft transition hover:bg-primary-600"
               >
-                Crear chat
+                {t('nav.createChat')}
               </Link>
             </div>
           </>

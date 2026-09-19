@@ -1,0 +1,108 @@
+import type { MessageKey } from './es';
+
+export const nl: { [K in MessageKey]?: string } = {
+  // --- Common ---
+  'common.loading': 'Laden…',
+  'common.save': 'Opslaan',
+  'common.cancel': 'Annuleren',
+  'common.close': 'Sluiten',
+  'common.retry': 'Opnieuw proberen',
+  'common.back': 'Terug',
+  'common.backHome': 'Terug naar start',
+  'common.send': 'Versturen',
+  'common.online': 'Nu online',
+  'common.offline': 'Offline',
+  'common.online.short': 'Online',
+
+  // --- Header / nav ---
+  'nav.createChat': 'Chat maken',
+  'nav.howItWorks': 'Hoe het werkt',
+  'nav.features': 'Functies',
+  'nav.wallet': 'Portemonnee',
+  'nav.login': 'Inloggen',
+  'nav.logout': 'Uitloggen',
+  'nav.messages': 'Berichten',
+
+  // --- Footer ---
+  'footer.tagline': 'Privé-chatrooms met tips.',
+  'footer.col.platform': 'Platform',
+  'footer.col.legal': 'Juridisch',
+  'footer.col.support': 'Support',
+  'footer.link.createChat': 'Chat maken',
+  'footer.link.howItWorks': 'Hoe het werkt',
+  'footer.link.features': 'Functies',
+  'footer.link.terms': 'Servicevoorwaarden',
+  'footer.link.privacy': 'Privacybeleid',
+  'footer.link.creators': 'Gids voor creators',
+  'footer.link.contact': 'Contact',
+  'footer.rights': 'Alle rechten voorbehouden.',
+  'footer.madeWith': 'Gemaakt met ❤ voor creators',
+
+  // --- Home / landing ---
+  'home.hero.title': 'Privé 1-op-1 chatrooms',
+  'home.hero.subtitle': 'Chat met wie je wilt via videogesprek, spraak of alleen tekst.',
+  'home.hero.cta': 'Chatroom maken',
+  'home.hero.live': 'LIVE: PRIVÉSESSIE',
+  'home.discover.title': 'Maak nieuwe vrienden',
+  'home.discover.subtitle': 'Volg ze of stuur een bericht om te chatten.',
+  'home.discover.message': 'Bericht',
+  'home.finalCta.cta': 'Chatroom maken',
+
+  // --- Auth ---
+  'auth.login': 'Inloggen',
+  'auth.signup': 'Account aanmaken',
+  'auth.email': 'E-mail',
+  'auth.password': 'Wachtwoord',
+  'auth.displayName': 'Je naam',
+  'auth.haveAccount': 'Heb je al een account?',
+  'auth.noAccount': 'Nog geen account?',
+
+  // --- Profile ---
+  'profile.follow': 'Volgen',
+  'profile.following': 'Volgend',
+  'profile.message': 'Bericht',
+  'profile.messageCta': 'Stuur een bericht om te chatten',
+  'profile.followers': 'volgers',
+  'profile.followingCount': 'volgend',
+  'profile.editProfile': 'Profiel bewerken',
+  'profile.memberSince': 'Op tiptalk.chat sinds {date}',
+  'profile.gallery': 'Galerij',
+  'profile.privatePhoto': 'Privéfoto',
+  'profile.notFound.title': 'Profiel niet gevonden',
+  'profile.notFound.body': 'Deze gebruiker bestaat niet of is niet meer beschikbaar.',
+
+  // --- Messages / composer ---
+  'msg.composer.title': 'Bericht aan',
+  'msg.composer.label': 'Je bericht',
+  'msg.composer.placeholder': 'Schrijf {name} om te beginnen met chatten…',
+  'msg.composer.send': 'Bericht versturen',
+  'msg.composer.sent.title': 'Bericht verstuurd!',
+  'msg.composer.sent.body': '{name} krijgt een e-mailmelding om te komen reageren.',
+  'msg.inbox.title': 'Berichten',
+  'msg.inbox.empty': 'Nog geen berichten',
+  'msg.inbox.reply': 'Schrijf je antwoord…',
+
+  // --- Wallet ---
+  'wallet.title': 'Portemonnee',
+  'wallet.balance': 'Saldo',
+  'wallet.buy': 'Tipsys kopen',
+  'wallet.payout.request': 'Uitbetaling aanvragen',
+  'wallet.activate': 'Uitbetalingen activeren',
+
+  // --- Room / chat ---
+  'chat.send': 'Versturen',
+  'chat.placeholder': 'Schrijf een bericht…',
+  'chat.guestCta.q': 'Vind je de chat leuk?',
+  'chat.guestCta.link': 'Meld je gratis aan',
+  'chat.guestCta.rest': 'om je profiel te bewaren, anderen te volgen en in contact te blijven met je vrienden.',
+
+  // --- Legacy keys (kept for existing t() callers) ---
+  'landing.title': 'Privé één-op-één chatrooms',
+  'landing.subtitle': 'Maak een room, deel de link en ontvang fooien.',
+  'landing.cta.create': 'Room maken',
+  'landing.cta.join': 'Deelnemen aan een room',
+  'create.name': 'Naam van de room',
+  'create.submit': 'Room maken',
+  'tip.send': 'Tipsy versturen',
+  'wallet.payout.min': 'Minimaal {min} Tipsys',
+};

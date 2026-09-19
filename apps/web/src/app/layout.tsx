@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Plus_Jakarta_Sans, Inter, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { AuthBoot } from '@/components/AuthBoot';
+import { getServerLocale, getServerDir } from '@/i18n/server';
 
 const display = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -31,9 +32,11 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const locale = getServerLocale();
   return (
     <html
-      lang="es"
+      lang={locale}
+      dir={getServerDir(locale)}
       suppressHydrationWarning
       className={`${display.variable} ${body.variable} ${mono.variable}`}
     >

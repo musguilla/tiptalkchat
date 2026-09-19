@@ -15,8 +15,12 @@ import { SiteFooter } from '@/components/SiteFooter';
 import { HeroVideoPreview } from '@/components/HeroVideoPreview';
 import { LiveRoomsBadge } from '@/components/LiveRoomsBadge';
 import { DiscoverPeople } from '@/components/DiscoverPeople';
+import { getServerLocale } from '@/i18n/server';
+import { localizeHref } from '@/i18n/routing';
+import { t } from '@/i18n';
 
 export default function HomePage() {
+  const locale = getServerLocale();
   return (
     <div className="flex min-h-screen flex-col bg-canvas text-ink">
       <SiteHeader />
@@ -29,17 +33,17 @@ export default function HomePage() {
           {/* LEFT */}
           <div>
             <h1 className="font-display text-5xl font-extrabold leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl">
-              Salas de chats <span className="text-primary-500">privadas</span> 1 a 1
+              {t(locale, 'home.hero.title')}
             </h1>
             <p className="mt-6 max-w-md text-lg leading-relaxed text-ink-muted">
-              Chatea con quien quieras con videollamada, voz o solo texto.
+              {t(locale, 'home.hero.subtitle')}
             </p>
             <div className="mt-10">
               <Link
-                href="/create"
+                href={localizeHref('/create', locale)}
                 className="btn-tactile inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-12 py-5 text-lg font-bold text-white shadow-vivid transition hover:shadow-vivid-strong sm:w-auto sm:min-w-[24rem]"
               >
-                Crear sala de chat
+                {t(locale, 'home.hero.cta')}
               </Link>
             </div>
           </div>

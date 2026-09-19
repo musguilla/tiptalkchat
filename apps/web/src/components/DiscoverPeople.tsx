@@ -6,6 +6,7 @@ import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-store';
 import { AuthOverlay } from '@/components/AuthOverlay';
 import { MessageComposerModal } from '@/components/MessageComposerModal';
+import { useT } from '@/i18n/useLocale';
 
 interface DiscoverUser {
   id: string;
@@ -18,6 +19,7 @@ interface DiscoverUser {
 /** Home rail of real members, shown as photo cards with follow + message. */
 export function DiscoverPeople() {
   const token = useAuth((s) => s.token);
+  const t = useT();
   const [users, setUsers] = useState<DiscoverUser[]>([]);
   const [following, setFollowing] = useState<Record<string, boolean>>({});
   const [authOpen, setAuthOpen] = useState(false);
@@ -64,9 +66,9 @@ export function DiscoverPeople() {
             <UsersRound className="h-5 w-5" />
           </div>
           <h2 className="mt-4 font-display text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
-            Haz nuevos amig@s
+            {t('home.discover.title')}
           </h2>
-          <p className="mt-3 text-base text-ink-muted">Síguelos o mándales un mensaje para chatear.</p>
+          <p className="mt-3 text-base text-ink-muted">{t('home.discover.subtitle')}</p>
         </div>
 
         <div className="mt-9 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
@@ -101,7 +103,7 @@ export function DiscoverPeople() {
               {u.online && (
                 <span className="pointer-events-none absolute left-2.5 top-2.5 inline-flex items-center gap-1.5 rounded-full bg-black/45 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-sm">
                   <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                  En línea
+                  {t('common.online.short')}
                 </span>
               )}
 
@@ -136,7 +138,7 @@ export function DiscoverPeople() {
                   className="btn-tactile inline-flex shrink-0 items-center gap-1.5 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-3 py-1.5 text-xs font-bold text-white shadow-soft transition hover:shadow-vivid"
                 >
                   <MessageCircle className="h-3.5 w-3.5" />
-                  Mensaje
+                  {t('home.discover.message')}
                 </button>
               </div>
             </article>

@@ -1,0 +1,108 @@
+import type { MessageKey } from './es';
+
+export const pt: { [K in MessageKey]?: string } = {
+  // --- Common ---
+  'common.loading': 'A carregar…',
+  'common.save': 'Guardar',
+  'common.cancel': 'Cancelar',
+  'common.close': 'Fechar',
+  'common.retry': 'Tentar novamente',
+  'common.back': 'Voltar',
+  'common.backHome': 'Voltar ao início',
+  'common.send': 'Enviar',
+  'common.online': 'Online agora',
+  'common.offline': 'Offline',
+  'common.online.short': 'Online',
+
+  // --- Header / nav ---
+  'nav.createChat': 'Criar chat',
+  'nav.howItWorks': 'Como funciona',
+  'nav.features': 'Funcionalidades',
+  'nav.wallet': 'Carteira',
+  'nav.login': 'Iniciar sessão',
+  'nav.logout': 'Terminar sessão',
+  'nav.messages': 'Mensagens',
+
+  // --- Footer ---
+  'footer.tagline': 'Salas de chat privadas com tips.',
+  'footer.col.platform': 'Plataforma',
+  'footer.col.legal': 'Legal',
+  'footer.col.support': 'Apoio',
+  'footer.link.createChat': 'Criar chat',
+  'footer.link.howItWorks': 'Como funciona',
+  'footer.link.features': 'Funcionalidades',
+  'footer.link.terms': 'Termos do serviço',
+  'footer.link.privacy': 'Política de privacidade',
+  'footer.link.creators': 'Guia para criadores',
+  'footer.link.contact': 'Contacto',
+  'footer.rights': 'Todos os direitos reservados.',
+  'footer.madeWith': 'Feito com ❤ para criadores',
+
+  // --- Home / landing ---
+  'home.hero.title': 'Salas de chat privadas 1 para 1',
+  'home.hero.subtitle': 'Conversa com quem quiseres por videochamada, voz ou só texto.',
+  'home.hero.cta': 'Criar sala de chat',
+  'home.hero.live': 'LIVE: SESSÃO PRIVADA',
+  'home.discover.title': 'Faz novos amigos',
+  'home.discover.subtitle': 'Segue-os ou envia-lhes uma mensagem para conversar.',
+  'home.discover.message': 'Mensagem',
+  'home.finalCta.cta': 'Criar sala de chat',
+
+  // --- Auth ---
+  'auth.login': 'Iniciar sessão',
+  'auth.signup': 'Criar conta',
+  'auth.email': 'Email',
+  'auth.password': 'Palavra-passe',
+  'auth.displayName': 'O teu nome',
+  'auth.haveAccount': 'Já tens conta?',
+  'auth.noAccount': 'Ainda não tens conta?',
+
+  // --- Profile ---
+  'profile.follow': 'Seguir',
+  'profile.following': 'A seguir',
+  'profile.message': 'Mensagem',
+  'profile.messageCta': 'Envia-lhe uma mensagem para conversar',
+  'profile.followers': 'seguidores',
+  'profile.followingCount': 'a seguir',
+  'profile.editProfile': 'Editar perfil',
+  'profile.memberSince': 'No tiptalk.chat desde {date}',
+  'profile.gallery': 'Galeria',
+  'profile.privatePhoto': 'Foto privada',
+  'profile.notFound.title': 'Perfil não encontrado',
+  'profile.notFound.body': 'Este utilizador não existe ou já não está disponível.',
+
+  // --- Messages / composer ---
+  'msg.composer.title': 'Mensagem para',
+  'msg.composer.label': 'A tua mensagem',
+  'msg.composer.placeholder': 'Escreve a {name} para começar a conversar…',
+  'msg.composer.send': 'Enviar mensagem',
+  'msg.composer.sent.title': 'Mensagem enviada!',
+  'msg.composer.sent.body': '{name} vai receber um aviso por email para vir responder-te.',
+  'msg.inbox.title': 'Mensagens',
+  'msg.inbox.empty': 'Ainda sem mensagens',
+  'msg.inbox.reply': 'Escreve a tua resposta…',
+
+  // --- Wallet ---
+  'wallet.title': 'Carteira',
+  'wallet.balance': 'Saldo',
+  'wallet.buy': 'Comprar Tipsys',
+  'wallet.payout.request': 'Pedir pagamento',
+  'wallet.activate': 'Ativar pagamentos',
+
+  // --- Room / chat ---
+  'chat.send': 'Enviar',
+  'chat.placeholder': 'Escreve uma mensagem…',
+  'chat.guestCta.q': 'Estás a gostar do chat?',
+  'chat.guestCta.link': 'Regista-te grátis',
+  'chat.guestCta.rest': 'para guardar o teu perfil, seguir outros e manteres o contacto com os teus amigos.',
+
+  // --- Legacy keys (kept for existing t() callers) ---
+  'landing.title': 'Salas de chat privadas um para um',
+  'landing.subtitle': 'Cria uma sala, partilha o link e recebe gorjetas.',
+  'landing.cta.create': 'Criar sala',
+  'landing.cta.join': 'Entrar numa sala',
+  'create.name': 'Nome da sala',
+  'create.submit': 'Criar sala',
+  'tip.send': 'Enviar Tipsy',
+  'wallet.payout.min': 'Mínimo {min} Tipsys',
+};

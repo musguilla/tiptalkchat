@@ -1,0 +1,108 @@
+import type { MessageKey } from './es';
+
+export const zh: { [K in MessageKey]?: string } = {
+  // --- Common ---
+  'common.loading': '加载中…',
+  'common.save': '保存',
+  'common.cancel': '取消',
+  'common.close': '关闭',
+  'common.retry': '重试',
+  'common.back': '返回',
+  'common.backHome': '返回首页',
+  'common.send': '发送',
+  'common.online': '当前在线',
+  'common.offline': '离线',
+  'common.online.short': '在线',
+
+  // --- Header / nav ---
+  'nav.createChat': '创建聊天',
+  'nav.howItWorks': '使用方法',
+  'nav.features': '功能',
+  'nav.wallet': '钱包',
+  'nav.login': '登录',
+  'nav.logout': '退出登录',
+  'nav.messages': '消息',
+
+  // --- Footer ---
+  'footer.tagline': '私密的一对一聊天室，还能打赏。',
+  'footer.col.platform': '平台',
+  'footer.col.legal': '法律',
+  'footer.col.support': '支持',
+  'footer.link.createChat': '创建聊天',
+  'footer.link.howItWorks': '使用方法',
+  'footer.link.features': '功能',
+  'footer.link.terms': '服务条款',
+  'footer.link.privacy': '隐私政策',
+  'footer.link.creators': '创作者指南',
+  'footer.link.contact': '联系我们',
+  'footer.rights': '版权所有。',
+  'footer.madeWith': '用 ❤ 为创作者打造',
+
+  // --- Home / landing ---
+  'home.hero.title': '私密的一对一聊天室',
+  'home.hero.subtitle': '想和谁聊都行，支持视频通话、语音或纯文字。',
+  'home.hero.cta': '创建聊天室',
+  'home.hero.live': 'LIVE：私密会话',
+  'home.discover.title': '结识新朋友',
+  'home.discover.subtitle': '关注他们或发条消息，开始聊天。',
+  'home.discover.message': '消息',
+  'home.finalCta.cta': '创建聊天室',
+
+  // --- Auth ---
+  'auth.login': '登录',
+  'auth.signup': '注册',
+  'auth.email': '邮箱',
+  'auth.password': '密码',
+  'auth.displayName': '你的名字',
+  'auth.haveAccount': '已经有账号了？',
+  'auth.noAccount': '还没有账号？',
+
+  // --- Profile ---
+  'profile.follow': '关注',
+  'profile.following': '已关注',
+  'profile.message': '消息',
+  'profile.messageCta': '发条消息，开始聊天吧',
+  'profile.followers': '粉丝',
+  'profile.followingCount': '关注',
+  'profile.editProfile': '编辑资料',
+  'profile.memberSince': '自 {date} 加入 tiptalk.chat',
+  'profile.gallery': '相册',
+  'profile.privatePhoto': '私密照片',
+  'profile.notFound.title': '找不到该资料',
+  'profile.notFound.body': '该用户不存在或已不可用。',
+
+  // --- Messages / composer ---
+  'msg.composer.title': '发消息给',
+  'msg.composer.label': '你的消息',
+  'msg.composer.placeholder': '给 {name} 发条消息，开始聊天吧…',
+  'msg.composer.send': '发送消息',
+  'msg.composer.sent.title': '消息已发送！',
+  'msg.composer.sent.body': '{name} 会收到邮件提醒，进来给你回复。',
+  'msg.inbox.title': '消息',
+  'msg.inbox.empty': '还没有消息',
+  'msg.inbox.reply': '写下你的回复…',
+
+  // --- Wallet ---
+  'wallet.title': '钱包',
+  'wallet.balance': '余额',
+  'wallet.buy': '购买 Tipsys',
+  'wallet.payout.request': '申请提现',
+  'wallet.activate': '开通提现',
+
+  // --- Room / chat ---
+  'chat.send': '发送',
+  'chat.placeholder': '输入消息…',
+  'chat.guestCta.q': '喜欢这个聊天吗？',
+  'chat.guestCta.link': '免费注册',
+  'chat.guestCta.rest': '，即可保存你的资料、关注他人，并和朋友保持联系。',
+
+  // --- Legacy keys (kept for existing t() callers) ---
+  'landing.title': '一对一私密聊天室',
+  'landing.subtitle': '创建聊天室，分享链接，收取打赏。',
+  'landing.cta.create': '创建聊天室',
+  'landing.cta.join': '加入聊天室',
+  'create.name': '聊天室名称',
+  'create.submit': '创建聊天室',
+  'tip.send': '发送 Tipsy',
+  'wallet.payout.min': '最低 {min} Tipsys',
+};

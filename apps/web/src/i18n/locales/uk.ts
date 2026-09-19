@@ -1,0 +1,108 @@
+import type { MessageKey } from './es';
+
+export const uk: { [K in MessageKey]?: string } = {
+  // --- Common ---
+  'common.loading': 'Завантаження…',
+  'common.save': 'Зберегти',
+  'common.cancel': 'Скасувати',
+  'common.close': 'Закрити',
+  'common.retry': 'Повторити',
+  'common.back': 'Назад',
+  'common.backHome': 'На головну',
+  'common.send': 'Надіслати',
+  'common.online': 'Зараз онлайн',
+  'common.offline': 'Не в мережі',
+  'common.online.short': 'Онлайн',
+
+  // --- Header / nav ---
+  'nav.createChat': 'Створити чат',
+  'nav.howItWorks': 'Як це працює',
+  'nav.features': 'Можливості',
+  'nav.wallet': 'Гаманець',
+  'nav.login': 'Увійти',
+  'nav.logout': 'Вийти',
+  'nav.messages': 'Повідомлення',
+
+  // --- Footer ---
+  'footer.tagline': 'Приватні чат-кімнати з чайовими.',
+  'footer.col.platform': 'Платформа',
+  'footer.col.legal': 'Правова інформація',
+  'footer.col.support': 'Підтримка',
+  'footer.link.createChat': 'Створити чат',
+  'footer.link.howItWorks': 'Як це працює',
+  'footer.link.features': 'Можливості',
+  'footer.link.terms': 'Умови користування',
+  'footer.link.privacy': 'Політика конфіденційності',
+  'footer.link.creators': 'Гід для авторів',
+  'footer.link.contact': 'Контакти',
+  'footer.rights': 'Усі права захищено.',
+  'footer.madeWith': 'Зроблено з ❤ для авторів',
+
+  // --- Home / landing ---
+  'home.hero.title': 'Приватні чат-кімнати віч-на-віч',
+  'home.hero.subtitle': 'Спілкуйся з ким завгодно у відеодзвінку, голосом або лише текстом.',
+  'home.hero.cta': 'Створити чат-кімнату',
+  'home.hero.live': 'LIVE: ПРИВАТНА СЕСІЯ',
+  'home.discover.title': 'Знайди нових друзів',
+  'home.discover.subtitle': 'Підпишись або напиши повідомлення, щоб почати спілкування.',
+  'home.discover.message': 'Повідомлення',
+  'home.finalCta.cta': 'Створити чат-кімнату',
+
+  // --- Auth ---
+  'auth.login': 'Увійти',
+  'auth.signup': 'Створити акаунт',
+  'auth.email': 'Email',
+  'auth.password': 'Пароль',
+  'auth.displayName': 'Твоє ім’я',
+  'auth.haveAccount': 'Вже маєте акаунт?',
+  'auth.noAccount': 'Немає акаунта?',
+
+  // --- Profile ---
+  'profile.follow': 'Стежити',
+  'profile.following': 'Ви стежите',
+  'profile.message': 'Повідомлення',
+  'profile.messageCta': 'Напишіть повідомлення, щоб почати чат',
+  'profile.followers': 'підписників',
+  'profile.followingCount': 'стежить',
+  'profile.editProfile': 'Редагувати профіль',
+  'profile.memberSince': 'У tiptalk.chat з {date}',
+  'profile.gallery': 'Галерея',
+  'profile.privatePhoto': 'Приватне фото',
+  'profile.notFound.title': 'Профіль не знайдено',
+  'profile.notFound.body': 'Цей користувач не існує або більше недоступний.',
+
+  // --- Messages / composer ---
+  'msg.composer.title': 'Повідомлення для',
+  'msg.composer.label': 'Ваше повідомлення',
+  'msg.composer.placeholder': 'Напишіть {name}, щоб почати спілкування…',
+  'msg.composer.send': 'Надіслати повідомлення',
+  'msg.composer.sent.title': 'Повідомлення надіслано!',
+  'msg.composer.sent.body': '{name} отримає сповіщення на пошту, щоб зайти й відповісти вам.',
+  'msg.inbox.title': 'Повідомлення',
+  'msg.inbox.empty': 'Поки що немає повідомлень',
+  'msg.inbox.reply': 'Напишіть відповідь…',
+
+  // --- Wallet ---
+  'wallet.title': 'Гаманець',
+  'wallet.balance': 'Баланс',
+  'wallet.buy': 'Купити Tipsys',
+  'wallet.payout.request': 'Запросити виплату',
+  'wallet.activate': 'Активувати виплати',
+
+  // --- Room / chat ---
+  'chat.send': 'Надіслати',
+  'chat.placeholder': 'Напишіть повідомлення…',
+  'chat.guestCta.q': 'Подобається чат?',
+  'chat.guestCta.link': 'Зареєструйтесь безкоштовно',
+  'chat.guestCta.rest': 'щоб зберегти профіль, стежити за іншими й залишатися на зв’язку з друзями.',
+
+  // --- Legacy keys (kept for existing t() callers) ---
+  'landing.title': 'Приватні чат-кімнати віч-на-віч',
+  'landing.subtitle': 'Створіть кімнату, поділіться посиланням і отримуйте чайові.',
+  'landing.cta.create': 'Створити кімнату',
+  'landing.cta.join': 'Приєднатися до кімнати',
+  'create.name': 'Назва кімнати',
+  'create.submit': 'Створити кімнату',
+  'tip.send': 'Надіслати Tipsy',
+  'wallet.payout.min': 'Мінімум {min} Tipsys',
+};

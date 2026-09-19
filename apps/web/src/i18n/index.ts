@@ -1,57 +1,58 @@
-export type Locale = 'es' | 'en';
-export const DEFAULT_LOCALE: Locale = 'es';
+import type { Locale } from './config';
+import { DEFAULT_LOCALE } from './config';
+import { es, type MessageKey } from './locales/es';
+import { en } from './locales/en';
+import { fr } from './locales/fr';
+import { de } from './locales/de';
+import { it } from './locales/it';
+import { pt } from './locales/pt';
+import { ptBr } from './locales/pt-br';
+import { pl } from './locales/pl';
+import { uk } from './locales/uk';
+import { nl } from './locales/nl';
+import { zh } from './locales/zh';
+import { hi } from './locales/hi';
+import { ar } from './locales/ar';
+import { ru } from './locales/ru';
+import { id } from './locales/id';
+import { ko } from './locales/ko';
+import { ja } from './locales/ja';
 
-const dict = {
-  es: {
-    'landing.title': 'Salas de chats privadas uno a uno',
-    'landing.subtitle': 'Crea una sala, comparte el enlace y recibe propinas.',
-    'landing.cta.create': 'Crear sala',
-    'landing.cta.join': 'Unirme a una sala',
-    'create.name': 'Nombre de la sala',
-    'create.submit': 'Crear sala',
-    'chat.send': 'Enviar',
-    'chat.placeholder': 'Escribe un mensaje…',
-    'wallet.title': 'Tu monedero',
-    'wallet.balance': 'Saldo',
-    'wallet.buy': 'Comprar Tipsys',
-    'wallet.payout.request': 'Solicitar cobro',
-    'wallet.payout.min': 'Mínimo {min} Tipsys',
-    'tip.send': 'Enviar Tipsy',
-    'auth.login': 'Iniciar sesión',
-    'auth.signup': 'Crear cuenta',
-    'auth.email': 'Email',
-    'auth.password': 'Contraseña',
-    'auth.displayName': 'Tu nombre',
-  },
-  en: {
-    'landing.title': 'Private one-to-one chat rooms',
-    'landing.subtitle': 'Create a room, share the link, get tipped.',
-    'landing.cta.create': 'Create room',
-    'landing.cta.join': 'Join a room',
-    'create.name': 'Room name',
-    'create.submit': 'Create room',
-    'chat.send': 'Send',
-    'chat.placeholder': 'Type a message…',
-    'wallet.title': 'Your wallet',
-    'wallet.balance': 'Balance',
-    'wallet.buy': 'Buy Tipsys',
-    'wallet.payout.request': 'Request payout',
-    'wallet.payout.min': 'Minimum {min} Tipsys',
-    'tip.send': 'Send Tipsy',
-    'auth.login': 'Sign in',
-    'auth.signup': 'Sign up',
-    'auth.email': 'Email',
-    'auth.password': 'Password',
-    'auth.displayName': 'Your name',
-  },
-} as const;
+export type { Locale } from './config';
+export { DEFAULT_LOCALE } from './config';
+export type Key = MessageKey;
 
-type Key = keyof (typeof dict)['es'];
+type Partial = { [K in MessageKey]?: string };
 
-export function t(locale: Locale, key: Key, vars: Record<string, string | number> = {}): string {
-  const raw = dict[locale][key] ?? dict[DEFAULT_LOCALE][key] ?? key;
+const overrides: Record<Locale, Partial> = {
+  es,
+  en,
+  fr,
+  de,
+  it,
+  pt,
+  'pt-br': ptBr,
+  pl,
+  uk,
+  nl,
+  zh,
+  hi,
+  ar,
+  ru,
+  id,
+  ko,
+  ja,
+};
+
+/** Translate a key for a locale, falling back to Spanish then the key itself. */
+export function t(
+  locale: Locale,
+  key: MessageKey,
+  vars: Record<string, string | number> = {},
+): string {
+  const raw = overrides[locale]?.[key] ?? es[key] ?? key;
   return Object.entries(vars).reduce<string>(
-    (acc, [k, v]) => acc.replace(`{${k}}`, String(v)),
+    (acc, [k, v]) => acc.replace(new RegExp(`\\{${k}\\}`, 'g'), String(v)),
     raw,
   );
 }

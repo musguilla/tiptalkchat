@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { UserPlus, UserCheck, Loader2 } from 'lucide-react';
 import { api } from '@/lib/api';
+import { useT } from '@/i18n/useLocale';
 
 interface Props {
   userId: string;
@@ -28,6 +29,7 @@ export function FollowButton({
   size = 'md',
   className = '',
 }: Props) {
+  const t = useT();
   const [following, setFollowing] = useState(initialFollowing);
   const [busy, setBusy] = useState(false);
 
@@ -76,7 +78,7 @@ export function FollowButton({
       ) : (
         <UserPlus className={icon} />
       )}
-      {following ? 'Siguiendo' : 'Seguir'}
+      {following ? t('profile.following') : t('profile.follow')}
     </button>
   );
 }
