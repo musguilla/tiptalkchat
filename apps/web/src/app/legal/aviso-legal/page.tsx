@@ -26,6 +26,11 @@ export default function AvisoLegalPage() {
         Las presentes condiciones se rigen por la legislación española. Para cualquier controversia,
         las partes se someten a los juzgados y tribunales del domicilio del usuario o del prestador.
       </p>
+
+      <p className="mt-12 text-sm text-zinc-500">
+        Texto orientativo. Debe completarse con la identificación del titular exigida por la
+        normativa (LSSI-CE) antes de operar en producción.
+      </p>
     </>
   );
 }
