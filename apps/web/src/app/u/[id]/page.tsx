@@ -242,7 +242,7 @@ export default function UserProfilePage() {
                   className="btn-tactile mt-4 inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-primary-500 shadow-soft transition hover:shadow-vivid"
                 >
                   <Send className="h-4 w-4" />
-                  Envíale un mensaje para chatear
+                  Mensaje
                 </button>
               )}
             </div>
