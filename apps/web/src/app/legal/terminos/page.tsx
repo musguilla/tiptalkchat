@@ -32,37 +32,7 @@ export default function TerminosPage() {
         completar el proceso de verificación KYC.
       </p>
 
-      <h2 className="mt-6 text-xl font-bold">5. Moderación y supervisión de contenidos</h2>
-      <p>
-        tiptalk.chat es una plataforma de comunicación entre personas. Para garantizar la seguridad
-        de sus usuarios, prevenir el fraude y cumplir con la normativa aplicable (incluidas las
-        exigencias de nuestros proveedores de pago), <strong>las sesiones pueden ser supervisadas,
-        observadas y grabadas</strong> por nuestro equipo de moderación. Esto incluye:
-      </p>
-      <ul className="list-disc pl-6">
-        <li>Los mensajes de texto, imágenes y archivos compartidos en las salas.</li>
-        <li>
-          El audio y el vídeo de las videollamadas y llamadas de voz en directo, que un moderador
-          autorizado puede visualizar en tiempo real sin necesidad de aviso previo dentro de la
-          sesión concreta.
-        </li>
-        <li>
-          La grabación puntual de una sesión cuando exista sospecha de un uso indebido, una
-          infracción de estos términos o una obligación legal.
-        </li>
-      </ul>
-      <p>
-        La supervisión se realiza con la única finalidad de moderación, seguridad y cumplimiento
-        legal. Las grabaciones se conservan durante el tiempo estrictamente necesario para esos
-        fines y solo son accesibles para el personal autorizado. Al utilizar tiptalk.chat aceptas
-        expresamente esta supervisión. Puedes consultar cómo tratamos estos datos en nuestra{' '}
-        <a className="text-orange-600 underline" href="/legal/privacidad">
-          política de privacidad
-        </a>
-        .
-      </p>
-
-      <h2 className="mt-6 text-xl font-bold">6. Responsabilidad</h2>
+      <h2 className="mt-6 text-xl font-bold">5. Responsabilidad</h2>
       <p>
         tiptalk.chat no se hace responsable del contenido de las conversaciones entre usuarios. Los
         chats se borran automáticamente a las 24 horas.
