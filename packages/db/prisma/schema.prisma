@@ -38,6 +38,9 @@ model User {
   role            String          @default("user") // user | mod | admin
   kycStatus       String          @default("none") // none | pending | verified | rejected
   blockedAt       DateTime?
+  // Onboarding nudge emails (avatar / gallery). Null = never sent.
+  avatarNudgeAt   DateTime?
+  galleryNudgeAt  DateTime?
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 

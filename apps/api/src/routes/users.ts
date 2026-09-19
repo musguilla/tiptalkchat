@@ -1,11 +1,15 @@
-import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance, FastifyBaseLogger } from 'fastify';
 import { z } from 'zod';
 import { prisma } from '@tiptalk/db';
 import { getStorage } from '../lib/storage.js';
 import { canRequestPayout, PAYOUT_MIN_TIPSYS } from '@tiptalk/economy';
 import { fetchPresence } from '../lib/realtime.js';
-import { sendEmail, renderNewMessageEmail } from '../lib/email.js';
-import { loadEnv } from '@tiptalk/config';
+import {
+  sendEmail,
+  renderNewMessageEmail,
+  renderNewFollowerEmail,
+  renderNewContentEmail,
+} from '../lib/email.js';
 
 /**
  * Profile + gallery endpoints. The public surface is deliberately limited
@@ -22,6 +26,43 @@ const galleryUploadBody = z.object({
 const updatePhotoBody = z.object({
   isPublic: z.boolean(),
 });
+
+/**
+ * Email every follower of `authorId` that they have new content. Best-effort,
+ * sequential, never throws. Callers should invoke it fire-and-forget and
+ * debounce it upstream so bursts don't spam.
+ */
+async function notifyFollowersOfNewContent(
+  authorId: string,
+  log: FastifyBaseLogger,
+): Promise<void> {
+  try {
+    const author = await prisma.user.findUnique({
+      where: { id: authorId },
+      select: { displayName: true },
+    });
+    if (!author) return;
+    const followers = await prisma.follow.findMany({
+      where: { followingId: authorId },
+      take: 500,
+      select: {
+        follower: { select: { email: true, displayName: true, blockedAt: true } },
+      },
+    });
+    for (const f of followers) {
+      if (f.follower.blockedAt) continue;
+      const { subject, html } = renderNewContentEmail({
+        recipientName: f.follower.displayName,
+        authorName: author.displayName,
+        authorId,
+      });
+      const r = await sendEmail({ to: f.follower.email, subject, html });
+      if (!r.ok && !r.skipped) log.warn({ err: r.error }, 'new-content email failed');
+    }
+  } catch (err) {
+    log.warn({ err }, 'notifyFollowersOfNewContent failed');
+  }
+}
 
 export async function userRoutes(app: FastifyInstance): Promise<void> {
   /**
@@ -86,14 +127,33 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
     if (targetId === me.userId) throw app.httpErrors.badRequest('No puedes seguirte a ti mismo');
     const target = await prisma.user.findUnique({
       where: { id: targetId },
-      select: { id: true, blockedAt: true },
+      select: { id: true, email: true, displayName: true, blockedAt: true },
     });
     if (!target || target.blockedAt) throw app.httpErrors.notFound('Usuario no encontrado');
-    await prisma.follow.upsert({
+
+    const existing = await prisma.follow.findUnique({
       where: { followerId_followingId: { followerId: me.userId, followingId: targetId } },
-      create: { followerId: me.userId, followingId: targetId },
-      update: {},
+      select: { id: true },
     });
+    if (!existing) {
+      await prisma.follow.create({
+        data: { followerId: me.userId, followingId: targetId },
+      });
+      // Notify the followed user by email (fire-and-forget, only on new follow).
+      const meUser = await prisma.user.findUnique({
+        where: { id: me.userId },
+        select: { displayName: true },
+      });
+      const { subject, html } = renderNewFollowerEmail({
+        recipientName: target.displayName,
+        followerName: meUser?.displayName ?? 'Alguien',
+        followerId: me.userId,
+      });
+      void sendEmail({ to: target.email, subject, html }).then((r) => {
+        if (!r.ok && !r.skipped) req.log.warn({ err: r.error }, 'follow email failed');
+      });
+    }
+
     const followerCount = await prisma.follow.count({ where: { followingId: targetId } });
     reply.code(201);
     return { following: true, followerCount };
@@ -327,6 +387,15 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
         isPublic: body.isPublic,
       },
     });
+
+    // Notify followers of new content, debounced to once per 6h per uploader
+    // so a burst of uploads doesn't fan out a burst of emails.
+    const sixHoursAgo = new Date(Date.now() - 6 * 3600 * 1000);
+    const recentlyPosted = await prisma.profilePhoto.count({
+      where: { userId: me.userId, id: { not: photo.id }, createdAt: { gte: sixHoursAgo } },
+    });
+    if (recentlyPosted === 0) void notifyFollowersOfNewContent(me.userId, req.log);
+
     reply.code(201);
     return {
       id: photo.id,
@@ -397,13 +466,9 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
     });
 
     // Fire-and-forget email nudge. Never blocks or fails the request.
-    const env = loadEnv();
-    const inboxUrl = `${env.PUBLIC_BASE_URL.replace(/\/$/, '')}/mensajes`;
     const { subject, html } = renderNewMessageEmail({
       recipientName: recipient.displayName,
       senderName: sender?.displayName ?? 'Alguien',
-      preview: body,
-      inboxUrl,
     });
     void sendEmail({ to: recipient.email, subject, html }).then((r) => {
       if (!r.ok && !r.skipped) req.log.warn({ err: r.error }, 'message email failed');

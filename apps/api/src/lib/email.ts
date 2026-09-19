@@ -1,9 +1,9 @@
 import { loadEnv } from '@tiptalk/config';
 
 /**
- * Minimal transactional email via Resend's HTTP API (no SDK dependency).
+ * Transactional email via Resend's HTTP API (no SDK dependency).
  * Best-effort: when RESEND_API_KEY is unset, sends are skipped so the rest of
- * the app (the in-app inbox) keeps working. Never throws to the caller.
+ * the app keeps working. Never throws to the caller.
  */
 
 export function emailConfigured(): boolean {
@@ -50,61 +50,61 @@ function escapeHtml(s: string): string {
     .replace(/"/g, '&quot;');
 }
 
-/**
- * Corporate-styled "you have a new message" nudge. Deliberately does NOT
- * include the full message body — it drives the recipient back to the
- * platform to read and reply (which is the whole point).
- */
-export function renderNewMessageEmail(input: {
-  recipientName: string;
-  senderName: string;
-  preview: string;
-  inboxUrl: string;
-}): { subject: string; html: string } {
-  const subject = `${input.senderName} te ha enviado un mensaje en TipTalk`;
-  const preview = escapeHtml(input.preview.slice(0, 140));
-  const sender = escapeHtml(input.senderName);
-  const recipient = escapeHtml(input.recipientName);
+function appBase(): string {
+  return loadEnv().PUBLIC_BASE_URL.replace(/\/$/, '');
+}
 
-  const html = `<!doctype html>
+/**
+ * Shared "cool" branded layout for every TipTalk email: hidden preheader,
+ * gradient header with the wordmark, a big emoji + title, the body, a CTA
+ * button and a footer. All specific templates build on this.
+ */
+export function renderEmailLayout(input: {
+  preview: string;
+  emoji: string;
+  title: string;
+  bodyHtml: string;
+  ctaLabel: string;
+  ctaUrl: string;
+  footerNote?: string;
+}): string {
+  const preview = escapeHtml(input.preview);
+  return `<!doctype html>
 <html lang="es">
 <body style="margin:0;padding:0;background:#f4f4f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;">${preview}</div>
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f7;padding:32px 16px;">
     <tr><td align="center">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#ffffff;border-radius:18px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.06);">
         <tr>
-          <td style="background:linear-gradient(135deg,#ff2d78 0%,#ff7a1a 100%);padding:28px 32px;">
-            <span style="font-size:22px;font-weight:800;color:#ffffff;letter-spacing:-0.02em;">tiptalk<span style="opacity:.8;">.chat</span></span>
+          <td style="background:linear-gradient(135deg,#ff2d78 0%,#ff7a1a 100%);padding:26px 32px;">
+            <span style="font-size:23px;font-weight:800;color:#ffffff;letter-spacing:-0.02em;">tiptalk<span style="color:#ffe1ec;">.chat</span></span>
           </td>
         </tr>
         <tr>
-          <td style="padding:32px;">
-            <p style="margin:0 0 8px;font-size:14px;color:#6b7280;">Hola ${recipient},</p>
-            <h1 style="margin:0 0 16px;font-size:22px;line-height:1.3;color:#111827;font-weight:800;">
-              Tienes un mensaje de ${sender}
-            </h1>
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;background:#f9fafb;border-left:3px solid #ff2d78;border-radius:8px;">
-              <tr><td style="padding:14px 16px;font-size:15px;color:#374151;font-style:italic;">
-                &ldquo;${preview}${input.preview.length > 140 ? '…' : ''}&rdquo;
-              </td></tr>
-            </table>
-            <p style="margin:0 0 24px;font-size:15px;line-height:1.5;color:#374151;">
-              Entra en tu perfil de TipTalk para leerlo completo y responder. Así podéis empezar a chatear.
-            </p>
-            <table role="presentation" cellpadding="0" cellspacing="0">
+          <td style="padding:36px 32px 8px;text-align:center;">
+            <div style="font-size:52px;line-height:1;margin-bottom:14px;">${input.emoji}</div>
+            <h1 style="margin:0 0 14px;font-size:23px;line-height:1.3;color:#111827;font-weight:800;">${input.title}</h1>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:0 32px 8px;font-size:15px;line-height:1.6;color:#374151;text-align:center;">
+            ${input.bodyHtml}
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:24px 32px 36px;text-align:center;">
+            <table role="presentation" cellpadding="0" cellspacing="0" align="center">
               <tr><td style="border-radius:999px;background:linear-gradient(135deg,#ff2d78 0%,#ff7a1a 100%);">
-                <a href="${input.inboxUrl}" style="display:inline-block;padding:14px 28px;font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:999px;">
-                  Leer y responder
-                </a>
+                <a href="${input.ctaUrl}" style="display:inline-block;padding:15px 34px;font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:999px;">${escapeHtml(input.ctaLabel)}</a>
               </td></tr>
             </table>
           </td>
         </tr>
         <tr>
           <td style="padding:20px 32px;border-top:1px solid #f0f0f2;">
-            <p style="margin:0;font-size:12px;color:#9ca3af;line-height:1.5;">
-              Recibes este correo porque alguien te ha escrito en TipTalk. Si no quieres recibir estos avisos,
-              podrás desactivarlos desde los ajustes de tu perfil.
+            <p style="margin:0;font-size:12px;color:#9ca3af;line-height:1.5;text-align:center;">
+              ${escapeHtml(input.footerNote ?? 'Recibes este correo porque tienes una cuenta en TipTalk.')}
             </p>
           </td>
         </tr>
@@ -114,6 +114,105 @@ export function renderNewMessageEmail(input: {
   </table>
 </body>
 </html>`;
+}
 
-  return { subject, html };
+// --- Specific templates ---------------------------------------------------
+
+/** Someone sent you a message (body intentionally omitted → log in to read). */
+export function renderNewMessageEmail(input: {
+  recipientName: string;
+  senderName: string;
+}): { subject: string; html: string } {
+  const sender = escapeHtml(input.senderName);
+  return {
+    subject: `💬 ${input.senderName} te ha enviado un mensaje en TipTalk`,
+    html: renderEmailLayout({
+      preview: `${input.senderName} quiere hablar contigo en TipTalk`,
+      emoji: '💬',
+      title: `Tienes un mensaje de ${sender}`,
+      bodyHtml: `<p style="margin:0;">Hola ${escapeHtml(input.recipientName)}, <strong>${sender}</strong> te ha escrito. Entra en TipTalk para leerlo y responder — así podéis empezar a chatear. 👀</p>`,
+      ctaLabel: 'Leer y responder',
+      ctaUrl: `${appBase()}/mensajes`,
+    }),
+  };
+}
+
+/** Someone started following you. */
+export function renderNewFollowerEmail(input: {
+  recipientName: string;
+  followerName: string;
+  followerId: string;
+}): { subject: string; html: string } {
+  const follower = escapeHtml(input.followerName);
+  return {
+    subject: `🎉 ${input.followerName} ha empezado a seguirte en TipTalk`,
+    html: renderEmailLayout({
+      preview: `${input.followerName} te sigue en TipTalk`,
+      emoji: '🎉',
+      title: `¡${follower} te sigue!`,
+      bodyHtml: `<p style="margin:0;">Hola ${escapeHtml(input.recipientName)}, <strong>${follower}</strong> acaba de empezar a seguirte. Echa un vistazo a su perfil y síguele de vuelta para estar en contacto. 🤝</p>`,
+      ctaLabel: 'Ver su perfil',
+      ctaUrl: `${appBase()}/u/${input.followerId}`,
+    }),
+  };
+}
+
+/** Someone you follow uploaded new content. */
+export function renderNewContentEmail(input: {
+  recipientName: string;
+  authorName: string;
+  authorId: string;
+}): { subject: string; html: string } {
+  const author = escapeHtml(input.authorName);
+  return {
+    subject: `✨ ${input.authorName} ha subido contenido nuevo`,
+    html: renderEmailLayout({
+      preview: `Contenido nuevo de ${input.authorName} en TipTalk`,
+      emoji: '✨',
+      title: `${author} tiene algo nuevo`,
+      bodyHtml: `<p style="margin:0;">Hola ${escapeHtml(input.recipientName)}, <strong>${author}</strong>, a quien sigues, acaba de subir contenido nuevo a su perfil. ¡No te lo pierdas! 🔥</p>`,
+      ctaLabel: 'Ver su perfil',
+      ctaUrl: `${appBase()}/u/${input.authorId}`,
+    }),
+  };
+}
+
+/** Nudge: user has no avatar. */
+export function renderAvatarNudgeEmail(input: {
+  recipientName: string;
+  userId: string;
+}): { subject: string; html: string } {
+  return {
+    subject: '📸 Ponle cara a tu perfil de TipTalk',
+    html: renderEmailLayout({
+      preview: 'Añade una foto de perfil y destaca en TipTalk',
+      emoji: '📸',
+      title: '¿Le ponemos cara a tu perfil?',
+      bodyHtml: `<p style="margin:0;">Hola ${escapeHtml(input.recipientName)}, tu perfil todavía no tiene foto. Los perfiles con foto reciben <strong>muchas más visitas y mensajes</strong>. Sube una en un momento y empieza a destacar. 😊</p>`,
+      ctaLabel: 'Añadir mi foto',
+      ctaUrl: `${appBase()}/u/${input.userId}`,
+      footerNote:
+        'Te enviamos este consejo para ayudarte a sacarle partido a tu perfil de TipTalk.',
+    }),
+  };
+}
+
+/** Nudge: user has no gallery photos. */
+export function renderGalleryNudgeEmail(input: {
+  recipientName: string;
+  userId: string;
+}): { subject: string; html: string } {
+  return {
+    subject: '🖼️ Llena tu galería en TipTalk',
+    html: renderEmailLayout({
+      preview: 'Sube fotos a tu galería y recibe más visitas',
+      emoji: '🖼️',
+      title: 'Tu galería está vacía',
+      bodyHtml: `<p style="margin:0;">Hola ${escapeHtml(input.recipientName)}, aún no has subido fotos a tu galería. Comparte algunas —públicas o privadas— para que quien visite tu perfil quiera <strong>seguirte y escribirte</strong>. ✨</p>`,
+      ctaLabel: 'Subir fotos',
+      ctaUrl: `${appBase()}/u/${input.userId}`,
+      footerNote:
+        'Te enviamos este consejo para ayudarte a sacarle partido a tu perfil de TipTalk.',
+    }),
+  };
 }

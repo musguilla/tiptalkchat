@@ -1,10 +1,12 @@
 import { buildApp } from './app.js';
 import { sweepExpiredRooms } from './lib/room-cleanup.js';
+import { sweepOnboardingNudges } from './lib/email-nudges.js';
 import { loadEnv } from '@tiptalk/config';
 
 const PORT = Number(process.env.PORT ?? 4000);
 const HOST = process.env.HOST ?? '0.0.0.0';
 const SWEEP_INTERVAL_MS = 10 * 60 * 1000; // every 10 minutes
+const NUDGE_INTERVAL_MS = 6 * 60 * 60 * 1000; // onboarding nudges every 6h
 
 async function runSweeper(): Promise<void> {
   try {
@@ -19,6 +21,19 @@ async function runSweeper(): Promise<void> {
   } catch (err) {
     // eslint-disable-next-line no-console
     console.warn('[sweeper] iteration failed:', err);
+  }
+}
+
+async function runNudges(): Promise<void> {
+  try {
+    const res = await sweepOnboardingNudges();
+    if (res.avatarSent > 0 || res.gallerySent > 0) {
+      // eslint-disable-next-line no-console
+      console.info(`[nudges] sent ${res.avatarSent} avatar + ${res.gallerySent} gallery nudge(s)`);
+    }
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.warn('[nudges] iteration failed:', err);
   }
 }
 
@@ -52,6 +67,10 @@ async function start(): Promise<void> {
     // First sweep after a short delay so deploys don't race; then on interval.
     setTimeout(() => void runSweeper(), 30_000);
     setInterval(() => void runSweeper(), SWEEP_INTERVAL_MS);
+
+    // Onboarding nudge emails: first pass 2 min after boot, then every 6h.
+    setTimeout(() => void runNudges(), 120_000);
+    setInterval(() => void runNudges(), NUDGE_INTERVAL_MS);
   } catch (err) {
     app.log.error(err);
     process.exit(1);
