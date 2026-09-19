@@ -728,7 +728,7 @@ export default function RoomPage() {
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={t('es', 'chat.placeholder')}
+              placeholder={t(roomLocale, 'chat.placeholder')}
               className="flex-1 rounded-md border border-zinc-300 bg-white p-2 dark:border-zinc-700 dark:bg-zinc-800"
               disabled={!chatAuth}
             />

@@ -6,7 +6,7 @@ import { X as XIcon } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-store';
 import { PAYOUT_MIN_TIPSYS, formatTipsysAsEur, listPackages } from '@tiptalk/economy';
-import { t } from '@/i18n';
+import { useT } from '@/i18n/useLocale';
 import { Logo } from '@/components/Logo';
 
 interface LedgerEntry {
@@ -25,6 +25,7 @@ interface WalletState {
 }
 
 export default function WalletPage() {
+  const t = useT();
   const router = useRouter();
   const { token } = useAuth();
   const [wallet, setWallet] = useState<WalletState | null>(null);
@@ -117,7 +118,7 @@ export default function WalletPage() {
           </button>
         </div>
       </header>
-      <h1 className="text-2xl font-bold">{t('es', 'wallet.title')}</h1>
+      <h1 className="text-2xl font-bold">{t('wallet.title')}</h1>
 
       <section className="flex flex-col gap-3 rounded-xl border border-primary-200 bg-primary-50/70 p-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -139,7 +140,7 @@ export default function WalletPage() {
 
       <section className="rounded-xl border border-zinc-200 bg-gradient-to-br from-amber-50 to-amber-100 p-5 dark:border-zinc-800 dark:from-amber-900/30 dark:to-amber-700/20">
         <div className="text-xs font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-300">
-          {t('es', 'wallet.balance')}
+          {t('wallet.balance')}
         </div>
         <div className="mt-1 text-4xl font-black text-amber-900 dark:text-amber-100">
           {wallet?.balance ?? '…'} <span className="text-base font-medium opacity-70">Tipsys</span>
@@ -152,7 +153,7 @@ export default function WalletPage() {
       </section>
 
       <section className="space-y-2">
-        <h2 className="text-lg font-bold">{t('es', 'wallet.buy')}</h2>
+        <h2 className="text-lg font-bold">{t('wallet.buy')}</h2>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {listPackages().map((p) => (
             <button
@@ -174,7 +175,7 @@ export default function WalletPage() {
       <section className="space-y-2">
         <h2 className="text-lg font-bold">Cobro</h2>
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          {t('es', 'wallet.payout.min', { min: PAYOUT_MIN_TIPSYS })} (=
+          {t('wallet.payout.min', { min: PAYOUT_MIN_TIPSYS })} (=
           {' '}
           {formatTipsysAsEur(PAYOUT_MIN_TIPSYS)} bruto, antes de comisión)
         </p>
@@ -183,7 +184,7 @@ export default function WalletPage() {
           disabled={busy || !wallet?.canRequestPayout}
           className="rounded-md bg-amber-500 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
         >
-          {t('es', 'wallet.payout.request')}
+          {t('wallet.payout.request')}
         </button>
         {msg && <p className="text-sm">{msg}</p>}
       </section>

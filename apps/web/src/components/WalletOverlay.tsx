@@ -4,7 +4,7 @@ import { X as XIcon } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-store';
 import { PAYOUT_MIN_TIPSYS, formatTipsysAsEur, listPackages } from '@tiptalk/economy';
-import { t } from '@/i18n';
+import { useT } from '@/i18n/useLocale';
 import { Logo } from './Logo';
 
 interface LedgerEntry {
@@ -32,6 +32,7 @@ interface Props {
  * just rendered as a modal so the owner never leaves the room.
  */
 export function WalletOverlay({ open, onClose }: Props) {
+  const t = useT();
   const { token } = useAuth();
   const [wallet, setWallet] = useState<WalletState | null>(null);
   const [entries, setEntries] = useState<LedgerEntry[]>([]);
@@ -126,7 +127,7 @@ export function WalletOverlay({ open, onClose }: Props) {
         </div>
 
         <h2 className="mb-4 text-center font-display text-2xl font-extrabold tracking-tight">
-          {t('es', 'wallet.title')}
+          {t('wallet.title')}
         </h2>
 
         <section className="mb-4 flex flex-col gap-3 rounded-xl border border-primary-200 bg-primary-50/70 p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -149,7 +150,7 @@ export function WalletOverlay({ open, onClose }: Props) {
 
         <section className="mb-5 rounded-xl border border-zinc-200 bg-gradient-to-br from-amber-50 to-amber-100 p-5 dark:border-zinc-800 dark:from-amber-900/30 dark:to-amber-700/20">
           <div className="text-xs font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-300">
-            {t('es', 'wallet.balance')}
+            {t('wallet.balance')}
           </div>
           <div className="mt-1 text-4xl font-black text-amber-900 dark:text-amber-100">
             {wallet?.balance ?? '…'}{' '}
@@ -164,7 +165,7 @@ export function WalletOverlay({ open, onClose }: Props) {
         </section>
 
         <section className="mb-5 space-y-2">
-          <h3 className="text-lg font-bold">{t('es', 'wallet.buy')}</h3>
+          <h3 className="text-lg font-bold">{t('wallet.buy')}</h3>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {listPackages().map((p) => (
               <button
@@ -186,7 +187,7 @@ export function WalletOverlay({ open, onClose }: Props) {
         <section className="mb-5 space-y-2">
           <h3 className="text-lg font-bold">Cobro</h3>
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            {t('es', 'wallet.payout.min', { min: PAYOUT_MIN_TIPSYS })} (={' '}
+            {t('wallet.payout.min', { min: PAYOUT_MIN_TIPSYS })} (={' '}
             {formatTipsysAsEur(PAYOUT_MIN_TIPSYS)} bruto, antes de comisión)
           </p>
           <button
@@ -194,7 +195,7 @@ export function WalletOverlay({ open, onClose }: Props) {
             disabled={busy || !wallet?.canRequestPayout}
             className="rounded-md bg-amber-500 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
           >
-            {t('es', 'wallet.payout.request')}
+            {t('wallet.payout.request')}
           </button>
           {msg && <p className="text-sm">{msg}</p>}
         </section>

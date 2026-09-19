@@ -4,10 +4,11 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-store';
-import { t } from '@/i18n';
+import { useT } from '@/i18n/useLocale';
 import { Logo } from '@/components/Logo';
 
 export default function LoginPage() {
+  const t = useT();
   const router = useRouter();
   const setSession = useAuth((s) => s.setSession);
   const [email, setEmail] = useState('');
@@ -40,21 +41,21 @@ export default function LoginPage() {
           <Logo className="text-3xl" />
         </Link>
       <form onSubmit={submit} className="w-full max-w-sm space-y-5 rounded-lg border border-surface-container bg-white p-7 shadow-soft">
-        <h1 className="font-display text-2xl font-extrabold tracking-tight">{t('es', 'auth.login')}</h1>
-        <Field label={t('es', 'auth.email')}>
+        <h1 className="font-display text-2xl font-extrabold tracking-tight">{t('auth.login')}</h1>
+        <Field label={t('auth.email')}>
           <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full rounded-md border border-transparent bg-surface-soft p-2.5 outline-none transition focus:border-primary-500 focus:bg-white" />
         </Field>
-        <Field label={t('es', 'auth.password')}>
+        <Field label={t('auth.password')}>
           <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="w-full rounded-md border border-transparent bg-surface-soft p-2.5 outline-none transition focus:border-primary-500 focus:bg-white" />
         </Field>
         {error && <p className="text-sm text-red-600">{error}</p>}
         <button disabled={loading} className="btn-tactile w-full rounded-md bg-primary-500 px-4 py-2.5 font-semibold text-white shadow-soft hover:bg-primary-600 disabled:opacity-60">
-          {loading ? '…' : t('es', 'auth.login')}
+          {loading ? '…' : t('auth.login')}
         </button>
         <p className="text-center text-sm text-ink-muted">
           ¿Sin cuenta?{' '}
           <Link href="/signup" className="font-semibold text-primary-500 hover:underline">
-            {t('es', 'auth.signup')}
+            {t('auth.signup')}
           </Link>
         </p>
       </form>
