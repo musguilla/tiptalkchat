@@ -143,7 +143,7 @@ export default function UserProfilePage() {
         <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-secondary-500 to-primary-500 p-8 text-white shadow-vivid-strong sm:p-10">
           <div className="absolute -right-12 -top-12 h-44 w-44 rounded-full bg-white/10 blur-2xl" />
           <div className="absolute -bottom-16 -left-8 h-44 w-44 rounded-full bg-white/10 blur-2xl" />
-          <div className="relative flex flex-col items-center gap-5 text-center sm:flex-row sm:items-end sm:text-left">
+          <div className="relative flex flex-col items-center gap-6 text-center sm:flex-row sm:items-end sm:gap-9 sm:text-left">
             <div className="flex shrink-0 flex-col items-center gap-3">
               <div className="grid h-28 w-28 place-items-center overflow-hidden rounded-full bg-white/20 ring-4 ring-white/40 shadow-2xl sm:h-32 sm:w-32">
                 {(isSelf ? meAvatarUrl : user?.avatarUrl) ? (
@@ -239,9 +239,9 @@ export default function UserProfilePage() {
                   onClick={() =>
                     token ? setComposerOpen(true) : (setAuthIntent('message'), setAuthOpen(true))
                   }
-                  className="btn-tactile mt-4 inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-primary-500 shadow-soft transition hover:shadow-vivid"
+                  className="btn-tactile mt-4 inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-ink shadow-soft transition hover:-translate-y-0.5 hover:bg-primary-50 hover:shadow-vivid"
                 >
-                  <Send className="h-4 w-4" />
+                  <Send className="h-4 w-4 text-primary-500" />
                   Mensaje
                 </button>
               )}
