@@ -19,7 +19,8 @@
     "lint": "echo skip",
     "typecheck": "tsc --noEmit",
     "test": "echo no-tests-in-db-package",
-    "admin:promote": "dotenv -e ../../.env -- tsx prisma/promote-admin.ts"
+    "admin:promote": "dotenv -e ../../.env -- tsx prisma/promote-admin.ts",
+    "seed:fake": "dotenv -e ../../.env -- tsx prisma/seed-fake-users.ts"
   },
   "prisma": {
     "schema": "prisma/schema.prisma",
