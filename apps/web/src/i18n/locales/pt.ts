@@ -96,6 +96,26 @@ export const pt: { [K in MessageKey]?: string } = {
   'chat.guestCta.link': 'Regista-te grátis',
   'chat.guestCta.rest': 'para guardar o teu perfil, seguir outros e manteres o contacto com os teus amigos.',
 
+  // --- Create room page ---
+  'create.title': 'Criar sala',
+  'create.creatingAs': 'Estás a criar como {name}.',
+  'create.logout': 'Terminar sessão',
+  'create.toCreateAnon': 'para criar sem conta.',
+  'create.anonDisclaimer': 'Não precisas de conta. Basta pôr o teu nick e um nome para a sala.',
+  'create.yourNick': 'O teu nick',
+  'create.nickPlaceholder': 'Como te chamas?',
+  'create.roomName': 'Nome da sala',
+  'create.roomPlaceholder': 'Festa da Marta',
+  'create.sessionExpired': 'A tua sessão expirou. Inicia sessão novamente ou cria a sala como convidado.',
+  'create.error': 'Não foi possível criar a sala. Tenta novamente.',
+  'create.login': 'Iniciar sessão',
+  'create.ready.title': 'A tua sala está pronta!',
+  'create.ready.subtitle': 'Partilha este link com quem quiseres convidar.',
+  'create.ready.linkLabel': 'Link da sala',
+  'create.ready.copied': 'Copiado',
+  'create.ready.copy': 'Copiar',
+  'create.ready.enter': 'Entra na tua sala',
+
   // --- Legacy keys (kept for existing t() callers) ---
   'landing.title': 'Salas de chat privadas um para um',
   'landing.subtitle': 'Cria uma sala, partilha o link e recebe gorjetas.',

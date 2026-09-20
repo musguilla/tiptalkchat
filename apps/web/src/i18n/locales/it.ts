@@ -96,6 +96,26 @@ export const it: { [K in MessageKey]?: string } = {
   'chat.guestCta.link': 'Registrati gratis',
   'chat.guestCta.rest': 'per salvare il tuo profilo, seguire altri e restare in contatto con i tuoi amici.',
 
+  // --- Create room page ---
+  'create.title': 'Crea stanza',
+  'create.creatingAs': 'Stai creando come {name}.',
+  'create.logout': 'Esci',
+  'create.toCreateAnon': 'per creare senza account.',
+  'create.anonDisclaimer': 'Non ti serve un account. Metti solo il tuo nick e un nome per la stanza.',
+  'create.yourNick': 'Il tuo nick',
+  'create.nickPlaceholder': 'Come ti chiami?',
+  'create.roomName': 'Nome della stanza',
+  'create.roomPlaceholder': 'La festa di Marta',
+  'create.sessionExpired': 'La tua sessione è scaduta. Accedi di nuovo o crea la stanza come ospite.',
+  'create.error': 'Impossibile creare la stanza. Riprova.',
+  'create.login': 'Accedi',
+  'create.ready.title': 'La tua stanza è pronta!',
+  'create.ready.subtitle': 'Condividi questo link con chi vuoi invitare.',
+  'create.ready.linkLabel': 'Link della stanza',
+  'create.ready.copied': 'Copiato',
+  'create.ready.copy': 'Copia',
+  'create.ready.enter': 'Entra nella tua stanza',
+
   // --- Legacy keys (kept for existing t() callers) ---
   'landing.title': 'Stanze di chat private uno a uno',
   'landing.subtitle': 'Crea una stanza, condividi il link e ricevi mance.',

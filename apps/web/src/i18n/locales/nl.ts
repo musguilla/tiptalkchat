@@ -96,6 +96,26 @@ export const nl: { [K in MessageKey]?: string } = {
   'chat.guestCta.link': 'Meld je gratis aan',
   'chat.guestCta.rest': 'om je profiel te bewaren, anderen te volgen en in contact te blijven met je vrienden.',
 
+  // --- Create room page ---
+  'create.title': 'Room maken',
+  'create.creatingAs': 'Je maakt aan als {name}.',
+  'create.logout': 'Uitloggen',
+  'create.toCreateAnon': 'om zonder account aan te maken.',
+  'create.anonDisclaimer': 'Je hebt geen account nodig. Vul gewoon je nickname en een naam voor de room in.',
+  'create.yourNick': 'Je nickname',
+  'create.nickPlaceholder': 'Hoe heet je?',
+  'create.roomName': 'Naam van de room',
+  'create.roomPlaceholder': 'Marta’s feestje',
+  'create.sessionExpired': 'Je sessie is verlopen. Log opnieuw in of maak de room aan als gast.',
+  'create.error': 'De room kon niet worden aangemaakt. Probeer het opnieuw.',
+  'create.login': 'Inloggen',
+  'create.ready.title': 'Je room is klaar!',
+  'create.ready.subtitle': 'Deel deze link met iedereen die je wilt uitnodigen.',
+  'create.ready.linkLabel': 'Room-link',
+  'create.ready.copied': 'Gekopieerd',
+  'create.ready.copy': 'Kopiëren',
+  'create.ready.enter': 'Ga naar je room',
+
   // --- Legacy keys (kept for existing t() callers) ---
   'landing.title': 'Privé één-op-één chatrooms',
   'landing.subtitle': 'Maak een room, deel de link en ontvang fooien.',

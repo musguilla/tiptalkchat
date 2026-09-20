@@ -96,6 +96,26 @@ export const ja: { [K in MessageKey]?: string } = {
   'chat.guestCta.link': '無料で登録',
   'chat.guestCta.rest': 'して、プロフィールを保存したり、他の人をフォローしたり、友だちとつながろう。',
 
+  // --- Create room page ---
+  'create.title': 'ルームを作成',
+  'create.creatingAs': '{name} として作成しています。',
+  'create.logout': 'ログアウト',
+  'create.toCreateAnon': 'アカウントなしで作成できます。',
+  'create.anonDisclaimer': 'アカウントは不要です。ニックネームとルーム名を入力するだけ。',
+  'create.yourNick': 'ニックネーム',
+  'create.nickPlaceholder': 'お名前は？',
+  'create.roomName': 'ルーム名',
+  'create.roomPlaceholder': 'マルタのパーティー',
+  'create.sessionExpired': 'セッションの有効期限が切れました。もう一度ログインするか、ゲストとしてルームを作成してください。',
+  'create.error': 'ルームを作成できませんでした。もう一度お試しください。',
+  'create.login': 'ログイン',
+  'create.ready.title': 'ルームの準備ができました！',
+  'create.ready.subtitle': '招待したい人にこのリンクを共有しましょう。',
+  'create.ready.linkLabel': 'ルームのリンク',
+  'create.ready.copied': 'コピーしました',
+  'create.ready.copy': 'コピー',
+  'create.ready.enter': 'ルームに入る',
+
   // --- Legacy keys (kept for existing t() callers) ---
   'landing.title': '1対1のプライベートチャットルーム',
   'landing.subtitle': 'ルームを作成し、リンクを共有して、チップを受け取ろう。',

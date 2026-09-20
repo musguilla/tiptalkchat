@@ -96,6 +96,26 @@ export const ko: { [K in MessageKey]?: string } = {
   'chat.guestCta.link': '무료로 가입',
   'chat.guestCta.rest': '하면 프로필을 저장하고, 다른 사람을 팔로우하고, 친구들과 계속 연결될 수 있어요.',
 
+  // --- Create room page ---
+  'create.title': '채팅방 만들기',
+  'create.creatingAs': '{name}(으)로 만드는 중이에요.',
+  'create.logout': '로그아웃',
+  'create.toCreateAnon': '계정 없이 만들 수 있어요.',
+  'create.anonDisclaimer': '계정이 필요 없어요. 닉네임과 채팅방 이름만 입력하세요.',
+  'create.yourNick': '닉네임',
+  'create.nickPlaceholder': '이름이 뭐예요?',
+  'create.roomName': '채팅방 이름',
+  'create.roomPlaceholder': '마르타의 파티',
+  'create.sessionExpired': '세션이 만료되었어요. 다시 로그인하거나 게스트로 채팅방을 만드세요.',
+  'create.error': '채팅방을 만들 수 없어요. 다시 시도해 주세요.',
+  'create.login': '로그인',
+  'create.ready.title': '채팅방이 준비됐어요!',
+  'create.ready.subtitle': '초대하고 싶은 사람에게 이 링크를 공유하세요.',
+  'create.ready.linkLabel': '채팅방 링크',
+  'create.ready.copied': '복사됨',
+  'create.ready.copy': '복사',
+  'create.ready.enter': '채팅방 입장하기',
+
   // --- Legacy keys (kept for existing t() callers) ---
   'landing.title': '1대1 프라이빗 채팅방',
   'landing.subtitle': '채팅방을 만들고, 링크를 공유하고, 팁을 받으세요.',

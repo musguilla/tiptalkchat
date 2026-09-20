@@ -96,6 +96,26 @@ export const ru: { [K in MessageKey]?: string } = {
   'chat.guestCta.link': 'Зарегистрируйтесь бесплатно',
   'chat.guestCta.rest': 'чтобы сохранить профиль, подписываться на других и оставаться на связи с друзьями.',
 
+  // --- Create room page ---
+  'create.title': 'Создать комнату',
+  'create.creatingAs': 'Вы создаёте как {name}.',
+  'create.logout': 'Выйти',
+  'create.toCreateAnon': 'чтобы создать без аккаунта.',
+  'create.anonDisclaimer': 'Аккаунт не нужен. Просто укажите свой ник и название комнаты.',
+  'create.yourNick': 'Ваш ник',
+  'create.nickPlaceholder': 'Как вас зовут?',
+  'create.roomName': 'Название комнаты',
+  'create.roomPlaceholder': 'Вечеринка Марты',
+  'create.sessionExpired': 'Ваша сессия истекла. Войдите снова или создайте комнату как гость.',
+  'create.error': 'Не удалось создать комнату. Попробуйте ещё раз.',
+  'create.login': 'Войти',
+  'create.ready.title': 'Ваша комната готова!',
+  'create.ready.subtitle': 'Поделитесь этой ссылкой со всеми, кого хотите пригласить.',
+  'create.ready.linkLabel': 'Ссылка на комнату',
+  'create.ready.copied': 'Скопировано',
+  'create.ready.copy': 'Копировать',
+  'create.ready.enter': 'Войдите в свою комнату',
+
   // --- Legacy keys (kept for existing t() callers) ---
   'landing.title': 'Приватные чаты один на один',
   'landing.subtitle': 'Создайте комнату, поделитесь ссылкой и получайте чаевые.',

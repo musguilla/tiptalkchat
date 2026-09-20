@@ -7,8 +7,8 @@ import { api, ApiError } from '@/lib/api';
 import { useAuth } from '@/lib/auth-store';
 import { Logo } from '@/components/Logo';
 import { AuthOverlay } from '@/components/AuthOverlay';
+import { useT } from '@/i18n/useLocale';
 
-const ANON_DISCLAIMER = 'No necesitas cuenta. Solo pon tu nick y un nombre para la sala.';
 
 interface CreatedRoom {
   id: string;
@@ -20,6 +20,7 @@ interface CreatedRoom {
 }
 
 export default function CreateRoomPage() {
+  const t = useT();
   const router = useRouter();
   const token = useAuth((s) => s.token);
   const user = useAuth((s) => s.user);
@@ -63,13 +64,13 @@ export default function CreateRoomPage() {
       if (err instanceof ApiError && err.status === 401) {
         clearAuth();
         setSessionExpired(true);
-        setError('Tu sesión ha caducado. Vuelve a iniciar sesión o crea la sala como invitado.');
+        setError(t('create.sessionExpired'));
       } else {
         const msg =
           err instanceof ApiError && err.payload && typeof err.payload === 'object'
             ? ((err.payload as { message?: string }).message ?? null)
             : null;
-        setError(msg ?? 'No se pudo crear la sala. Inténtalo de nuevo.');
+        setError(msg ?? t('create.error'));
       }
     } finally {
       setLoading(false);
@@ -91,16 +92,16 @@ export default function CreateRoomPage() {
               </div>
               <div>
                 <h1 className="font-display text-2xl font-extrabold tracking-tight">
-                  ¡Tu sala está lista!
+                  {t('create.ready.title')}
                 </h1>
                 <p className="mt-1 text-sm text-ink-muted">
-                  Comparte este enlace con quien quieras invitar.
+                  {t('create.ready.subtitle')}
                 </p>
               </div>
             </div>
 
             <div>
-              <label className="label-mono mb-2 block text-ink">Enlace de la sala</label>
+              <label className="label-mono mb-2 block text-ink">{t('create.ready.linkLabel')}</label>
               <div className="flex items-center gap-2 rounded-md border border-surface-container bg-surface-soft p-2">
                 <span className="flex-1 truncate text-sm font-medium text-ink">{url}</span>
                 <button
@@ -115,12 +116,12 @@ export default function CreateRoomPage() {
                   {copied ? (
                     <>
                       <Check className="h-3.5 w-3.5 text-primary-500" />
-                      Copiado
+                      {t('create.ready.copied')}
                     </>
                   ) : (
                     <>
                       <Copy className="h-3.5 w-3.5" />
-                      Copiar
+                      {t('create.ready.copy')}
                     </>
                   )}
                 </button>
@@ -132,7 +133,7 @@ export default function CreateRoomPage() {
               onClick={() => router.push(`/r/${created.slug}`)}
               className="btn-tactile flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-6 py-3.5 font-bold text-white shadow-vivid hover:shadow-vivid-strong"
             >
-              Entra a tu sala <ArrowRight className="h-4 w-4" />
+              {t('create.ready.enter')} <ArrowRight className="h-4 w-4" />
             </button>
           </div>
         </div>
@@ -150,46 +151,46 @@ export default function CreateRoomPage() {
           onSubmit={submit}
           className="w-full max-w-md space-y-5 rounded-lg border border-surface-container bg-white p-7 shadow-soft"
         >
-          <h1 className="font-display text-2xl font-extrabold tracking-tight">Crear sala</h1>
+          <h1 className="font-display text-2xl font-extrabold tracking-tight">{t('create.title')}</h1>
 
           {token && user ? (
             <p className="text-sm text-ink-muted">
-              Creas como <span className="font-semibold text-ink">{user.displayName}</span>.{' '}
+              {t('create.creatingAs', { name: user.displayName })}{' '}
               <button
                 type="button"
                 onClick={() => clearAuth()}
                 className="font-semibold text-primary-500 hover:underline"
               >
-                Cerrar sesión
+                {t('create.logout')}
               </button>{' '}
-              para crear sin cuenta.
+              {t('create.toCreateAnon')}
             </p>
           ) : (
-            <p className="text-sm text-ink-muted">{ANON_DISCLAIMER}</p>
+            <p className="text-sm text-ink-muted">{t('create.anonDisclaimer')}</p>
           )}
 
           {!token && (
             <label className="block space-y-1.5 text-sm">
-              <span className="font-medium text-ink">Tu nick</span>
+              <span className="font-medium text-ink">{t('create.yourNick')}</span>
               <input
                 required
                 maxLength={40}
                 value={nick}
                 onChange={(e) => setNick(e.target.value)}
-                placeholder="¿Cómo te llamas?"
+                placeholder={t('create.nickPlaceholder')}
                 className="w-full rounded-md border border-transparent bg-surface-soft p-2.5 outline-none transition focus:border-primary-500 focus:bg-white"
               />
             </label>
           )}
 
           <label className="block space-y-1.5 text-sm">
-            <span className="font-medium text-ink">Nombre de la sala</span>
+            <span className="font-medium text-ink">{t('create.roomName')}</span>
             <input
               required
               maxLength={80}
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Fiesta de Marta"
+              placeholder={t('create.roomPlaceholder')}
               className="w-full rounded-md border border-transparent bg-surface-soft p-2.5 outline-none transition focus:border-primary-500 focus:bg-white"
             />
           </label>
@@ -203,7 +204,7 @@ export default function CreateRoomPage() {
                   onClick={() => setAuthOpen(true)}
                   className="btn-tactile inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-4 py-2.5 text-sm font-bold text-white shadow-soft hover:shadow-vivid"
                 >
-                  Iniciar sesión
+                  {t('create.login')}
                 </button>
               )}
             </div>
@@ -213,7 +214,7 @@ export default function CreateRoomPage() {
             disabled={loading}
             className="btn-tactile w-full rounded-md bg-primary-500 px-4 py-2.5 font-semibold text-white shadow-soft hover:bg-primary-600 disabled:opacity-60"
           >
-            {loading ? '…' : 'Crear sala'}
+            {loading ? '…' : t('create.title')}
           </button>
         </form>
       </div>

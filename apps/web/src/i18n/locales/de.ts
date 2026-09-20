@@ -96,6 +96,26 @@ export const de: { [K in MessageKey]?: string } = {
   'chat.guestCta.link': 'Kostenlos registrieren',
   'chat.guestCta.rest': 'um dein Profil zu speichern, anderen zu folgen und mit deinen Freunden in Kontakt zu bleiben.',
 
+  // --- Create room page ---
+  'create.title': 'Raum erstellen',
+  'create.creatingAs': 'Du erstellst als {name}.',
+  'create.logout': 'Abmelden',
+  'create.toCreateAnon': 'um ohne Konto zu erstellen.',
+  'create.anonDisclaimer': 'Du brauchst kein Konto. Gib einfach deinen Nick und einen Namen für den Raum ein.',
+  'create.yourNick': 'Dein Nick',
+  'create.nickPlaceholder': 'Wie heißt du?',
+  'create.roomName': 'Raumname',
+  'create.roomPlaceholder': 'Martas Party',
+  'create.sessionExpired': 'Deine Sitzung ist abgelaufen. Melde dich erneut an oder erstelle den Raum als Gast.',
+  'create.error': 'Der Raum konnte nicht erstellt werden. Versuch es noch einmal.',
+  'create.login': 'Anmelden',
+  'create.ready.title': 'Dein Raum ist bereit!',
+  'create.ready.subtitle': 'Teile diesen Link mit allen, die du einladen möchtest.',
+  'create.ready.linkLabel': 'Raum-Link',
+  'create.ready.copied': 'Kopiert',
+  'create.ready.copy': 'Kopieren',
+  'create.ready.enter': 'Betritt deinen Raum',
+
   // --- Legacy keys (kept for existing t() callers) ---
   'landing.title': 'Private Eins-zu-eins-Chaträume',
   'landing.subtitle': 'Erstelle einen Raum, teile den Link und erhalte Trinkgeld.',

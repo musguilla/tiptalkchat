@@ -96,6 +96,26 @@ export const zh: { [K in MessageKey]?: string } = {
   'chat.guestCta.link': '免费注册',
   'chat.guestCta.rest': '，即可保存你的资料、关注他人，并和朋友保持联系。',
 
+  // --- Create room page ---
+  'create.title': '创建聊天室',
+  'create.creatingAs': '你正在以 {name} 的身份创建。',
+  'create.logout': '退出登录',
+  'create.toCreateAnon': '即可无需账号创建。',
+  'create.anonDisclaimer': '你不需要账号。只要填上你的昵称和聊天室名称就行。',
+  'create.yourNick': '你的昵称',
+  'create.nickPlaceholder': '你叫什么名字？',
+  'create.roomName': '聊天室名称',
+  'create.roomPlaceholder': '玛尔塔的派对',
+  'create.sessionExpired': '你的会话已过期。请重新登录，或以访客身份创建聊天室。',
+  'create.error': '无法创建聊天室，请重试。',
+  'create.login': '登录',
+  'create.ready.title': '你的聊天室已就绪！',
+  'create.ready.subtitle': '把这个链接分享给你想邀请的人。',
+  'create.ready.linkLabel': '聊天室链接',
+  'create.ready.copied': '已复制',
+  'create.ready.copy': '复制',
+  'create.ready.enter': '进入你的聊天室',
+
   // --- Legacy keys (kept for existing t() callers) ---
   'landing.title': '一对一私密聊天室',
   'landing.subtitle': '创建聊天室，分享链接，收取打赏。',

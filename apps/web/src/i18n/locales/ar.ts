@@ -96,6 +96,26 @@ export const ar: { [K in MessageKey]?: string } = {
   'chat.guestCta.link': 'سجّل مجانًا',
   'chat.guestCta.rest': 'لحفظ ملفك الشخصي ومتابعة الآخرين والبقاء على تواصل مع أصدقائك.',
 
+  // --- Create room page ---
+  'create.title': 'إنشاء غرفة',
+  'create.creatingAs': 'أنت تُنشئ باسم {name}.',
+  'create.logout': 'تسجيل الخروج',
+  'create.toCreateAnon': 'للإنشاء بدون حساب.',
+  'create.anonDisclaimer': 'لا تحتاج إلى حساب. فقط أدخل لقبك واسمًا للغرفة.',
+  'create.yourNick': 'لقبك',
+  'create.nickPlaceholder': 'ما اسمك؟',
+  'create.roomName': 'اسم الغرفة',
+  'create.roomPlaceholder': 'حفلة مارتا',
+  'create.sessionExpired': 'انتهت جلستك. سجّل الدخول من جديد أو أنشئ الغرفة كضيف.',
+  'create.error': 'تعذّر إنشاء الغرفة. حاول مرة أخرى.',
+  'create.login': 'تسجيل الدخول',
+  'create.ready.title': 'غرفتك جاهزة!',
+  'create.ready.subtitle': 'شارك هذا الرابط مع كل من تريد دعوته.',
+  'create.ready.linkLabel': 'رابط الغرفة',
+  'create.ready.copied': 'تم النسخ',
+  'create.ready.copy': 'نسخ',
+  'create.ready.enter': 'ادخل إلى غرفتك',
+
   // --- Legacy keys (kept for existing t() callers) ---
   'landing.title': 'غرف محادثة خاصة واحد لواحد',
   'landing.subtitle': 'أنشئ غرفة وشارك الرابط واحصل على الإكراميات.',

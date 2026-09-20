@@ -96,6 +96,26 @@ export const id: { [K in MessageKey]?: string } = {
   'chat.guestCta.link': 'Daftar gratis',
   'chat.guestCta.rest': 'untuk menyimpan profilmu, mengikuti orang lain, dan tetap terhubung dengan teman-temanmu.',
 
+  // --- Create room page ---
+  'create.title': 'Buat ruang',
+  'create.creatingAs': 'Kamu membuat sebagai {name}.',
+  'create.logout': 'Keluar',
+  'create.toCreateAnon': 'untuk membuat tanpa akun.',
+  'create.anonDisclaimer': 'Kamu tidak perlu akun. Cukup masukkan nick dan nama ruang.',
+  'create.yourNick': 'Nick kamu',
+  'create.nickPlaceholder': 'Siapa namamu?',
+  'create.roomName': 'Nama ruang',
+  'create.roomPlaceholder': 'Pesta Marta',
+  'create.sessionExpired': 'Sesi kamu sudah berakhir. Masuk lagi atau buat ruang sebagai tamu.',
+  'create.error': 'Tidak bisa membuat ruang. Coba lagi.',
+  'create.login': 'Masuk',
+  'create.ready.title': 'Ruang kamu sudah siap!',
+  'create.ready.subtitle': 'Bagikan tautan ini ke siapa pun yang ingin kamu undang.',
+  'create.ready.linkLabel': 'Tautan ruang',
+  'create.ready.copied': 'Tersalin',
+  'create.ready.copy': 'Salin',
+  'create.ready.enter': 'Masuk ke ruang kamu',
+
   // --- Legacy keys (kept for existing t() callers) ---
   'landing.title': 'Ruang chat pribadi satu lawan satu',
   'landing.subtitle': 'Buat ruang, bagikan tautannya, dan terima tip.',

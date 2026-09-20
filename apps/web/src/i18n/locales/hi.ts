@@ -96,6 +96,26 @@ export const hi: { [K in MessageKey]?: string } = {
   'chat.guestCta.link': 'मुफ़्त में साइन अप करें',
   'chat.guestCta.rest': 'अपनी प्रोफ़ाइल सहेजने, दूसरों को फ़ॉलो करने और अपने दोस्तों के संपर्क में रहने के लिए।',
 
+  // --- Create room page ---
+  'create.title': 'रूम बनाएं',
+  'create.creatingAs': 'आप {name} के रूप में बना रहे हैं।',
+  'create.logout': 'लॉग आउट करें',
+  'create.toCreateAnon': 'बिना खाते के बनाने के लिए।',
+  'create.anonDisclaimer': 'आपको खाते की ज़रूरत नहीं है। बस अपना निकनेम और रूम का नाम डालें।',
+  'create.yourNick': 'आपका निकनेम',
+  'create.nickPlaceholder': 'आपका नाम क्या है?',
+  'create.roomName': 'रूम का नाम',
+  'create.roomPlaceholder': 'मार्ता की पार्टी',
+  'create.sessionExpired': 'आपका सत्र समाप्त हो गया है। फिर से लॉग इन करें या रूम को अतिथि के रूप में बनाएं।',
+  'create.error': 'रूम नहीं बनाया जा सका। फिर से कोशिश करें।',
+  'create.login': 'लॉग इन करें',
+  'create.ready.title': 'आपका रूम तैयार है!',
+  'create.ready.subtitle': 'इस लिंक को उन सभी के साथ साझा करें जिन्हें आप आमंत्रित करना चाहते हैं।',
+  'create.ready.linkLabel': 'रूम लिंक',
+  'create.ready.copied': 'कॉपी हो गया',
+  'create.ready.copy': 'कॉपी करें',
+  'create.ready.enter': 'अपने रूम में प्रवेश करें',
+
   // --- Legacy keys (kept for existing t() callers) ---
   'landing.title': 'आमने-सामने निजी चैट रूम',
   'landing.subtitle': 'एक रूम बनाएं, लिंक साझा करें और टिप्स पाएं।',

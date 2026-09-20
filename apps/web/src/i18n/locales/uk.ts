@@ -96,6 +96,26 @@ export const uk: { [K in MessageKey]?: string } = {
   'chat.guestCta.link': 'Зареєструйтесь безкоштовно',
   'chat.guestCta.rest': 'щоб зберегти профіль, стежити за іншими й залишатися на зв’язку з друзями.',
 
+  // --- Create room page ---
+  'create.title': 'Створити кімнату',
+  'create.creatingAs': 'Ти створюєш як {name}.',
+  'create.logout': 'Вийти',
+  'create.toCreateAnon': 'щоб створити без акаунта.',
+  'create.anonDisclaimer': 'Акаунт не потрібен. Просто введи свій нік і назву кімнати.',
+  'create.yourNick': 'Твій нік',
+  'create.nickPlaceholder': 'Як тебе звати?',
+  'create.roomName': 'Назва кімнати',
+  'create.roomPlaceholder': 'Вечірка Марти',
+  'create.sessionExpired': 'Твоя сесія завершилася. Увійди знову або створи кімнату як гість.',
+  'create.error': 'Не вдалося створити кімнату. Спробуй ще раз.',
+  'create.login': 'Увійти',
+  'create.ready.title': 'Твоя кімната готова!',
+  'create.ready.subtitle': 'Поділися цим посиланням з усіма, кого хочеш запросити.',
+  'create.ready.linkLabel': 'Посилання на кімнату',
+  'create.ready.copied': 'Скопійовано',
+  'create.ready.copy': 'Копіювати',
+  'create.ready.enter': 'Увійди до своєї кімнати',
+
   // --- Legacy keys (kept for existing t() callers) ---
   'landing.title': 'Приватні чат-кімнати віч-на-віч',
   'landing.subtitle': 'Створіть кімнату, поділіться посиланням і отримуйте чайові.',

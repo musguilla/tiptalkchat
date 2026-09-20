@@ -96,6 +96,26 @@ export const fr: { [K in MessageKey]?: string } = {
   'chat.guestCta.link': 'Inscris-toi gratuitement',
   'chat.guestCta.rest': 'pour enregistrer ton profil, suivre d’autres personnes et rester en contact avec tes amis.',
 
+  // --- Create room page ---
+  'create.title': 'Créer un salon',
+  'create.creatingAs': 'Tu crées en tant que {name}.',
+  'create.logout': 'Se déconnecter',
+  'create.toCreateAnon': 'pour créer sans compte.',
+  'create.anonDisclaimer': 'Pas besoin de compte. Indique juste ton pseudo et un nom pour le salon.',
+  'create.yourNick': 'Ton pseudo',
+  'create.nickPlaceholder': 'Comment tu t’appelles ?',
+  'create.roomName': 'Nom du salon',
+  'create.roomPlaceholder': 'La fête de Marta',
+  'create.sessionExpired': 'Ta session a expiré. Reconnecte-toi ou crée le salon en tant qu’invité.',
+  'create.error': 'Impossible de créer le salon. Réessaie.',
+  'create.login': 'Se connecter',
+  'create.ready.title': 'Ton salon est prêt !',
+  'create.ready.subtitle': 'Partage ce lien avec les personnes que tu veux inviter.',
+  'create.ready.linkLabel': 'Lien du salon',
+  'create.ready.copied': 'Copié',
+  'create.ready.copy': 'Copier',
+  'create.ready.enter': 'Entre dans ton salon',
+
   // --- Legacy keys (kept for existing t() callers) ---
   'landing.title': 'Salons de chat privés en tête-à-tête',
   'landing.subtitle': 'Crée un salon, partage le lien et reçois des pourboires.',

@@ -96,6 +96,26 @@ export const pl: { [K in MessageKey]?: string } = {
   'chat.guestCta.link': 'Zarejestruj się za darmo',
   'chat.guestCta.rest': 'aby zapisać swój profil, obserwować innych i pozostać w kontakcie ze znajomymi.',
 
+  // --- Create room page ---
+  'create.title': 'Utwórz pokój',
+  'create.creatingAs': 'Tworzysz jako {name}.',
+  'create.logout': 'Wyloguj się',
+  'create.toCreateAnon': 'aby utworzyć bez konta.',
+  'create.anonDisclaimer': 'Nie potrzebujesz konta. Wpisz tylko swój nick i nazwę pokoju.',
+  'create.yourNick': 'Twój nick',
+  'create.nickPlaceholder': 'Jak masz na imię?',
+  'create.roomName': 'Nazwa pokoju',
+  'create.roomPlaceholder': 'Impreza Marty',
+  'create.sessionExpired': 'Twoja sesja wygasła. Zaloguj się ponownie lub utwórz pokój jako gość.',
+  'create.error': 'Nie udało się utworzyć pokoju. Spróbuj ponownie.',
+  'create.login': 'Zaloguj się',
+  'create.ready.title': 'Twój pokój jest gotowy!',
+  'create.ready.subtitle': 'Udostępnij ten link każdemu, kogo chcesz zaprosić.',
+  'create.ready.linkLabel': 'Link do pokoju',
+  'create.ready.copied': 'Skopiowano',
+  'create.ready.copy': 'Kopiuj',
+  'create.ready.enter': 'Wejdź do swojego pokoju',
+
   // --- Legacy keys (kept for existing t() callers) ---
   'landing.title': 'Prywatne pokoje czatu jeden na jeden',
   'landing.subtitle': 'Utwórz pokój, udostępnij link i odbieraj napiwki.',

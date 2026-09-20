@@ -96,6 +96,26 @@ export const en: { [K in MessageKey]?: string } = {
   'chat.guestCta.link': 'Sign up free',
   'chat.guestCta.rest': 'to save your profile, follow others and stay in touch with your friends.',
 
+  // --- Create room page ---
+  'create.title': 'Create room',
+  'create.creatingAs': 'You’re creating as {name}.',
+  'create.logout': 'Log out',
+  'create.toCreateAnon': 'to create without an account.',
+  'create.anonDisclaimer': 'You don’t need an account. Just add your nickname and a name for the room.',
+  'create.yourNick': 'Your nickname',
+  'create.nickPlaceholder': 'What’s your name?',
+  'create.roomName': 'Room name',
+  'create.roomPlaceholder': 'Marta’s party',
+  'create.sessionExpired': 'Your session has expired. Log in again or create the room as a guest.',
+  'create.error': 'Couldn’t create the room. Please try again.',
+  'create.login': 'Log in',
+  'create.ready.title': 'Your room is ready!',
+  'create.ready.subtitle': 'Share this link with anyone you want to invite.',
+  'create.ready.linkLabel': 'Room link',
+  'create.ready.copied': 'Copied',
+  'create.ready.copy': 'Copy',
+  'create.ready.enter': 'Enter your room',
+
   // --- Legacy keys (kept for existing t() callers) ---
   'landing.title': 'Private one-on-one chat rooms',
   'landing.subtitle': 'Create a room, share the link and get tips.',
