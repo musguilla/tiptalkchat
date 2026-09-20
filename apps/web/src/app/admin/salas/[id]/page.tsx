@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { api, ApiError, REALTIME_BASE } from '@/lib/api';
 import { useAuth } from '@/lib/auth-store';
+import { useT } from '@/i18n/useLocale';
 import { ChatMessageItem } from '@/components/ChatMessageItem';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import type { ChatMessage } from '@/components/types';
@@ -68,6 +69,7 @@ interface MessagesPage {
 // ---------------------------------------------------------------------------
 
 export default function AdminRoomViewerPage() {
+  const t = useT();
   const params = useParams<{ id: string }>();
   const token = useAuth((s) => s.token);
 
@@ -93,12 +95,12 @@ export default function AdminRoomViewerPage() {
       setDetail(d);
       setMessages(m.messages);
     } catch (err) {
-      if (err instanceof ApiError && err.status === 404) setError('Esta sala no existe.');
-      else setError(err instanceof Error ? err.message : 'No se pudo cargar la sala');
+      if (err instanceof ApiError && err.status === 404) setError(t('adm.roomView.notFound'));
+      else setError(err instanceof Error ? err.message : t('adm.roomView.loadError'));
     } finally {
       setLoading(false);
     }
-  }, [token, params.id]);
+  }, [token, params.id, t]);
 
   useEffect(() => {
     void load();
@@ -147,7 +149,7 @@ export default function AdminRoomViewerPage() {
       setCloseOpen(false);
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo cerrar la sala');
+      setError(err instanceof Error ? err.message : t('adm.roomView.closeError'));
     } finally {
       setClosing(false);
     }
@@ -172,7 +174,7 @@ export default function AdminRoomViewerPage() {
     return (
       <div className="space-y-4">
         <Link href="/admin/salas" className="inline-flex items-center gap-1 text-sm text-ink-muted hover:text-ink">
-          <ArrowLeft className="h-4 w-4" /> Volver a salas
+          <ArrowLeft className="h-4 w-4" /> {t('adm.rooms.back')}
         </Link>
         <p className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
       </div>
@@ -186,7 +188,7 @@ export default function AdminRoomViewerPage() {
   return (
     <div className="space-y-5">
       <Link href="/admin/salas" className="inline-flex items-center gap-1 text-sm text-ink-muted hover:text-ink">
-        <ArrowLeft className="h-4 w-4" /> Volver a salas
+        <ArrowLeft className="h-4 w-4" /> {t('adm.rooms.back')}
       </Link>
 
       {/* Header */}
@@ -196,9 +198,9 @@ export default function AdminRoomViewerPage() {
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="truncate font-display text-2xl font-extrabold tracking-tight">{room.name}</h1>
               {isOpen ? (
-                <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-800">Abierta</span>
+                <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-800">{t('adm.common.roomOpen')}</span>
               ) : (
-                <span className="rounded-full bg-zinc-200 px-2 py-0.5 text-xs font-semibold text-zinc-700">Cerrada</span>
+                <span className="rounded-full bg-zinc-200 px-2 py-0.5 text-xs font-semibold text-zinc-700">{t('adm.common.roomClosed')}</span>
               )}
               {isOpen && room.liveCount > 0 && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">
@@ -206,7 +208,7 @@ export default function AdminRoomViewerPage() {
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />
                     <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
                   </span>
-                  {room.liveCount} en directo
+                  {t('adm.rooms.liveCount', { n: room.liveCount })}
                 </span>
               )}
             </div>
@@ -220,32 +222,32 @@ export default function AdminRoomViewerPage() {
                   setTimeout(() => setCopied(false), 1500);
                 }}
                 className="inline-flex items-center gap-1 text-xs font-medium text-primary-500 hover:underline"
-                title="Copiar enlace público (no te une a la sala)"
+                title={t('adm.roomView.copyTitle')}
               >
                 {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                {copied ? 'Copiado' : 'Copiar enlace'}
+                {copied ? t('adm.roomView.copied') : t('adm.roomView.copyLink')}
               </button>
               <span>·</span>
-              <span>Creada {new Date(room.createdAt).toLocaleString('es-ES')}</span>
+              <span>{t('adm.rooms.createdShort', { date: new Date(room.createdAt).toLocaleString('es-ES') })}</span>
               {room.closedAt && (
                 <>
                   <span>·</span>
-                  <span>Cerrada {new Date(room.closedAt).toLocaleString('es-ES')}</span>
+                  <span>{t('adm.rooms.closedShort', { date: new Date(room.closedAt).toLocaleString('es-ES') })}</span>
                 </>
               )}
               <span>·</span>
-              <span>{room.messagesCount} mensaje(s)</span>
+              <span>{t('adm.rooms.messagesCount', { n: room.messagesCount })}</span>
             </div>
             {room.creator && (
               <div className="mt-2 flex items-center gap-2 text-sm">
-                <span className="text-ink-muted">Creador:</span>
+                <span className="text-ink-muted">{t('adm.roomView.creator')}</span>
                 {room.creator.kind === 'user' ? (
                   <Link href={`/admin/usuarios/${room.creator.id}`} className="font-semibold text-ink hover:text-primary-500">
                     {room.creator.displayName}
                   </Link>
                 ) : (
                   <span className="font-semibold text-ink">
-                    {room.creator.displayName} <span className="text-xs font-normal text-ink-muted">(invitado)</span>
+                    {room.creator.displayName} <span className="text-xs font-normal text-ink-muted">{t('adm.roomView.guestParen')}</span>
                   </span>
                 )}
               </div>
@@ -259,16 +261,16 @@ export default function AdminRoomViewerPage() {
                   ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
                   : 'border-surface-container bg-surface-soft text-ink-muted'
               }`}
-              title="Estás viendo la sala como observador: los participantes no te ven ni cuentas como conectado."
+              title={t('adm.roomView.observerNote')}
             >
               {observing ? <Radio className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-              {observing ? 'En directo · invisible' : isOpen ? 'Solo lectura' : 'Histórico'}
+              {observing ? t('adm.roomView.liveInvisible') : isOpen ? t('adm.roomView.readOnly') : t('adm.roomView.historic')}
             </span>
             <button
               type="button"
               onClick={() => void load()}
               className="grid h-9 w-9 place-items-center rounded-md border border-surface-container bg-white text-ink-muted transition hover:text-ink"
-              title="Actualizar"
+              title={t('adm.common.refresh')}
             >
               <RefreshCw className="h-4 w-4" />
             </button>
@@ -278,7 +280,7 @@ export default function AdminRoomViewerPage() {
                 onClick={() => setCloseOpen(true)}
                 className="inline-flex items-center gap-1.5 rounded-md bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100"
               >
-                <XIcon className="h-4 w-4" /> Cerrar sala
+                <XIcon className="h-4 w-4" /> {t('adm.rooms.close')}
               </button>
             )}
           </div>
@@ -292,12 +294,12 @@ export default function AdminRoomViewerPage() {
       <div className="grid gap-5 lg:grid-cols-[1fr_280px]">
         <section className="flex min-h-[480px] flex-col overflow-hidden rounded-xl border border-surface-container bg-white shadow-soft">
           <div className="flex items-center justify-between border-b border-surface-container px-4 py-2.5">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-ink-muted">Conversación</h2>
-            <span className="text-xs text-ink-muted">{messages.length} mensaje(s) cargado(s)</span>
+            <h2 className="text-xs font-bold uppercase tracking-wider text-ink-muted">{t('adm.roomView.conversation')}</h2>
+            <span className="text-xs text-ink-muted">{t('adm.roomView.messagesLoaded', { n: messages.length })}</span>
           </div>
           <div ref={scrollRef} className="flex-1 overflow-y-auto bg-canvas px-2 py-3" style={{ maxHeight: '70vh' }}>
             {messages.length === 0 ? (
-              <p className="px-3 py-10 text-center text-sm text-ink-muted">Sin mensajes todavía.</p>
+              <p className="px-3 py-10 text-center text-sm text-ink-muted">{t('adm.roomView.noMessages')}</p>
             ) : (
               messages.map((m) => (
                 <ChatMessageItem key={m.id} msg={m} onTip={() => undefined} canTip={false} />
@@ -305,17 +307,17 @@ export default function AdminRoomViewerPage() {
             )}
           </div>
           <div className="border-t border-surface-container bg-surface-soft px-4 py-2 text-xs text-ink-muted">
-            Vista de administración en solo lectura. No apareces en «Conectados» ni puedes escribir aquí.
+            {t('adm.roomView.footer')}
           </div>
         </section>
 
         <aside className="space-y-3">
           <div className="rounded-xl border border-surface-container bg-white p-4 shadow-soft">
             <h2 className="mb-3 text-xs font-bold uppercase tracking-wider text-ink-muted">
-              Miembros ({members.length})
+              {t('adm.roomView.members', { n: members.length })}
             </h2>
             {members.length === 0 ? (
-              <p className="text-sm text-ink-muted">Nadie se ha unido todavía.</p>
+              <p className="text-sm text-ink-muted">{t('adm.roomView.noMembers')}</p>
             ) : (
               <ul className="space-y-1.5">
                 {members.map((m) => (
@@ -333,13 +335,13 @@ export default function AdminRoomViewerPage() {
                         {m.role === 'creator' && <Crown className="h-3 w-3 shrink-0 text-amber-500" />}
                       </div>
                       <p className="text-[11px] text-ink-muted">
-                        {m.kind === 'guest' ? 'invitado · ' : ''}
+                        {m.kind === 'guest' ? t('adm.roomView.guestPrefix') : ''}
                         {m.online ? (
-                          <span className="text-emerald-600">conectado</span>
+                          <span className="text-emerald-600">{t('adm.roomView.connected')}</span>
                         ) : m.kind === 'user' ? (
-                          'desconectado'
+                          t('adm.roomView.disconnected')
                         ) : (
-                          'presencia no rastreable'
+                          t('adm.roomView.untrackable')
                         )}
                       </p>
                     </div>
@@ -353,9 +355,9 @@ export default function AdminRoomViewerPage() {
 
       <ConfirmDialog
         open={closeOpen}
-        title="¿Cerrar esta sala?"
-        description={`Se cerrará «${room.name}» (/r/${room.slug}) para todos los participantes y se borrarán sus mensajes, fotos y vídeos. Esta acción no se puede deshacer.`}
-        confirmLabel="Sí, cerrar la sala"
+        title={t('adm.roomView.closeTitle')}
+        description={t('adm.roomView.closeDesc', { name: room.name, slug: room.slug })}
+        confirmLabel={t('adm.roomView.closeConfirm')}
         tone="danger"
         busy={closing}
         onConfirm={() => void confirmClose()}

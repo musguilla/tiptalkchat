@@ -1,0 +1,127 @@
+import type { MessageKey } from './es';
+export const pcm: { [K in MessageKey]?: string } = {
+  // --- Common ---
+  'common.loading': 'E dey load…',
+  'common.save': 'Save am',
+  'common.cancel': 'Cancel',
+  'common.close': 'Close am',
+  'common.retry': 'Try again',
+  'common.back': 'Go back',
+  'common.backHome': 'Go back to home',
+  'common.send': 'Send am',
+  'common.online': 'Dey online now',
+  'common.offline': 'No dey online',
+  'common.online.short': 'Online',
+
+  // --- Header / nav ---
+  'nav.createChat': 'Make chat',
+  'nav.howItWorks': 'How e dey work',
+  'nav.features': 'Wetin dey inside',
+  'nav.wallet': 'Wallet',
+  'nav.login': 'Enter',
+  'nav.logout': 'Comot',
+  'nav.messages': 'Messages',
+
+  // --- Footer ---
+  'footer.tagline': 'Private chat rooms wey get tips.',
+  'footer.col.platform': 'Platform',
+  'footer.col.legal': 'Legal',
+  'footer.col.support': 'Support',
+  'footer.link.createChat': 'Make chat',
+  'footer.link.howItWorks': 'How e dey work',
+  'footer.link.features': 'Wetin dey inside',
+  'footer.link.terms': 'Terms of service',
+  'footer.link.privacy': 'Privacy policy',
+  'footer.link.creators': 'Guide for creators',
+  'footer.link.contact': 'Contact',
+  'footer.rights': 'All rights dey reserved.',
+  'footer.madeWith': 'Make with ❤ for creators',
+
+  // --- Home / landing ---
+  'home.hero.title': 'Private one-on-one chat rooms',
+  'home.hero.subtitle': 'Chat with anybody you like with video call, voice or just text.',
+  'home.hero.cta': 'Make chat room',
+  'home.hero.live': 'LIVE: PRIVATE SESSION',
+  'home.discover.title': 'Make new friends',
+  'home.discover.subtitle': 'Follow dem or send message make una yarn.',
+  'home.discover.message': 'Message',
+  'home.finalCta.cta': 'Make chat room',
+
+  // --- Auth ---
+  'auth.login': 'Enter',
+  'auth.signup': 'Open account',
+  'auth.email': 'Email',
+  'auth.password': 'Password',
+  'auth.displayName': 'Your name',
+  'auth.haveAccount': 'You get account already?',
+  'auth.noAccount': 'You no get account?',
+
+  // --- Profile ---
+  'profile.follow': 'Follow',
+  'profile.following': 'You dey follow',
+  'profile.message': 'Message',
+  'profile.messageCta': 'Send am message make una yarn',
+  'profile.followers': 'followers',
+  'profile.followingCount': 'dey follow',
+  'profile.editProfile': 'Change profile',
+  'profile.memberSince': 'For tiptalk.chat since {date}',
+  'profile.gallery': 'Gallery',
+  'profile.privatePhoto': 'Private photo',
+  'profile.notFound.title': 'We no see this profile',
+  'profile.notFound.body': 'This person no dey or e no dey available again.',
+
+  // --- Messages / composer ---
+  'msg.composer.title': 'Message for',
+  'msg.composer.label': 'Your message',
+  'msg.composer.placeholder': 'Write {name} make una start to yarn…',
+  'msg.composer.send': 'Send message',
+  'msg.composer.sent.title': 'Message don go!',
+  'msg.composer.sent.body': '{name} go get email alert make e come reply you.',
+  'msg.inbox.title': 'Messages',
+  'msg.inbox.empty': 'No message yet',
+  'msg.inbox.reply': 'Write your reply…',
+
+  // --- Wallet ---
+  'wallet.title': 'Wallet',
+  'wallet.balance': 'Balance',
+  'wallet.buy': 'Buy Tipsys',
+  'wallet.payout.request': 'Ask for payout',
+  'wallet.activate': 'Turn on payout',
+
+  // --- Room / chat ---
+  'chat.send': 'Send am',
+  'chat.placeholder': 'Write message…',
+  'chat.guestCta.q': 'You like the chat?',
+  'chat.guestCta.link': 'Sign up free',
+  'chat.guestCta.rest': 'make you fit save your profile, follow other people and stay connect with your friends.',
+
+  // --- Create room page ---
+  'create.title': 'Make room',
+  'create.creatingAs': 'You dey create as {name}.',
+  'create.logout': 'Comot',
+  'create.toCreateAnon': 'to create without account.',
+  'create.anonDisclaimer': 'You no need account. Just put your nick and one name for the room.',
+  'create.yourNick': 'Your nick',
+  'create.nickPlaceholder': 'Wetin be your name?',
+  'create.roomName': 'Room name',
+  'create.roomPlaceholder': 'Marta party',
+  'create.sessionExpired': 'Your session don expire. Enter again or make the room as guest.',
+  'create.error': 'We no fit make the room. Try am again.',
+  'create.login': 'Enter',
+  'create.ready.title': 'Your room don ready!',
+  'create.ready.subtitle': 'Share this link with anybody wey you wan invite.',
+  'create.ready.linkLabel': 'Room link',
+  'create.ready.copied': 'Don copy',
+  'create.ready.copy': 'Copy am',
+  'create.ready.enter': 'Enter your room',
+
+  // --- Legacy keys (kept for existing t() callers) ---
+  'landing.title': 'Private one-on-one chat rooms',
+  'landing.subtitle': 'Make one room, share the link and collect tips.',
+  'landing.cta.create': 'Make room',
+  'landing.cta.join': 'Join one room',
+  'create.name': 'Room name',
+  'create.submit': 'Make room',
+  'tip.send': 'Send Tipsy',
+  'wallet.payout.min': 'Minimum {min} Tipsys',
+};

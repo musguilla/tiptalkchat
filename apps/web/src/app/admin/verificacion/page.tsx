@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { BadgeCheck, Loader2, ShieldCheck, X as XIcon, Check, Ban, Clock } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-store';
+import { useT } from '@/i18n/useLocale';
 import { useAdminFetch } from '../_components/useAdminFetch';
 import { PageHeader } from '../_components/PageHeader';
 import { Tabs, type TabItem } from '../_components/Tabs';
@@ -38,18 +39,15 @@ interface VDetail {
   selfieUrl: string | null;
 }
 
-const TABS: ReadonlyArray<TabItem<Filter>> = [
-  { key: 'pending', label: 'Pendientes' },
-  { key: 'all', label: 'Todas' },
-];
-
 function StatusBadge({ status }: { status: string }) {
-  if (status === 'approved') return <Badge tone="success">Aprobada</Badge>;
-  if (status === 'rejected') return <Badge tone="danger">Rechazada</Badge>;
-  return <Badge tone="warning">Pendiente</Badge>;
+  const t = useT();
+  if (status === 'approved') return <Badge tone="success">{t('adb.verif.status.approved')}</Badge>;
+  if (status === 'rejected') return <Badge tone="danger">{t('adb.verif.status.rejected')}</Badge>;
+  return <Badge tone="warning">{t('adb.verif.status.pending')}</Badge>;
 }
 
 export default function AdminVerificationPage() {
+  const t = useT();
   const [filter, setFilter] = useState<Filter>('pending');
   const { data, loading, refreshing, error, reload } = useAdminFetch<{ verifications: VRow[] }>(
     `/admin/verifications?status=${filter}`,
@@ -58,11 +56,16 @@ export default function AdminVerificationPage() {
 
   const rows = data?.verifications ?? [];
 
+  const TABS: ReadonlyArray<TabItem<Filter>> = [
+    { key: 'pending', label: t('adb.verif.tab.pending') },
+    { key: 'all', label: t('adb.verif.tab.all') },
+  ];
+
   return (
     <div>
       <PageHeader
-        title="Verificación de edad"
-        subtitle="Revisa la documentación de los usuarios que quieren monetizar. Solo tú ves estos documentos."
+        title={t('adb.verif.title')}
+        subtitle={t('adb.verif.subtitle')}
         refreshing={refreshing}
       />
 
@@ -77,8 +80,8 @@ export default function AdminVerificationPage() {
       ) : rows.length === 0 ? (
         <EmptyState
           icon={<BadgeCheck className="h-6 w-6" />}
-          title={filter === 'pending' ? 'No hay verificaciones pendientes' : 'Sin verificaciones'}
-          hint="Cuando un usuario envíe su documentación para monetizar, aparecerá aquí."
+          title={filter === 'pending' ? t('adb.verif.empty.pending') : t('adb.verif.empty.all')}
+          hint={t('adb.verif.empty.hint')}
         />
       ) : (
         <ul className="grid gap-3 sm:grid-cols-2">
@@ -127,6 +130,7 @@ function ReviewModal({
   onClose: () => void;
   onReviewed: () => void;
 }) {
+  const t = useT();
   const token = useAuth((s) => s.token);
   const [detail, setDetail] = useState<VDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -178,13 +182,13 @@ function ReviewModal({
       >
         <div className="flex items-center justify-between border-b border-surface-container px-5 py-4">
           <h2 className="flex items-center gap-2 font-display text-lg font-extrabold text-ink">
-            <ShieldCheck className="h-5 w-5 text-primary-500" /> Revisar verificación
+            <ShieldCheck className="h-5 w-5 text-primary-500" /> {t('adb.verif.reviewTitle')}
           </h2>
           <button
             type="button"
             onClick={onClose}
             className="grid h-8 w-8 place-items-center rounded-md text-ink-muted transition hover:bg-surface-soft"
-            aria-label="Cerrar"
+            aria-label={t('adb.verif.close')}
           >
             <XIcon className="h-5 w-5" />
           </button>
@@ -209,13 +213,15 @@ function ReviewModal({
               </div>
 
               <p className="mb-3 text-xs text-ink-muted">
-                Declaración 18+: {detail.declaredAdult ? '✅ aceptada' : '—'} · Enviada{' '}
-                {formatDate(detail.submittedAt)}
+                {t('adb.verif.declLine', {
+                  value: detail.declaredAdult ? t('adb.verif.accepted') : '—',
+                  date: formatDate(detail.submittedAt),
+                })}
               </p>
 
               <div className="grid gap-3 sm:grid-cols-2">
-                <DocView label="Documento de identidad" url={detail.documentUrl} />
-                <DocView label="Selfie con documento" url={detail.selfieUrl} />
+                <DocView label={t('adb.verif.idDoc')} url={detail.documentUrl} />
+                <DocView label={t('adb.verif.selfie')} url={detail.selfieUrl} />
               </div>
 
               {error && (
@@ -230,7 +236,7 @@ function ReviewModal({
                     <input
                       value={reason}
                       onChange={(e) => setReason(e.target.value)}
-                      placeholder="Motivo del rechazo (se muestra al usuario)"
+                      placeholder={t('adb.verif.reasonPlaceholder')}
                       className="mb-3 w-full rounded-lg border border-surface-container bg-surface-soft/40 px-3 py-2 text-sm outline-none focus:border-primary-300"
                     />
                   )}
@@ -241,7 +247,7 @@ function ReviewModal({
                         onClick={() => setRejecting(true)}
                         className="btn-tactile inline-flex items-center gap-1.5 rounded-full bg-red-50 px-4 py-2 text-sm font-bold text-red-600 hover:bg-red-100"
                       >
-                        <Ban className="h-4 w-4" /> Rechazar
+                        <Ban className="h-4 w-4" /> {t('adb.verif.reject')}
                       </button>
                     ) : (
                       <button
@@ -251,7 +257,7 @@ function ReviewModal({
                         className="btn-tactile inline-flex items-center gap-1.5 rounded-full bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-60"
                       >
                         {busy === 'reject' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Ban className="h-4 w-4" />}
-                        Confirmar rechazo
+                        {t('adb.verif.confirmReject')}
                       </button>
                     )}
                     <button
@@ -261,14 +267,14 @@ function ReviewModal({
                       className="btn-tactile inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-5 py-2 text-sm font-bold text-white shadow-soft hover:shadow-vivid disabled:opacity-60"
                     >
                       {busy === 'approve' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-                      Aprobar
+                      {t('adb.verif.approve')}
                     </button>
                   </div>
                 </div>
               )}
             </>
           ) : (
-            <p className="py-10 text-center text-sm text-ink-muted">No se pudo cargar.</p>
+            <p className="py-10 text-center text-sm text-ink-muted">{t('adb.verif.loadFailed')}</p>
           )}
         </div>
       </div>
@@ -277,6 +283,7 @@ function ReviewModal({
 }
 
 function DocView({ label, url }: { label: string; url: string | null }) {
+  const t = useT();
   return (
     <div>
       <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-ink-muted">{label}</p>
@@ -287,7 +294,7 @@ function DocView({ label, url }: { label: string; url: string | null }) {
         </a>
       ) : (
         <div className="grid h-48 place-items-center rounded-xl border border-dashed border-surface-container bg-surface-soft/40 text-xs text-ink-soft">
-          No aportado
+          {t('adb.verif.notProvided')}
         </div>
       )}
     </div>

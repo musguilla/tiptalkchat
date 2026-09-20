@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-store';
+import { useT } from '@/i18n/useLocale';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { useAdminFetch } from '../../_components/useAdminFetch';
 import { PageHeader } from '../../_components/PageHeader';
@@ -54,17 +55,14 @@ type PendingAction =
   | { kind: 'unblock' }
   | { kind: 'closeRoom'; room: AdminUserRoom };
 
-const ROLE_OPTIONS: ReadonlyArray<{ value: UserRole; label: string }> = [
-  { value: 'user', label: 'Usuario' },
-  { value: 'mod', label: 'Mod' },
-  { value: 'admin', label: 'Admin' },
-];
+const ROLE_OPTIONS: ReadonlyArray<UserRole> = ['user', 'mod', 'admin'];
 
 function isRole(value: string): value is UserRole {
   return value === 'user' || value === 'mod' || value === 'admin';
 }
 
 export default function AdminUserDetailPage() {
+  const t = useT();
   const params = useParams<{ id: string }>();
   const token = useAuth((s) => s.token);
   const meId = useAuth((s) => s.user?.id);
@@ -129,7 +127,7 @@ export default function AdminUserDetailPage() {
       className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-ink-muted transition hover:text-ink"
     >
       <ArrowLeft className="h-4 w-4" />
-      Volver a usuarios
+      {t('adm.users.back')}
     </Link>
   );
 
@@ -153,7 +151,7 @@ export default function AdminUserDetailPage() {
     return (
       <div>
         {backLink}
-        <PageHeader title="Usuario" />
+        <PageHeader title={t('adm.user.title')} />
         <ErrorBanner message={error} onRetry={reload} />
       </div>
     );
@@ -169,24 +167,24 @@ export default function AdminUserDetailPage() {
     if (!pending) return null;
     if (pending.kind === 'closeRoom') {
       return {
-        title: 'Cerrar sala',
-        description: `Se cerrará «${pending.room.name}» (/r/${pending.room.slug}) y se borrarán sus mensajes y archivos. Esta acción no se puede deshacer.`,
-        confirmLabel: 'Cerrar sala',
+        title: t('adm.rooms.closeTitle'),
+        description: t('adm.rooms.closeDesc', { name: pending.room.name, slug: pending.room.slug }),
+        confirmLabel: t('adm.rooms.close'),
         tone: 'danger' as const,
       };
     }
     if (pending.kind === 'block') {
       return {
-        title: 'Bloquear usuario',
-        description: `${user.displayName} (${user.email}) no podrá iniciar sesión ni usar la plataforma hasta que lo desbloquees.`,
-        confirmLabel: 'Bloquear',
+        title: t('adm.users.blockTitle'),
+        description: t('adm.users.blockDesc', { name: user.displayName, email: user.email }),
+        confirmLabel: t('adm.common.block'),
         tone: 'danger' as const,
       };
     }
     return {
-      title: 'Desbloquear usuario',
-      description: `${user.displayName} (${user.email}) podrá volver a iniciar sesión y usar tiptalk.chat.`,
-      confirmLabel: 'Desbloquear',
+      title: t('adm.users.unblockTitle'),
+      description: t('adm.users.unblockDesc', { name: user.displayName, email: user.email }),
+      confirmLabel: t('adm.common.unblock'),
       tone: 'primary' as const,
     };
   })();
@@ -219,28 +217,28 @@ export default function AdminUserDetailPage() {
               {blocked && (
                 <Badge tone="danger">
                   <Ban className="h-3 w-3" />
-                  Bloqueado
+                  {t('adm.common.blocked')}
                 </Badge>
               )}
-              {isSelf && <Badge tone="info">Tú</Badge>}
+              {isSelf && <Badge tone="info">{t('adm.common.you')}</Badge>}
             </div>
             <p className="mt-1 text-sm text-white/85">{user.email}</p>
             <div className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-xs text-white/85 sm:justify-start">
               <span className="inline-flex items-center gap-1.5">
                 <OnlineDot online={data.online} />
-                {data.online ? 'Conectado ahora' : 'Desconectado'}
+                {data.online ? t('adm.user.onlineNow') : t('adm.common.offline')}
               </span>
-              <span>Alta: {formatDate(user.createdAt)}</span>
-              {blocked && <span>Bloqueado: {formatDate(user.blockedAt)}</span>}
+              <span>{t('adm.user.joined', { date: formatDate(user.createdAt) })}</span>
+              {blocked && <span>{t('adm.user.blockedAt', { date: formatDate(user.blockedAt) })}</span>}
               <span className="inline-flex items-center gap-1">
                 {user.emailVerified ? (
                   <CheckCircle2 className="h-3.5 w-3.5" />
                 ) : (
                   <XCircle className="h-3.5 w-3.5" />
                 )}
-                Email {user.emailVerified ? 'verificado' : 'sin verificar'}
+                {user.emailVerified ? t('adm.user.emailVerified') : t('adm.user.emailUnverified')}
               </span>
-              <span>KYC: {user.kycStatus}</span>
+              <span>{t('adm.user.kyc', { status: user.kycStatus })}</span>
             </div>
           </div>
         </div>
@@ -253,9 +251,9 @@ export default function AdminUserDetailPage() {
             disabled={isSelf || (!blocked && user.role === 'admin')}
             title={
               isSelf
-                ? 'No puedes bloquearte a ti mismo'
+                ? t('adm.user.cantBlockSelf')
                 : !blocked && user.role === 'admin'
-                  ? 'No se puede bloquear a otro administrador'
+                  ? t('adm.user.cantBlockAdmin')
                   : undefined
             }
             className={`btn-tactile inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold shadow-soft transition hover:shadow-vivid disabled:cursor-not-allowed disabled:opacity-60 ${
@@ -263,11 +261,11 @@ export default function AdminUserDetailPage() {
             }`}
           >
             {blocked ? <ShieldOff className="h-4 w-4" /> : <Ban className="h-4 w-4" />}
-            {blocked ? 'Desbloquear' : 'Bloquear'}
+            {blocked ? t('adm.common.unblock') : t('adm.common.block')}
           </button>
 
           <label className="inline-flex items-center gap-2 rounded-full bg-white/15 py-1 pl-4 pr-1.5 text-sm font-semibold backdrop-blur-sm">
-            Rol
+            {t('adm.role.label')}
             <select
               value={user.role}
               disabled={isSelf || roleBusy}
@@ -275,12 +273,12 @@ export default function AdminUserDetailPage() {
                 const v = e.target.value;
                 if (isRole(v)) void changeRole(v);
               }}
-              title={isSelf ? 'No puedes cambiar tu propio rol' : undefined}
+              title={isSelf ? t('adm.user.cantChangeRole') : undefined}
               className="rounded-full bg-white px-3 py-1.5 text-sm font-semibold text-ink outline-none disabled:cursor-not-allowed disabled:opacity-70"
             >
               {ROLE_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
+                <option key={o} value={o}>
+                  {t(`adm.role.${o}`)}
                 </option>
               ))}
             </select>
@@ -293,23 +291,23 @@ export default function AdminUserDetailPage() {
             className="btn-tactile inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/25"
           >
             <ExternalLink className="h-4 w-4" />
-            Ver perfil público
+            {t('adm.user.viewPublic')}
           </a>
 
-          {refreshing && <span className="text-xs text-white/70">Actualizando…</span>}
+          {refreshing && <span className="text-xs text-white/70">{t('adm.common.updating')}</span>}
         </div>
       </section>
 
       {/* === Wallet + Tips === */}
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
         <SectionCard
-          title="Monedero"
+          title={t('adm.user.wallet')}
           icon={<Wallet className="h-4 w-4" />}
           className="lg:col-span-2"
         >
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="rounded-lg bg-surface-soft p-4">
-              <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Saldo</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">{t('adm.user.balance')}</p>
               <p className="mt-1 font-display text-2xl font-extrabold tracking-tight text-ink">
                 {formatTipsys(wallet.balance)}
               </p>
@@ -325,12 +323,12 @@ export default function AdminUserDetailPage() {
                     {connect.payoutsEnabled ? (
                       <Badge tone="success">
                         <CheckCircle2 className="h-3 w-3" />
-                        Payouts OK
+                        {t('adm.user.payoutsOk')}
                       </Badge>
                     ) : (
                       <Badge tone="warning">
                         <XCircle className="h-3 w-3" />
-                        Payouts desactivados
+                        {t('adm.user.payoutsOff')}
                       </Badge>
                     )}
                     <Badge tone="neutral">{connect.status}</Badge>
@@ -341,17 +339,17 @@ export default function AdminUserDetailPage() {
                 </>
               ) : (
                 <p className="mt-1.5">
-                  <Badge tone="neutral">Sin cuenta Connect</Badge>
+                  <Badge tone="neutral">{t('adm.user.noConnect')}</Badge>
                 </p>
               )}
             </div>
           </div>
 
           <h3 className="mt-5 text-xs font-semibold uppercase tracking-wider text-ink-muted">
-            Últimos movimientos
+            {t('adm.user.recentLedger')}
           </h3>
           {recentLedger.length === 0 ? (
-            <p className="mt-2 text-sm text-ink-muted">Sin movimientos todavía.</p>
+            <p className="mt-2 text-sm text-ink-muted">{t('adm.user.noLedger')}</p>
           ) : (
             <ul className="mt-2 divide-y divide-surface-container rounded-lg border border-surface-container">
               {recentLedger.map((e) => (
@@ -370,7 +368,7 @@ export default function AdminUserDetailPage() {
                       {formatInt(e.amount)} Tipsys
                     </p>
                     <p className="text-xs tabular-nums text-ink-muted">
-                      Saldo: {formatInt(e.balanceAfter)}
+                      {t('adm.user.ledgerBalance', { n: formatInt(e.balanceAfter) })}
                     </p>
                   </div>
                 </li>
@@ -379,11 +377,11 @@ export default function AdminUserDetailPage() {
           )}
         </SectionCard>
 
-        <SectionCard title="Tips" icon={<Coins className="h-4 w-4" />}>
+        <SectionCard title={t('adm.user.tips')} icon={<Coins className="h-4 w-4" />}>
           <div className="space-y-4">
             <div className="rounded-lg bg-surface-soft p-4">
               <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
-                Recibidos
+                {t('adm.user.received')}
               </p>
               <p className="mt-1 font-display text-2xl font-extrabold tracking-tight text-ink">
                 {formatInt(tips.received.count)}
@@ -394,7 +392,7 @@ export default function AdminUserDetailPage() {
             </div>
             <div className="rounded-lg bg-surface-soft p-4">
               <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
-                Enviados
+                {t('adm.user.sent')}
               </p>
               <p className="mt-1 font-display text-2xl font-extrabold tracking-tight text-ink">
                 {formatInt(tips.sent.count)}
@@ -409,19 +407,19 @@ export default function AdminUserDetailPage() {
 
       {/* === Rooms === */}
       <SectionCard
-        title="Salas"
+        title={t('adm.rooms.title')}
         icon={<MessagesSquare className="h-4 w-4" />}
         className="mt-6"
         action={
           <span className="text-xs text-ink-muted">
-            {formatInt(openRooms)} abierta(s) · {formatInt(rooms.length)} en total
+            {t('adm.user.roomsSummary', { open: formatInt(openRooms), total: formatInt(rooms.length) })}
           </span>
         }
       >
         {rooms.length === 0 ? (
           <EmptyState
             icon={<MessagesSquare className="h-6 w-6" />}
-            title="Este usuario no ha creado salas"
+            title={t('adm.user.noRooms')}
             className="border-0 py-8"
           />
         ) : (
@@ -443,26 +441,26 @@ export default function AdminUserDetailPage() {
                       <Link
                         href={`/admin/salas/${r.id}`}
                         className="inline-flex items-center gap-1 truncate text-xs text-ink-muted hover:text-primary-600 hover:underline"
-                        title="Ver la conversación como observador (no te une a la sala)"
+                        title={t('adm.rooms.observeTitle')}
                       >
                         /r/{r.slug}
                         <Eye className="h-3 w-3" />
                       </Link>
                     </div>
-                    <Badge tone={open ? 'success' : 'neutral'}>{open ? 'Abierta' : 'Cerrada'}</Badge>
+                    <Badge tone={open ? 'success' : 'neutral'}>{open ? t('adm.common.roomOpen') : t('adm.common.roomClosed')}</Badge>
                   </div>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-muted">
                     {r.liveCount > 0 ? (
-                      <OnlineDot online label={`${r.liveCount} en directo`} />
+                      <OnlineDot online label={t('adm.rooms.liveCount', { n: r.liveCount })} />
                     ) : (
-                      <OnlineDot online={false} label="Nadie en directo" />
+                      <OnlineDot online={false} label={t('adm.rooms.noneLive')} />
                     )}
-                    <span>{formatInt(r.membersCount)} miembro(s)</span>
-                    <span>{formatInt(r.messagesCount)} mensaje(s)</span>
+                    <span>{t('adm.rooms.membersCount', { n: formatInt(r.membersCount) })}</span>
+                    <span>{t('adm.rooms.messagesCount', { n: formatInt(r.messagesCount) })}</span>
                   </div>
                   <p className="text-[11px] text-ink-soft">
-                    Creada {formatDateShort(r.createdAt)}
-                    {r.closedAt && ` · Cerrada ${formatDateShort(r.closedAt)}`}
+                    {t('adm.rooms.createdShort', { date: formatDateShort(r.createdAt) })}
+                    {r.closedAt && ` · ${t('adm.rooms.closedShort', { date: formatDateShort(r.closedAt) })}`}
                   </p>
                   {open && (
                     <button
@@ -471,7 +469,7 @@ export default function AdminUserDetailPage() {
                       className="btn-tactile mt-1 inline-flex w-fit items-center gap-1.5 rounded-md bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-100"
                     >
                       <DoorClosed className="h-3.5 w-3.5" />
-                      Cerrar sala
+                      {t('adm.rooms.close')}
                     </button>
                   )}
                 </li>
@@ -483,20 +481,22 @@ export default function AdminUserDetailPage() {
 
       {/* === Gallery === */}
       <SectionCard
-        title="Galería"
+        title={t('adm.user.gallery')}
         icon={<ImageIcon className="h-4 w-4" />}
         className="mt-6"
         action={
           <span className="text-xs text-ink-muted">
-            {formatInt(photos.length)} foto(s) · {formatInt(photos.filter((p) => p.isPublic).length)}{' '}
-            pública(s)
+            {t('adm.user.photosSummary', {
+              total: formatInt(photos.length),
+              public: formatInt(photos.filter((p) => p.isPublic).length),
+            })}
           </span>
         }
       >
         {photos.length === 0 ? (
           <EmptyState
             icon={<ImageIcon className="h-6 w-6" />}
-            title="Sin fotos en la galería"
+            title={t('adm.user.noPhotos')}
             className="border-0 py-8"
           />
         ) : (
@@ -520,7 +520,7 @@ export default function AdminUserDetailPage() {
                   }`}
                 >
                   {p.isPublic ? <Eye className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
-                  {p.isPublic ? 'Pública' : 'Privada'}
+                  {p.isPublic ? t('adm.user.public') : t('adm.user.private')}
                 </span>
                 <span className="pointer-events-none absolute bottom-2 right-2 rounded-full bg-black/50 px-2 py-0.5 text-[10px] text-white backdrop-blur-sm">
                   {formatDateShort(p.createdAt)}
@@ -533,31 +533,31 @@ export default function AdminUserDetailPage() {
 
       {/* === Payouts === */}
       <SectionCard
-        title="Payouts"
+        title={t('adm.payouts.title')}
         icon={<Banknote className="h-4 w-4" />}
         className="mt-6"
         flush
         action={
           <Link href="/admin/payouts" className="text-xs font-semibold text-primary-600 hover:underline">
-            Ver todos los payouts
+            {t('adm.user.viewAllPayouts')}
           </Link>
         }
       >
         {payouts.length === 0 ? (
           <EmptyState
             icon={<Banknote className="h-6 w-6" />}
-            title="Sin solicitudes de cobro"
+            title={t('adm.user.noPayouts')}
             className="border-0 py-8"
           />
         ) : (
           <TableShell>
             <TableHead>
-              <Th>ID</Th>
-              <Th align="right">Tipsys</Th>
-              <Th align="right">Neto</Th>
-              <Th>Estado</Th>
-              <Th>Solicitado</Th>
-              <Th>Pagado</Th>
+              <Th>{t('adm.payouts.col.id')}</Th>
+              <Th align="right">{t('adm.payouts.col.tipsys')}</Th>
+              <Th align="right">{t('adm.payouts.col.net')}</Th>
+              <Th>{t('adm.payouts.col.status')}</Th>
+              <Th>{t('adm.payouts.col.requested')}</Th>
+              <Th>{t('adm.payouts.col.paid')}</Th>
             </TableHead>
             <tbody>
               {payouts.map((p, i) => (

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ArrowLeft, Loader2, MessageCircle, Send, Lock, LogIn } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-store';
+import { useT } from '@/i18n/useLocale';
 import { Logo } from '@/components/Logo';
 import { SiteFooter } from '@/components/SiteFooter';
 import { AuthOverlay } from '@/components/AuthOverlay';
@@ -38,6 +39,7 @@ function timeLabel(iso: string): string {
 }
 
 export default function MensajesPage() {
+  const t = useT();
   const token = useAuth((s) => s.token);
   const [hydrated, setHydrated] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
@@ -78,7 +80,7 @@ export default function MensajesPage() {
           setConv(r);
           // Selected thread is now read — clear its unread badge locally.
           setThreads((prev) =>
-            prev.map((t) => (t.partner.id === partnerId ? { ...t, unread: 0 } : t)),
+            prev.map((th) => (th.partner.id === partnerId ? { ...th, unread: 0 } : th)),
           );
         })
         .catch(() => undefined)
@@ -126,9 +128,9 @@ export default function MensajesPage() {
           <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-primary-50 text-primary-500">
             <Lock className="h-8 w-8" />
           </div>
-          <h1 className="mt-5 font-display text-3xl font-extrabold tracking-tight">Tus mensajes</h1>
+          <h1 className="mt-5 font-display text-3xl font-extrabold tracking-tight">{t('pg.msgs.lockedTitle')}</h1>
           <p className="mt-3 text-base text-ink-muted">
-            Inicia sesión para ver los mensajes que te han enviado y responder.
+            {t('pg.msgs.lockedDesc')}
           </p>
           <button
             type="button"
@@ -136,7 +138,7 @@ export default function MensajesPage() {
             className="btn-tactile mt-6 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-6 py-3 text-sm font-bold text-white shadow-vivid hover:shadow-vivid-strong"
           >
             <LogIn className="h-4 w-4" />
-            Iniciar sesión
+            {t('pg.msgs.signIn')}
           </button>
         </div>
         <AuthOverlay
@@ -161,13 +163,13 @@ export default function MensajesPage() {
             className="flex items-center gap-1 text-sm text-ink-muted transition hover:text-ink"
           >
             <ArrowLeft className="h-4 w-4" />
-            Volver
+            {t('pg.msgs.back')}
           </Link>
         </div>
       </header>
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:px-6">
-        <h1 className="mb-4 font-display text-2xl font-extrabold tracking-tight">Mensajes</h1>
+        <h1 className="mb-4 font-display text-2xl font-extrabold tracking-tight">{t('pg.msgs.title')}</h1>
 
         <div className="grid gap-4 md:grid-cols-[320px_1fr]">
           {/* === Threads list === */}
@@ -185,38 +187,38 @@ export default function MensajesPage() {
                 <div className="grid h-12 w-12 place-items-center rounded-full bg-primary-50 text-primary-500">
                   <MessageCircle className="h-6 w-6" />
                 </div>
-                <p className="mt-3 text-sm font-semibold text-ink">Sin mensajes todavía</p>
+                <p className="mt-3 text-sm font-semibold text-ink">{t('pg.msgs.emptyTitle')}</p>
                 <p className="mt-1 max-w-[220px] text-xs text-ink-muted">
-                  Cuando alguien te escriba desde tu perfil, aparecerá aquí.
+                  {t('pg.msgs.emptyDesc')}
                 </p>
               </div>
             ) : (
               <ul className="divide-y divide-surface-container">
-                {threads.map((t) => (
-                  <li key={t.partner.id}>
+                {threads.map((th) => (
+                  <li key={th.partner.id}>
                     <button
                       type="button"
-                      onClick={() => openThread(t.partner.id)}
+                      onClick={() => openThread(th.partner.id)}
                       className={`flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-surface-soft ${
-                        selected === t.partner.id ? 'bg-surface-soft' : ''
+                        selected === th.partner.id ? 'bg-surface-soft' : ''
                       }`}
                     >
                       <div className="relative shrink-0">
-                        <Avatar url={t.partner.avatarUrl} name={t.partner.displayName} size="md" />
-                        {t.partner.online && (
+                        <Avatar url={th.partner.avatarUrl} name={th.partner.displayName} size="md" />
+                        {th.partner.online && (
                           <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-500 ring-2 ring-white" />
                         )}
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-2">
-                          <p className="truncate font-semibold text-ink">{t.partner.displayName}</p>
-                          <span className="shrink-0 text-[11px] text-ink-soft">{timeLabel(t.lastAt)}</span>
+                          <p className="truncate font-semibold text-ink">{th.partner.displayName}</p>
+                          <span className="shrink-0 text-[11px] text-ink-soft">{timeLabel(th.lastAt)}</span>
                         </div>
-                        <p className="truncate text-xs text-ink-muted">{t.lastBody}</p>
+                        <p className="truncate text-xs text-ink-muted">{th.lastBody}</p>
                       </div>
-                      {t.unread > 0 && (
+                      {th.unread > 0 && (
                         <span className="grid h-5 min-w-[20px] shrink-0 place-items-center rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-1 text-[11px] font-bold text-white">
-                          {t.unread}
+                          {th.unread}
                         </span>
                       )}
                     </button>
@@ -236,7 +238,7 @@ export default function MensajesPage() {
               <div className="grid flex-1 place-items-center px-6 text-center text-ink-muted">
                 <div>
                   <MessageCircle className="mx-auto h-10 w-10 text-ink-soft" />
-                  <p className="mt-3 text-sm">Elige una conversación para leerla y responder.</p>
+                  <p className="mt-3 text-sm">{t('pg.msgs.pickConversation')}</p>
                 </div>
               </div>
             ) : (
@@ -246,7 +248,7 @@ export default function MensajesPage() {
                     type="button"
                     onClick={() => setSelected(null)}
                     className="grid h-8 w-8 place-items-center rounded-md text-ink-muted transition hover:bg-surface-soft md:hidden"
-                    aria-label="Volver a la lista"
+                    aria-label={t('pg.msgs.backToList')}
                   >
                     <ArrowLeft className="h-5 w-5" />
                   </button>
@@ -265,7 +267,7 @@ export default function MensajesPage() {
                       <div>
                         <p className="font-display font-bold text-ink">{conv.partner.displayName}</p>
                         <p className="text-[11px] text-ink-muted">
-                          {conv.partner.online ? 'Conectado ahora' : 'Desconectado'}
+                          {conv.partner.online ? t('pg.msgs.onlineNow') : t('pg.msgs.offline')}
                         </p>
                       </div>
                     </Link>
@@ -310,7 +312,7 @@ export default function MensajesPage() {
                       }}
                       rows={1}
                       maxLength={4000}
-                      placeholder="Escribe tu respuesta…"
+                      placeholder={t('pg.msgs.replyPlaceholder')}
                       className="max-h-32 flex-1 resize-none rounded-xl border border-surface-container bg-surface-soft/40 px-4 py-2.5 text-sm text-ink outline-none transition focus:border-primary-300 focus:bg-white"
                     />
                     <button
@@ -318,7 +320,7 @@ export default function MensajesPage() {
                       onClick={() => void sendReply()}
                       disabled={sending || reply.trim().length === 0}
                       className="btn-tactile grid h-11 w-11 shrink-0 place-items-center rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 text-white shadow-soft transition hover:shadow-vivid disabled:opacity-50"
-                      aria-label="Enviar"
+                      aria-label={t('pg.msgs.send')}
                     >
                       {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                     </button>

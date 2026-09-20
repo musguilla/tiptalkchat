@@ -3,6 +3,7 @@ import { Suspense, useState } from 'react';
 import { Archive, Loader2, Mail, MailOpen, Reply, RotateCcw } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-store';
+import { useT } from '@/i18n/useLocale';
 import { useAdminFetch } from '../_components/useAdminFetch';
 import { useUrlState } from '../_components/useUrlState';
 import { PageHeader } from '../_components/PageHeader';
@@ -14,29 +15,31 @@ import type { AdminContactRow, AdminContactsResponse, ContactStatus } from '../_
 
 type ContactTab = ContactStatus | 'all';
 
-const TABS: ReadonlyArray<TabItem<ContactTab>> = [
-  { key: 'new', label: 'Nuevos' },
-  { key: 'read', label: 'Leídos' },
-  { key: 'archived', label: 'Archivados' },
-  { key: 'all', label: 'Todos' },
-];
-
 function readTab(raw: string | null): ContactTab {
   return raw === 'read' || raw === 'archived' || raw === 'all' ? raw : 'new';
 }
 
 export default function AdminContactsPage() {
+  const t = useT();
   return (
-    <Suspense fallback={<PageHeader title="Contacto" />}>
+    <Suspense fallback={<PageHeader title={t('adb.contact.title')} />}>
       <ContactsPageInner />
     </Suspense>
   );
 }
 
 function ContactsPageInner() {
+  const t = useT();
   const token = useAuth((s) => s.token);
   const { searchParams, set } = useUrlState();
   const tab = readTab(searchParams.get('status'));
+
+  const TABS: ReadonlyArray<TabItem<ContactTab>> = [
+    { key: 'new', label: t('adb.contact.tab.new') },
+    { key: 'read', label: t('adb.contact.tab.read') },
+    { key: 'archived', label: t('adb.contact.tab.archived') },
+    { key: 'all', label: t('adb.contact.tab.all') },
+  ];
 
   const { data, loading, refreshing, error, reload } = useAdminFetch<AdminContactsResponse>(
     `/admin/contacts?status=${tab}`,
@@ -71,8 +74,8 @@ function ContactsPageInner() {
   return (
     <div>
       <PageHeader
-        title="Contacto"
-        subtitle="Mensajes recibidos desde el formulario de contacto."
+        title={t('adb.contact.title')}
+        subtitle={t('adb.contact.subtitle')}
         refreshing={refreshing}
       />
 
@@ -90,10 +93,10 @@ function ContactsPageInner() {
           icon={<Mail className="h-6 w-6" />}
           title={
             tab === 'new'
-              ? 'No hay mensajes nuevos'
+              ? t('adb.contact.empty.new')
               : tab === 'all'
-                ? 'Todavía no hay mensajes de contacto'
-                : 'No hay mensajes en este estado'
+                ? t('adb.contact.empty.all')
+                : t('adb.contact.empty.state')
           }
         />
       ) : (
@@ -138,7 +141,7 @@ function ContactsPageInner() {
                       className={`${actionBtn} bg-primary-50 text-primary-700 hover:bg-primary-100`}
                     >
                       <Reply className="h-3.5 w-3.5" />
-                      Responder
+                      {t('adb.contact.reply')}
                     </a>
                     {c.status === 'new' && (
                       <button
@@ -148,7 +151,7 @@ function ContactsPageInner() {
                         className={`${actionBtn} bg-surface-soft text-ink hover:bg-surface-container`}
                       >
                         {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <MailOpen className="h-3.5 w-3.5" />}
-                        Marcar leído
+                        {t('adb.contact.markRead')}
                       </button>
                     )}
                     {c.status !== 'archived' && (
@@ -159,7 +162,7 @@ function ContactsPageInner() {
                         className={`${actionBtn} bg-surface-soft text-ink-muted hover:bg-surface-container`}
                       >
                         {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Archive className="h-3.5 w-3.5" />}
-                        Archivar
+                        {t('adb.contact.archive')}
                       </button>
                     )}
                     {c.status !== 'new' && (
@@ -170,7 +173,7 @@ function ContactsPageInner() {
                         className={`${actionBtn} bg-surface-soft text-ink-muted hover:bg-surface-container`}
                       >
                         {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5" />}
-                        Reabrir
+                        {t('adb.contact.reopen')}
                       </button>
                     )}
                   </footer>

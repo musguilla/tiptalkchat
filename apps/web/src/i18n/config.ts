@@ -4,7 +4,7 @@
  */
 export const LOCALES = [
   'es', 'en', 'fr', 'de', 'it', 'pt', 'pt-br', 'pl', 'uk', 'nl',
-  'zh', 'hi', 'ar', 'ru', 'id', 'ko', 'ja',
+  'zh', 'hi', 'ar', 'ru', 'id', 'ko', 'ja', 'ur', 'tr', 'pcm',
 ] as const;
 
 export type Locale = (typeof LOCALES)[number];
@@ -30,17 +30,20 @@ export const LOCALE_NAMES: Record<Locale, string> = {
   id: 'Bahasa Indonesia',
   ko: '한국어',
   ja: '日本語',
+  ur: 'اردو',
+  tr: 'Türkçe',
+  pcm: 'Naija (Pidgin)',
 };
 
 /** Flag emoji for a nicer switcher. */
 export const LOCALE_FLAGS: Record<Locale, string> = {
   es: '🇪🇸', en: '🇬🇧', fr: '🇫🇷', de: '🇩🇪', it: '🇮🇹', pt: '🇵🇹', 'pt-br': '🇧🇷',
   pl: '🇵🇱', uk: '🇺🇦', nl: '🇳🇱', zh: '🇨🇳', hi: '🇮🇳', ar: '🇸🇦', ru: '🇷🇺',
-  id: '🇮🇩', ko: '🇰🇷', ja: '🇯🇵',
+  id: '🇮🇩', ko: '🇰🇷', ja: '🇯🇵', ur: '🇵🇰', tr: '🇹🇷', pcm: '🇳🇬',
 };
 
 /** Locales that render right-to-left. */
-export const RTL_LOCALES: Locale[] = ['ar'];
+export const RTL_LOCALES: Locale[] = ['ar', 'ur'];
 
 export function isLocale(x: string): x is Locale {
   return (LOCALES as readonly string[]).includes(x);
@@ -55,4 +58,5 @@ export const INTL_TAG: Record<Locale, string> = {
   es: 'es-ES', en: 'en-US', fr: 'fr-FR', de: 'de-DE', it: 'it-IT', pt: 'pt-PT',
   'pt-br': 'pt-BR', pl: 'pl-PL', uk: 'uk-UA', nl: 'nl-NL', zh: 'zh-CN', hi: 'hi-IN',
   ar: 'ar', ru: 'ru-RU', id: 'id-ID', ko: 'ko-KR', ja: 'ja-JP',
+  ur: 'ur-PK', tr: 'tr-TR', pcm: 'en-NG',
 };

@@ -1,0 +1,127 @@
+import type { MessageKey } from './es';
+export const ur: { [K in MessageKey]?: string } = {
+  // --- Common ---
+  'common.loading': 'لوڈ ہو رہا ہے…',
+  'common.save': 'محفوظ کریں',
+  'common.cancel': 'منسوخ کریں',
+  'common.close': 'بند کریں',
+  'common.retry': 'دوبارہ کوشش کریں',
+  'common.back': 'واپس',
+  'common.backHome': 'ہوم پر واپس جائیں',
+  'common.send': 'بھیجیں',
+  'common.online': 'ابھی آن لائن',
+  'common.offline': 'آف لائن',
+  'common.online.short': 'آن لائن',
+
+  // --- Header / nav ---
+  'nav.createChat': 'چیٹ بنائیں',
+  'nav.howItWorks': 'یہ کیسے کام کرتا ہے',
+  'nav.features': 'خصوصیات',
+  'nav.wallet': 'والٹ',
+  'nav.login': 'لاگ ان کریں',
+  'nav.logout': 'لاگ آؤٹ کریں',
+  'nav.messages': 'پیغامات',
+
+  // --- Footer ---
+  'footer.tagline': 'ٹپس کے ساتھ نجی چیٹ رومز۔',
+  'footer.col.platform': 'پلیٹ فارم',
+  'footer.col.legal': 'قانونی',
+  'footer.col.support': 'مدد',
+  'footer.link.createChat': 'چیٹ بنائیں',
+  'footer.link.howItWorks': 'یہ کیسے کام کرتا ہے',
+  'footer.link.features': 'خصوصیات',
+  'footer.link.terms': 'سروس کی شرائط',
+  'footer.link.privacy': 'رازداری کی پالیسی',
+  'footer.link.creators': 'تخلیق کاروں کے لیے گائیڈ',
+  'footer.link.contact': 'رابطہ',
+  'footer.rights': 'جملہ حقوق محفوظ ہیں۔',
+  'footer.madeWith': 'تخلیق کاروں کے لیے ❤ سے بنایا گیا',
+
+  // --- Home / landing ---
+  'home.hero.title': 'نجی ون ٹو ون چیٹ رومز',
+  'home.hero.subtitle': 'ویڈیو کال، وائس یا صرف ٹیکسٹ سے جس سے چاہیں چیٹ کریں۔',
+  'home.hero.cta': 'چیٹ روم بنائیں',
+  'home.hero.live': 'لائیو: نجی سیشن',
+  'home.discover.title': 'نئے دوست بنائیں',
+  'home.discover.subtitle': 'انہیں فالو کریں یا چیٹ کے لیے پیغام بھیجیں۔',
+  'home.discover.message': 'پیغام',
+  'home.finalCta.cta': 'چیٹ روم بنائیں',
+
+  // --- Auth ---
+  'auth.login': 'لاگ ان کریں',
+  'auth.signup': 'اکاؤنٹ بنائیں',
+  'auth.email': 'ای میل',
+  'auth.password': 'پاس ورڈ',
+  'auth.displayName': 'آپ کا نام',
+  'auth.haveAccount': 'پہلے سے اکاؤنٹ ہے؟',
+  'auth.noAccount': 'اکاؤنٹ نہیں ہے؟',
+
+  // --- Profile ---
+  'profile.follow': 'فالو کریں',
+  'profile.following': 'فالو کر رہے ہیں',
+  'profile.message': 'پیغام',
+  'profile.messageCta': 'چیٹ کے لیے انہیں پیغام بھیجیں',
+  'profile.followers': 'فالوورز',
+  'profile.followingCount': 'فالوئنگ',
+  'profile.editProfile': 'پروفائل ترمیم کریں',
+  'profile.memberSince': '{date} سے tiptalk.chat پر',
+  'profile.gallery': 'گیلری',
+  'profile.privatePhoto': 'نجی تصویر',
+  'profile.notFound.title': 'پروفائل نہیں ملا',
+  'profile.notFound.body': 'یہ صارف موجود نہیں یا اب دستیاب نہیں۔',
+
+  // --- Messages / composer ---
+  'msg.composer.title': 'اس کے لیے پیغام',
+  'msg.composer.label': 'آپ کا پیغام',
+  'msg.composer.placeholder': 'چیٹ شروع کرنے کے لیے {name} کو لکھیں…',
+  'msg.composer.send': 'پیغام بھیجیں',
+  'msg.composer.sent.title': 'پیغام بھیج دیا گیا!',
+  'msg.composer.sent.body': '{name} کو ای میل پر اطلاع ملے گی تاکہ وہ آپ کو جواب دے سکیں۔',
+  'msg.inbox.title': 'پیغامات',
+  'msg.inbox.empty': 'ابھی کوئی پیغام نہیں',
+  'msg.inbox.reply': 'اپنا جواب لکھیں…',
+
+  // --- Wallet ---
+  'wallet.title': 'والٹ',
+  'wallet.balance': 'بیلنس',
+  'wallet.buy': 'Tipsys خریدیں',
+  'wallet.payout.request': 'ادائیگی کی درخواست',
+  'wallet.activate': 'ادائیگیاں فعال کریں',
+
+  // --- Room / chat ---
+  'chat.send': 'بھیجیں',
+  'chat.placeholder': 'پیغام لکھیں…',
+  'chat.guestCta.q': 'چیٹ پسند آئی؟',
+  'chat.guestCta.link': 'مفت سائن اپ کریں',
+  'chat.guestCta.rest': 'اپنی پروفائل محفوظ کرنے، دوسروں کو فالو کرنے اور اپنے دوستوں سے رابطے میں رہنے کے لیے۔',
+
+  // --- Create room page ---
+  'create.title': 'روم بنائیں',
+  'create.creatingAs': 'آپ {name} کے طور پر بنا رہے ہیں۔',
+  'create.logout': 'لاگ آؤٹ کریں',
+  'create.toCreateAnon': 'بغیر اکاؤنٹ بنانے کے لیے۔',
+  'create.anonDisclaimer': 'آپ کو اکاؤنٹ کی ضرورت نہیں۔ بس اپنا نک اور روم کا نام لکھیں۔',
+  'create.yourNick': 'آپ کا نک',
+  'create.nickPlaceholder': 'آپ کا نام کیا ہے؟',
+  'create.roomName': 'روم کا نام',
+  'create.roomPlaceholder': 'مارتا کی پارٹی',
+  'create.sessionExpired': 'آپ کا سیشن ختم ہو گیا۔ دوبارہ لاگ ان کریں یا مہمان کے طور پر روم بنائیں۔',
+  'create.error': 'روم نہیں بن سکا۔ دوبارہ کوشش کریں۔',
+  'create.login': 'لاگ ان کریں',
+  'create.ready.title': 'آپ کا روم تیار ہے!',
+  'create.ready.subtitle': 'یہ لنک جسے چاہیں مدعو کرنے کے لیے شیئر کریں۔',
+  'create.ready.linkLabel': 'روم کا لنک',
+  'create.ready.copied': 'کاپی ہو گیا',
+  'create.ready.copy': 'کاپی کریں',
+  'create.ready.enter': 'اپنے روم میں داخل ہوں',
+
+  // --- Legacy keys (kept for existing t() callers) ---
+  'landing.title': 'نجی ون ٹو ون چیٹ رومز',
+  'landing.subtitle': 'روم بنائیں، لنک شیئر کریں اور ٹپس وصول کریں۔',
+  'landing.cta.create': 'روم بنائیں',
+  'landing.cta.join': 'روم میں شامل ہوں',
+  'create.name': 'روم کا نام',
+  'create.submit': 'روم بنائیں',
+  'tip.send': 'Tipsy بھیجیں',
+  'wallet.payout.min': 'کم از کم {min} Tipsys',
+};

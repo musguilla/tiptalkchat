@@ -5,6 +5,7 @@ import { X as XIcon, Loader2, Users } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Avatar } from '@/app/admin/_components/Avatar';
 import { FollowButton } from './FollowButton';
+import { useT } from '@/i18n/useLocale';
 
 interface ListUser {
   id: string;
@@ -25,6 +26,7 @@ interface Props {
 }
 
 export function FollowListModal({ open, onClose, userId, mode, token, meId, onNeedAuth }: Props) {
+  const t = useT();
   const [users, setUsers] = useState<ListUser[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -53,13 +55,13 @@ export function FollowListModal({ open, onClose, userId, mode, token, meId, onNe
       >
         <div className="flex items-center justify-between border-b border-surface-container px-5 py-4">
           <h2 className="font-display text-lg font-extrabold text-ink">
-            {mode === 'followers' ? 'Seguidores' : 'Siguiendo'}
+            {mode === 'followers' ? t('cmp.followList.followers') : t('cmp.followList.following')}
           </h2>
           <button
             type="button"
             onClick={onClose}
             className="grid h-8 w-8 place-items-center rounded-md text-ink-muted transition hover:bg-surface-soft"
-            aria-label="Cerrar"
+            aria-label={t('cmp.common.close')}
           >
             <XIcon className="h-5 w-5" />
           </button>
@@ -76,7 +78,7 @@ export function FollowListModal({ open, onClose, userId, mode, token, meId, onNe
                 <Users className="h-6 w-6" />
               </div>
               <p className="mt-3 text-sm text-ink-muted">
-                {mode === 'followers' ? 'Todavía no tiene seguidores.' : 'Todavía no sigue a nadie.'}
+                {mode === 'followers' ? t('cmp.followList.noFollowers') : t('cmp.followList.noFollowing')}
               </p>
             </div>
           ) : (

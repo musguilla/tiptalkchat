@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { uploadVerificationFile } from '@/lib/upload';
+import { useT } from '@/i18n/useLocale';
 
 interface VerificationState {
   status: 'none' | 'pending' | 'verified' | 'rejected';
@@ -33,6 +34,7 @@ interface Props {
  * private bucket and submits for admin review.
  */
 export function AgeVerificationModal({ open, onClose, token, onSubmitted }: Props) {
+  const t = useT();
   const [state, setState] = useState<VerificationState | null>(null);
   const [loading, setLoading] = useState(true);
   const [declared, setDeclared] = useState(false);
@@ -88,7 +90,7 @@ export function AgeVerificationModal({ open, onClose, token, onSubmitted }: Prop
       setDone(true);
       onSubmitted?.();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo enviar la verificación');
+      setError(err instanceof Error ? err.message : t('cmp.age.submitFailed'));
     } finally {
       setBusy(false);
     }
@@ -110,13 +112,13 @@ export function AgeVerificationModal({ open, onClose, token, onSubmitted }: Prop
         <div className="flex items-center justify-between border-b border-surface-container px-5 py-4">
           <h2 className="flex items-center gap-2 font-display text-lg font-extrabold text-ink">
             <ShieldCheck className="h-5 w-5 text-primary-500" />
-            Verificación de edad
+            {t('cmp.age.title')}
           </h2>
           <button
             type="button"
             onClick={onClose}
             className="grid h-8 w-8 place-items-center rounded-md text-ink-muted transition hover:bg-surface-soft"
-            aria-label="Cerrar"
+            aria-label={t('cmp.common.close')}
           >
             <XIcon className="h-5 w-5" />
           </button>
@@ -132,17 +134,16 @@ export function AgeVerificationModal({ open, onClose, token, onSubmitted }: Prop
               <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-amber-50 text-amber-500">
                 <Clock className="h-8 w-8" />
               </div>
-              <h3 className="mt-4 font-display text-xl font-extrabold text-ink">En revisión</h3>
+              <h3 className="mt-4 font-display text-xl font-extrabold text-ink">{t('cmp.age.inReviewTitle')}</h3>
               <p className="mt-2 text-sm text-ink-muted">
-                Hemos recibido tu documentación. Nuestro equipo la revisará lo antes posible y te
-                avisaremos. Podrás activar los cobros en cuanto quede aprobada.
+                {t('cmp.age.inReviewBody')}
               </p>
               <button
                 type="button"
                 onClick={onClose}
                 className="btn-tactile mt-6 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-6 py-2.5 text-sm font-bold text-white shadow-soft hover:shadow-vivid"
               >
-                Entendido
+                {t('cmp.age.gotIt')}
               </button>
             </div>
           ) : status === 'verified' ? (
@@ -150,40 +151,37 @@ export function AgeVerificationModal({ open, onClose, token, onSubmitted }: Prop
               <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-emerald-50 text-emerald-500">
                 <CheckCircle2 className="h-8 w-8" />
               </div>
-              <h3 className="mt-4 font-display text-xl font-extrabold text-ink">Cuenta verificada</h3>
-              <p className="mt-2 text-sm text-ink-muted">Ya puedes activar tus cobros.</p>
+              <h3 className="mt-4 font-display text-xl font-extrabold text-ink">{t('cmp.age.verifiedTitle')}</h3>
+              <p className="mt-2 text-sm text-ink-muted">{t('cmp.age.verifiedBody')}</p>
             </div>
           ) : (
             showForm && (
               <>
                 <p className="text-sm text-ink-muted">
-                  Para recibir dinero necesitamos verificar que eres mayor de edad. Sube una foto de
-                  tu documento de identidad y, si puedes, un selfie sosteniéndolo. Tus documentos se
-                  guardan de forma privada y cifrada y solo los ve nuestro equipo de verificación.
+                  {t('cmp.age.intro')}
                 </p>
 
                 {status === 'rejected' && state?.latest?.rejectionReason && (
                   <div className="mt-3 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
                     <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
                     <span>
-                      Tu verificación anterior fue rechazada: {state.latest.rejectionReason}. Puedes
-                      volver a intentarlo.
+                      {t('cmp.age.rejected', { reason: state.latest.rejectionReason })}
                     </span>
                   </div>
                 )}
 
                 <div className="mt-4 space-y-3">
                   <FilePicker
-                    label="Documento de identidad"
-                    hint="DNI, pasaporte o carné de conducir (jpg, png o pdf)"
+                    label={t('cmp.age.docLabel')}
+                    hint={t('cmp.age.docHint')}
                     file={docFile}
                     inputRef={docRef}
                     onPick={setDocFile}
                     required
                   />
                   <FilePicker
-                    label="Selfie con el documento"
-                    hint="Opcional pero acelera la aprobación"
+                    label={t('cmp.age.selfieLabel')}
+                    hint={t('cmp.age.selfieHint')}
                     file={selfieFile}
                     inputRef={selfieRef}
                     onPick={setSelfieFile}
@@ -198,8 +196,9 @@ export function AgeVerificationModal({ open, onClose, token, onSubmitted }: Prop
                     className="mt-0.5 h-4 w-4 accent-primary-500"
                   />
                   <span className="text-sm text-ink">
-                    Declaro que soy <strong>mayor de 18 años</strong> y que el documento es auténtico y
-                    de mi propiedad.
+                    {t('cmp.age.declarePre')}
+                    <strong>{t('cmp.age.declareBold')}</strong>
+                    {t('cmp.age.declarePost')}
                   </span>
                 </label>
 
@@ -216,7 +215,7 @@ export function AgeVerificationModal({ open, onClose, token, onSubmitted }: Prop
                   className="btn-tactile mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-6 py-3 text-sm font-bold text-white shadow-soft transition hover:shadow-vivid disabled:opacity-50"
                 >
                   {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
-                  Enviar para verificación
+                  {t('cmp.age.submit')}
                 </button>
               </>
             )

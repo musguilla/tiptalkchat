@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-store';
+import { useT } from '@/i18n/useLocale';
 import type {
   AdminLiveCallsResponse,
   AdminObserveTokenResponse,
@@ -35,6 +36,7 @@ interface Tile {
 }
 
 export default function AdminCamaraViewerPage() {
+  const t = useT();
   const params = useParams<{ roomId: string }>();
   const roomId = params.roomId;
   const token = useAuth((s) => s.token);
@@ -129,7 +131,7 @@ export default function AdminCamaraViewerPage() {
       } catch (err) {
         if (!cancelled) {
           setStatus('error');
-          setErrorMsg(err instanceof Error ? err.message : 'No se pudo conectar');
+          setErrorMsg(err instanceof Error ? err.message : t('adb.viewer.connectFailed'));
         }
       }
     }
@@ -195,7 +197,7 @@ export default function AdminCamaraViewerPage() {
         setRecording(true);
       }
     } catch (err) {
-      setRecError(err instanceof Error ? err.message : 'No se pudo cambiar la grabación');
+      setRecError(err instanceof Error ? err.message : t('adb.viewer.recToggleFailed'));
     } finally {
       setRecBusy(false);
     }
@@ -210,15 +212,15 @@ export default function AdminCamaraViewerPage() {
             className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-ink-muted transition hover:bg-surface-soft hover:text-ink"
           >
             <ArrowLeft className="h-4 w-4" />
-            Cámaras
+            {t('adb.viewer.backCameras')}
           </Link>
           <div>
             <h1 className="font-display text-xl font-extrabold tracking-tight text-ink">
-              {roomName || 'Sala en directo'}
+              {roomName || t('adb.viewer.liveRoom')}
             </h1>
             <p className="inline-flex items-center gap-1.5 text-xs text-emerald-600">
               <EyeOff className="h-3.5 w-3.5" />
-              Observando de forma invisible · los participantes no te ven
+              {t('adb.viewer.observing')}
             </p>
           </div>
         </div>
@@ -231,7 +233,7 @@ export default function AdminCamaraViewerPage() {
               className="btn-tactile inline-flex items-center gap-1.5 rounded-md bg-ink px-3 py-2 text-xs font-semibold text-white shadow-soft"
             >
               <VolumeX className="h-3.5 w-3.5" />
-              Activar sonido
+              {t('adb.viewer.enableSound')}
             </button>
           )}
           {recordingAvailable && (
@@ -250,7 +252,7 @@ export default function AdminCamaraViewerPage() {
               ) : (
                 <Circle className={`h-3.5 w-3.5 ${recording ? 'animate-pulse fill-current' : 'fill-current'}`} />
               )}
-              {recording ? 'Detener grabación' : 'Grabar'}
+              {recording ? t('adb.viewer.stopRec') : t('adb.viewer.record')}
             </button>
           )}
         </div>
@@ -267,19 +269,19 @@ export default function AdminCamaraViewerPage() {
           <div className="grid aspect-video place-items-center text-white/70">
             <div className="text-center">
               <Loader2 className="mx-auto h-8 w-8 animate-spin" />
-              <p className="mt-3 text-sm">Conectando con la sala…</p>
+              <p className="mt-3 text-sm">{t('adb.viewer.connecting')}</p>
             </div>
           </div>
         ) : status === 'error' ? (
           <div className="grid aspect-video place-items-center text-center text-white/70">
             <div>
               <VolumeX className="mx-auto h-8 w-8" />
-              <p className="mt-3 text-sm">{errorMsg ?? 'La llamada ha terminado o no está disponible.'}</p>
+              <p className="mt-3 text-sm">{errorMsg ?? t('adb.viewer.callEnded')}</p>
               <Link
                 href="/admin/camaras"
                 className="mt-4 inline-flex items-center gap-1.5 rounded-md bg-white/10 px-3 py-2 text-xs font-semibold text-white hover:bg-white/20"
               >
-                Volver a cámaras
+                {t('adb.viewer.backToCameras')}
               </Link>
             </div>
           </div>
@@ -287,7 +289,7 @@ export default function AdminCamaraViewerPage() {
           <div className="grid aspect-video place-items-center text-center text-white/60">
             <div>
               <Video className="mx-auto h-8 w-8" />
-              <p className="mt-3 text-sm">Conectado. Esperando a que se publique cámara o micrófono…</p>
+              <p className="mt-3 text-sm">{t('adb.viewer.waiting')}</p>
             </div>
           </div>
         ) : (
@@ -301,7 +303,7 @@ export default function AdminCamaraViewerPage() {
 
       <p className="mt-4 flex items-center gap-2 text-xs text-ink-muted">
         <Users className="h-3.5 w-3.5" />
-        {tiles.length} participante(s) publicando · La supervisión queda registrada en los términos aceptados por los usuarios.
+        {t('adb.viewer.participants', { count: tiles.length })}
       </p>
     </div>
   );

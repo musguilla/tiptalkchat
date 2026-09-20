@@ -86,9 +86,9 @@ export function WalletOverlay({ open, onClose }: Props) {
         token,
         body: JSON.stringify({ tipsys: PAYOUT_MIN_TIPSYS }),
       });
-      setMsg(`✓ Solicitud de cobro de ${PAYOUT_MIN_TIPSYS} Tipsys enviada`);
+      setMsg(t('cmp.wallet.payoutRequested', { min: PAYOUT_MIN_TIPSYS }));
     } catch {
-      setMsg('No se pudo solicitar el cobro. ¿Has completado el onboarding de Stripe Connect?');
+      setMsg(t('cmp.wallet.payoutFailed'));
     } finally {
       setBusy(false);
     }
@@ -117,7 +117,7 @@ export function WalletOverlay({ open, onClose }: Props) {
           type="button"
           onClick={onClose}
           className="absolute right-4 top-4 grid h-8 w-8 place-items-center rounded-md text-ink-muted transition hover:bg-surface-soft hover:text-ink"
-          aria-label="Cerrar"
+          aria-label={t('cmp.common.close')}
         >
           <XIcon className="h-4 w-4" />
         </button>
@@ -133,10 +133,10 @@ export function WalletOverlay({ open, onClose }: Props) {
         <section className="mb-4 flex flex-col gap-3 rounded-xl border border-primary-200 bg-primary-50/70 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="font-display text-sm font-bold text-primary-700">
-              Activa los cobros de tus propinas
+              {t('cmp.wallet.activateTitle')}
             </p>
             <p className="text-xs text-primary-700/80">
-              Conecta una cuenta para retirar el dinero de tus Tipsys cuando quieras.
+              {t('cmp.wallet.activateBody')}
             </p>
           </div>
           <button
@@ -144,7 +144,7 @@ export function WalletOverlay({ open, onClose }: Props) {
             disabled={busy}
             className="btn-tactile shrink-0 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-4 py-2 text-xs font-bold text-white shadow-soft hover:shadow-vivid disabled:opacity-60"
           >
-            Activar cobros
+            {t('cmp.wallet.activate')}
           </button>
         </section>
 
@@ -158,7 +158,7 @@ export function WalletOverlay({ open, onClose }: Props) {
           </div>
           {wallet && wallet.balance >= PAYOUT_MIN_TIPSYS && (
             <div className="mt-1 text-sm text-amber-800 dark:text-amber-200">
-              Canjeable hasta:{' '}
+              {t('cmp.wallet.redeemableUpTo')}{' '}
               {formatTipsysAsEur(wallet.balance - (wallet.balance % PAYOUT_MIN_TIPSYS))}
             </div>
           )}
@@ -185,10 +185,10 @@ export function WalletOverlay({ open, onClose }: Props) {
         </section>
 
         <section className="mb-5 space-y-2">
-          <h3 className="text-lg font-bold">Cobro</h3>
+          <h3 className="text-lg font-bold">{t('cmp.wallet.payout')}</h3>
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            {t('wallet.payout.min', { min: PAYOUT_MIN_TIPSYS })} (={' '}
-            {formatTipsysAsEur(PAYOUT_MIN_TIPSYS)} bruto, antes de comisión)
+            {t('wallet.payout.min', { min: PAYOUT_MIN_TIPSYS })}{' '}
+            {t('cmp.wallet.grossNote', { eur: formatTipsysAsEur(PAYOUT_MIN_TIPSYS) })}
           </p>
           <button
             onClick={requestPayout}
@@ -201,15 +201,15 @@ export function WalletOverlay({ open, onClose }: Props) {
         </section>
 
         <section>
-          <h3 className="mb-2 text-lg font-bold">Historial</h3>
+          <h3 className="mb-2 text-lg font-bold">{t('cmp.wallet.history')}</h3>
           <ul className="divide-y divide-zinc-200 rounded-lg border border-zinc-200 dark:divide-zinc-800 dark:border-zinc-800">
             {entries.length === 0 && (
-              <li className="p-3 text-sm text-zinc-500">Sin movimientos todavía.</li>
+              <li className="p-3 text-sm text-zinc-500">{t('cmp.wallet.noMovements')}</li>
             )}
             {entries.map((e) => (
               <li key={e.id} className="flex items-center justify-between p-3 text-sm">
                 <div>
-                  <div className="font-medium">{kindLabel(e.kind)}</div>
+                  <div className="font-medium">{kindLabel(e.kind, t)}</div>
                   <div className="text-xs text-zinc-500">
                     {new Date(e.createdAt).toLocaleString('es-ES')}
                   </div>
@@ -231,18 +231,18 @@ export function WalletOverlay({ open, onClose }: Props) {
   );
 }
 
-function kindLabel(k: string): string {
+function kindLabel(k: string, t: (key: string, vars?: Record<string, string | number>) => string): string {
   switch (k) {
     case 'PURCHASE_CREDIT':
-      return 'Compra de Tipsys';
+      return t('cmp.wallet.ledger.purchase');
     case 'TIP_SENT':
-      return 'Propina enviada';
+      return t('cmp.wallet.ledger.tipSent');
     case 'TIP_RECEIVED':
-      return 'Propina recibida';
+      return t('cmp.wallet.ledger.tipReceived');
     case 'PAYOUT_DEBIT':
-      return 'Cobro solicitado';
+      return t('cmp.wallet.ledger.payoutRequested');
     case 'PAYOUT_REFUND':
-      return 'Devolución de cobro';
+      return t('cmp.wallet.ledger.payoutRefund');
     default:
       return k;
   }

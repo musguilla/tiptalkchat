@@ -1,4 +1,5 @@
 'use client';
+import { useT } from '@/i18n/useLocale';
 
 export interface OnlineDotProps {
   online: boolean;
@@ -10,11 +11,13 @@ export interface OnlineDotProps {
 
 /** Green pulsing dot when online, grey when offline. */
 export function OnlineDot({ online, label, size = 'sm', className = '' }: OnlineDotProps) {
+  const t = useT();
   const dim = size === 'md' ? 'h-3 w-3' : 'h-2.5 w-2.5';
+  const stateLabel = online ? t('adb.online.on') : t('adb.online.off');
   return (
     <span
       className={`inline-flex items-center gap-1.5 ${className}`}
-      title={label ?? (online ? 'En línea' : 'Desconectado')}
+      title={label ?? stateLabel}
     >
       <span className={`relative inline-flex ${dim}`} aria-hidden>
         {online && (
@@ -31,7 +34,7 @@ export function OnlineDot({ online, label, size = 'sm', className = '' }: Online
           {label}
         </span>
       )}
-      {!label && <span className="sr-only">{online ? 'En línea' : 'Desconectado'}</span>}
+      {!label && <span className="sr-only">{stateLabel}</span>}
     </span>
   );
 }

@@ -69,9 +69,9 @@ export default function WalletPage() {
         token,
         body: JSON.stringify({ tipsys: PAYOUT_MIN_TIPSYS }),
       });
-      setMsg(`✓ Solicitud de cobro de ${PAYOUT_MIN_TIPSYS} Tipsys enviada`);
+      setMsg(t('pg.wallet.payoutRequested', { min: PAYOUT_MIN_TIPSYS }));
     } catch (err) {
-      setMsg('No se pudo solicitar el cobro. ¿Has completado el onboarding de Stripe Connect?');
+      setMsg(t('pg.wallet.payoutError'));
     } finally {
       setBusy(false);
     }
@@ -91,7 +91,7 @@ export default function WalletPage() {
   if (!token) {
     return (
       <main className="grid min-h-screen place-items-center">
-        <Link className="text-primary-500 underline" href="/login">Inicia sesión</Link>
+        <Link className="text-primary-500 underline" href="/login">{t('pg.wallet.signIn')}</Link>
       </main>
     );
   }
@@ -103,7 +103,7 @@ export default function WalletPage() {
           <Logo className="text-xl" />
         </Link>
         <div className="flex items-center gap-2">
-          <Link href="/create" className="text-sm font-semibold text-primary-500 hover:underline">+ Crear sala</Link>
+          <Link href="/create" className="text-sm font-semibold text-primary-500 hover:underline">{t('pg.wallet.createRoom')}</Link>
           <button
             type="button"
             onClick={() => {
@@ -111,8 +111,8 @@ export default function WalletPage() {
               else router.push('/');
             }}
             className="grid h-9 w-9 place-items-center rounded-md bg-surface-container text-ink-muted transition hover:bg-surface-high hover:text-ink"
-            title="Volver"
-            aria-label="Volver al chat"
+            title={t('pg.wallet.back')}
+            aria-label={t('pg.wallet.backToChat')}
           >
             <XIcon className="h-4 w-4" />
           </button>
@@ -123,10 +123,10 @@ export default function WalletPage() {
       <section className="flex flex-col gap-3 rounded-xl border border-primary-200 bg-primary-50/70 p-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="font-display text-sm font-bold text-primary-700">
-            Activa los cobros de tus propinas
+            {t('pg.wallet.activatePayouts')}
           </p>
           <p className="text-xs text-primary-700/80">
-            Conecta una cuenta para retirar el dinero de tus Tipsys cuando quieras.
+            {t('pg.wallet.activatePayoutsDesc')}
           </p>
         </div>
         <button
@@ -134,7 +134,7 @@ export default function WalletPage() {
           disabled={busy}
           className="btn-tactile shrink-0 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-4 py-2 text-xs font-bold text-white shadow-soft hover:shadow-vivid disabled:opacity-60"
         >
-          Activar cobros
+          {t('pg.wallet.activatePayoutsBtn')}
         </button>
       </section>
 
@@ -147,7 +147,7 @@ export default function WalletPage() {
         </div>
         {wallet && wallet.balance >= PAYOUT_MIN_TIPSYS && (
           <div className="mt-1 text-sm text-amber-800 dark:text-amber-200">
-            Canjeable hasta: {formatTipsysAsEur(wallet.balance - (wallet.balance % PAYOUT_MIN_TIPSYS))}
+            {t('pg.wallet.redeemable', { amount: formatTipsysAsEur(wallet.balance - (wallet.balance % PAYOUT_MIN_TIPSYS)) })}
           </div>
         )}
       </section>
@@ -173,11 +173,10 @@ export default function WalletPage() {
       </section>
 
       <section className="space-y-2">
-        <h2 className="text-lg font-bold">Cobro</h2>
+        <h2 className="text-lg font-bold">{t('pg.wallet.payoutTitle')}</h2>
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          {t('wallet.payout.min', { min: PAYOUT_MIN_TIPSYS })} (=
-          {' '}
-          {formatTipsysAsEur(PAYOUT_MIN_TIPSYS)} bruto, antes de comisión)
+          {t('wallet.payout.min', { min: PAYOUT_MIN_TIPSYS })}{' '}
+          {t('pg.wallet.payoutGross', { eur: formatTipsysAsEur(PAYOUT_MIN_TIPSYS) })}
         </p>
         <button
           onClick={requestPayout}
@@ -190,15 +189,15 @@ export default function WalletPage() {
       </section>
 
       <section>
-        <h2 className="mb-2 text-lg font-bold">Historial</h2>
+        <h2 className="mb-2 text-lg font-bold">{t('pg.wallet.history')}</h2>
         <ul className="divide-y divide-zinc-200 rounded-lg border border-zinc-200 dark:divide-zinc-800 dark:border-zinc-800">
           {entries.length === 0 && (
-            <li className="p-3 text-sm text-zinc-500">Sin movimientos todavía.</li>
+            <li className="p-3 text-sm text-zinc-500">{t('pg.wallet.noMovements')}</li>
           )}
           {entries.map((e) => (
             <li key={e.id} className="flex items-center justify-between p-3 text-sm">
               <div>
-                <div className="font-medium">{kindLabel(e.kind)}</div>
+                <div className="font-medium">{kindLabel(e.kind, t)}</div>
                 <div className="text-xs text-zinc-500">
                   {new Date(e.createdAt).toLocaleString('es-ES')}
                 </div>
@@ -215,18 +214,18 @@ export default function WalletPage() {
   );
 }
 
-function kindLabel(k: string): string {
+function kindLabel(k: string, t: (key: string, vars?: Record<string, string | number>) => string): string {
   switch (k) {
     case 'PURCHASE_CREDIT':
-      return 'Compra de Tipsys';
+      return t('pg.wallet.kind.purchase');
     case 'TIP_SENT':
-      return 'Propina enviada';
+      return t('pg.wallet.kind.tipSent');
     case 'TIP_RECEIVED':
-      return 'Propina recibida';
+      return t('pg.wallet.kind.tipReceived');
     case 'PAYOUT_DEBIT':
-      return 'Cobro solicitado';
+      return t('pg.wallet.kind.payoutDebit');
     case 'PAYOUT_REFUND':
-      return 'Devolución de cobro';
+      return t('pg.wallet.kind.payoutRefund');
     default:
       return k;
   }

@@ -28,7 +28,7 @@ export default function LoginPage() {
       setSession(res.token, res.user);
       router.push('/create');
     } catch {
-      setError('Credenciales inválidas');
+      setError(t('pg.login.invalidCredentials'));
     } finally {
       setLoading(false);
     }
@@ -53,7 +53,7 @@ export default function LoginPage() {
           {loading ? '…' : t('auth.login')}
         </button>
         <p className="text-center text-sm text-ink-muted">
-          ¿Sin cuenta?{' '}
+          {t('pg.login.noAccount')}{' '}
           <Link href="/signup" className="font-semibold text-primary-500 hover:underline">
             {t('auth.signup')}
           </Link>

@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { Search, X as XIcon } from 'lucide-react';
+import { useT } from '@/i18n/useLocale';
 
 /**
  * Controlled locally, committed to the parent after a 300 ms pause. `initial`
@@ -10,7 +11,7 @@ import { Search, X as XIcon } from 'lucide-react';
 export function SearchInput({
   initial,
   onCommit,
-  placeholder = 'Buscar…',
+  placeholder,
   className = '',
 }: {
   initial: string;
@@ -18,6 +19,7 @@ export function SearchInput({
   placeholder?: string;
   className?: string;
 }) {
+  const t = useT();
   const [value, setValue] = useState(initial);
   const commitRef = useRef(onCommit);
   commitRef.current = onCommit;
@@ -36,14 +38,14 @@ export function SearchInput({
         type="search"
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        placeholder={placeholder}
+        placeholder={placeholder ?? t('adb.search.placeholder')}
         className="h-10 w-full rounded-full border border-surface-container bg-white pl-9 pr-9 text-sm text-ink shadow-soft outline-none transition placeholder:text-ink-soft focus:border-primary-500"
       />
       {value && (
         <button
           type="button"
           onClick={() => setValue('')}
-          aria-label="Limpiar búsqueda"
+          aria-label={t('adb.search.clear')}
           className="absolute right-2 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full text-ink-soft transition hover:bg-surface-soft hover:text-ink"
         >
           <XIcon className="h-3.5 w-3.5" />

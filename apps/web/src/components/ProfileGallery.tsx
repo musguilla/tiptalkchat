@@ -14,6 +14,7 @@ import {
 import { api } from '@/lib/api';
 import { uploadGalleryPhoto } from '@/lib/upload';
 import { SectionCard } from './SectionCard';
+import { useT } from '@/i18n/useLocale';
 
 interface GalleryPhoto {
   id: string;
@@ -47,6 +48,7 @@ export function ProfileGallery({
   ownRooms: OpenRoom[];
   onMessage?: () => void;
 }) {
+  const t = useT();
   const [photos, setPhotos] = useState<GalleryPhoto[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [uploadPct, setUploadPct] = useState<number | null>(null);
@@ -81,7 +83,7 @@ export function ProfileGallery({
         });
         setPhotos((prev) => [{ ...created, viewerCanSee: true }, ...prev]);
       } catch (err) {
-        setUploadError(err instanceof Error ? err.message : 'No se pudo subir');
+        setUploadError(err instanceof Error ? err.message : t('cmp.profileGallery.uploadFailed'));
       } finally {
         setUploadPct(null);
       }
@@ -108,7 +110,7 @@ export function ProfileGallery({
 
   async function deletePhoto(p: GalleryPhoto): Promise<void> {
     if (!token) return;
-    if (!confirm('¿Borrar esta foto?')) return;
+    if (!confirm(t('cmp.profileGallery.confirmDelete'))) return;
     try {
       await api(`/users/me/photos/${p.id}`, { method: 'DELETE', token });
       setPhotos((prev) => prev.filter((x) => x.id !== p.id));
@@ -147,13 +149,16 @@ export function ProfileGallery({
 
   return (
     <SectionCard
-      title="Galería"
+      title={t('cmp.profileGallery.title')}
       icon={<ImageIcon className="h-4 w-4" />}
       className="mt-4"
       action={
         <>
           <span className="text-sm text-ink-muted">
-            {photos.length} foto(s) · {photos.filter((p) => p.isPublic).length} pública(s)
+            {t('cmp.profileGallery.count', {
+              total: photos.length,
+              public: photos.filter((p) => p.isPublic).length,
+            })}
           </span>
           {isSelf && (
           <button
@@ -168,7 +173,7 @@ export function ProfileGallery({
               </>
             ) : (
               <>
-                <Plus className="h-3 w-3" /> Subir foto
+                <Plus className="h-3 w-3" /> {t('cmp.profileGallery.upload')}
               </>
             )}
           </button>
@@ -205,8 +210,8 @@ export function ProfileGallery({
           </div>
           <p className="mt-3 max-w-sm text-sm text-ink-muted">
             {isSelf
-              ? 'Tu galería está vacía. Sube tu primera foto y decide si es pública o privada.'
-              : 'Este usuario aún no ha compartido fotos públicas.'}
+              ? t('cmp.profileGallery.emptySelf')
+              : t('cmp.profileGallery.emptyOther')}
           </p>
         </div>
       ) : (
@@ -228,7 +233,7 @@ export function ProfileGallery({
                   <div className="grid h-10 w-10 place-items-center rounded-full bg-white/70 text-ink-muted shadow-soft">
                     <Lock className="h-5 w-5" />
                   </div>
-                  <p className="text-[11px] font-medium text-ink-muted">Foto privada</p>
+                  <p className="text-[11px] font-medium text-ink-muted">{t('cmp.profileGallery.privatePhoto')}</p>
                   {onMessage && (
                     <button
                       type="button"
@@ -236,7 +241,7 @@ export function ProfileGallery({
                       className="btn-tactile inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-3 py-1.5 text-[11px] font-bold text-white shadow-soft hover:shadow-vivid"
                     >
                       <MessageCircle className="h-3 w-3" />
-                      Mensaje
+                      {t('cmp.profileGallery.message')}
                     </button>
                   )}
                 </div>
@@ -252,7 +257,7 @@ export function ProfileGallery({
                 }`}
               >
                 {p.isPublic ? <Eye className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
-                {p.isPublic ? 'Pública' : 'Privada'}
+                {p.isPublic ? t('cmp.profileGallery.public') : t('cmp.profileGallery.private')}
               </span>
               )}
 
@@ -262,7 +267,7 @@ export function ProfileGallery({
                   <button
                     type="button"
                     onClick={() => togglePublic(p)}
-                    title={p.isPublic ? 'Marcar privada' : 'Marcar pública'}
+                    title={p.isPublic ? t('cmp.profileGallery.makePrivate') : t('cmp.profileGallery.makePublic')}
                     className="grid h-8 w-8 place-items-center rounded-md bg-white/95 text-ink shadow-soft hover:bg-white"
                   >
                     {p.isPublic ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
@@ -273,7 +278,7 @@ export function ProfileGallery({
                       onClick={() =>
                         setSendPickerFor((s) => (s === p.id ? null : p.id))
                       }
-                      title="Enviar al chat"
+                      title={t('cmp.profileGallery.sendToChat')}
                       className="grid h-8 w-8 place-items-center rounded-md bg-white/95 text-primary-500 shadow-soft hover:bg-white"
                     >
                       <Send className="h-3.5 w-3.5" />
@@ -282,7 +287,7 @@ export function ProfileGallery({
                   <button
                     type="button"
                     onClick={() => deletePhoto(p)}
-                    title="Borrar"
+                    title={t('cmp.profileGallery.delete')}
                     className="grid h-8 w-8 place-items-center rounded-md bg-white/95 text-red-500 shadow-soft hover:bg-white"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
@@ -297,7 +302,7 @@ export function ProfileGallery({
                   onClick={(e) => e.stopPropagation()}
                 >
                   <p className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-ink-muted">
-                    Enviar a…
+                    {t('cmp.profileGallery.sendTo')}
                   </p>
                   {ownRooms.map((r) => (
                     <button

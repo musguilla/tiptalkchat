@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Ban, Loader2, ShieldOff, Trash2, Users as UsersIcon } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-store';
+import { useT } from '@/i18n/useLocale';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { useAdminFetch } from '../_components/useAdminFetch';
 import { readPage, useUrlState } from '../_components/useUrlState';
@@ -24,14 +25,16 @@ import type { AdminUserRow, AdminUsersResponse, BlockResponse } from '../_compon
 const LIMIT = 25;
 
 export default function AdminUsersPage() {
+  const t = useT();
   return (
-    <Suspense fallback={<PageHeader title="Usuarios" />}>
+    <Suspense fallback={<PageHeader title={t('adm.users.title')} />}>
       <UsersPageInner />
     </Suspense>
   );
 }
 
 function UsersPageInner() {
+  const t = useT();
   const router = useRouter();
   const token = useAuth((s) => s.token);
   const meId = useAuth((s) => s.user?.id);
@@ -96,14 +99,14 @@ function UsersPageInner() {
   return (
     <div>
       <PageHeader
-        title="Usuarios"
-        subtitle="Cuentas registradas, monedero y estado de conexión."
+        title={t('adm.users.title')}
+        subtitle={t('adm.users.subtitle')}
         refreshing={refreshing}
       >
         <SearchInput
           initial={q}
           onCommit={commitSearch}
-          placeholder="Buscar por email o nombre…"
+          placeholder={t('adm.users.searchPlaceholder')}
           className="w-full sm:w-72"
         />
       </PageHeader>
@@ -117,20 +120,20 @@ function UsersPageInner() {
         ) : rows.length === 0 ? (
           <EmptyState
             icon={<UsersIcon className="h-6 w-6" />}
-            title={q ? `Sin resultados para «${q}»` : 'Todavía no hay usuarios'}
-            hint={q ? 'Prueba con otro email o nombre.' : undefined}
+            title={q ? t('adm.users.emptySearch', { q }) : t('adm.users.empty')}
+            hint={q ? t('adm.users.emptySearchHint') : undefined}
             className="border-0"
           />
         ) : (
           <TableShell minWidth="min-w-[820px]">
             <TableHead>
-              <Th>Usuario</Th>
-              <Th>Rol</Th>
-              <Th>Estado</Th>
-              <Th align="right">Monedero</Th>
-              <Th align="right">Salas</Th>
-              <Th>Alta</Th>
-              <Th align="right">Acciones</Th>
+              <Th>{t('adm.users.col.user')}</Th>
+              <Th>{t('adm.users.col.role')}</Th>
+              <Th>{t('adm.users.col.status')}</Th>
+              <Th align="right">{t('adm.users.col.wallet')}</Th>
+              <Th align="right">{t('adm.users.col.rooms')}</Th>
+              <Th>{t('adm.users.col.joined')}</Th>
+              <Th align="right">{t('adm.common.actions')}</Th>
             </TableHead>
             <tbody>
               {rows.map((u, i) => {
@@ -157,10 +160,10 @@ function UsersPageInner() {
                             {u.blockedAt && (
                               <Badge tone="danger">
                                 <Ban className="h-3 w-3" />
-                                Bloqueado
+                                {t('adm.common.blocked')}
                               </Badge>
                             )}
-                            {isSelf && <Badge tone="info">Tú</Badge>}
+                            {isSelf && <Badge tone="info">{t('adm.common.you')}</Badge>}
                           </p>
                           <p className="truncate text-xs text-ink-muted">{u.email}</p>
                         </div>
@@ -170,7 +173,7 @@ function UsersPageInner() {
                       <RolePill role={u.role} />
                     </Td>
                     <Td>
-                      <OnlineDot online={u.online} label={u.online ? 'En línea' : 'Desconectado'} />
+                      <OnlineDot online={u.online} label={u.online ? t('adm.common.online') : t('adm.common.offline')} />
                     </Td>
                     <Td align="right">
                       <p className="font-semibold tabular-nums text-ink">{formatTipsys(u.walletBalance)}</p>
@@ -191,7 +194,7 @@ function UsersPageInner() {
                                 ? [
                                     {
                                       key: 'block',
-                                      label: u.blockedAt ? 'Desbloquear' : 'Bloquear',
+                                      label: u.blockedAt ? t('adm.common.unblock') : t('adm.common.block'),
                                       icon: u.blockedAt ? (
                                         <ShieldOff className="h-4 w-4" />
                                       ) : (
@@ -203,7 +206,7 @@ function UsersPageInner() {
                                 : []),
                               {
                                 key: 'delete',
-                                label: 'Eliminar usuario',
+                                label: t('adm.users.deleteUser'),
                                 icon: <Trash2 className="h-4 w-4" />,
                                 tone: 'danger' as const,
                                 onClick: () => {
@@ -238,15 +241,15 @@ function UsersPageInner() {
 
       <ConfirmDialog
         open={pending !== null}
-        title={pending?.blockedAt ? 'Desbloquear usuario' : 'Bloquear usuario'}
+        title={pending?.blockedAt ? t('adm.users.unblockTitle') : t('adm.users.blockTitle')}
         description={
           pending
             ? pending.blockedAt
-              ? `${pending.displayName} (${pending.email}) podrá volver a iniciar sesión y usar tiptalk.chat.`
-              : `${pending.displayName} (${pending.email}) no podrá iniciar sesión ni usar la plataforma hasta que lo desbloquees.`
+              ? t('adm.users.unblockDesc', { name: pending.displayName, email: pending.email })
+              : t('adm.users.blockDesc', { name: pending.displayName, email: pending.email })
             : undefined
         }
-        confirmLabel={pending?.blockedAt ? 'Desbloquear' : 'Bloquear'}
+        confirmLabel={pending?.blockedAt ? t('adm.common.unblock') : t('adm.common.block')}
         tone={pending?.blockedAt ? 'primary' : 'danger'}
         busy={busy}
         onConfirm={() => void confirmToggleBlock()}
@@ -268,14 +271,12 @@ function UsersPageInner() {
           >
             <div className="border-b border-surface-container px-5 py-4">
               <h2 className="flex items-center gap-2 font-display text-lg font-extrabold text-red-600">
-                <Trash2 className="h-5 w-5" /> Eliminar usuario
+                <Trash2 className="h-5 w-5" /> {t('adm.users.deleteTitle')}
               </h2>
             </div>
             <div className="p-5">
               <p className="text-sm text-ink">
-                Vas a eliminar a <strong>{deleteTarget.displayName}</strong> ({deleteTarget.email}) y{' '}
-                <strong>todas sus salas</strong>, mensajes, monedero, propinas y seguidores. Esta acción
-                no se puede deshacer.
+                {t('adm.users.deleteBody', { name: deleteTarget.displayName, email: deleteTarget.email })}
               </p>
               <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-xl border border-surface-container bg-surface-soft/50 p-3">
                 <input
@@ -285,10 +286,9 @@ function UsersPageInner() {
                   className="mt-0.5 h-4 w-4 accent-red-600"
                 />
                 <span className="text-sm text-ink">
-                  <span className="font-semibold">Borrar también todo su media</span>
+                  <span className="font-semibold">{t('adm.users.deleteMedia')}</span>
                   <span className="mt-0.5 block text-xs text-ink-muted">
-                    Avatar, fotos de su galería y los archivos que subió a los chats. Si lo dejas sin
-                    marcar, esos archivos se conservan en el almacenamiento.
+                    {t('adm.users.deleteMediaHint')}
                   </span>
                 </span>
               </label>
@@ -304,7 +304,7 @@ function UsersPageInner() {
                   onClick={() => setDeleteTarget(null)}
                   className="rounded-full px-4 py-2 text-sm font-semibold text-ink-muted transition hover:bg-surface-soft disabled:opacity-50"
                 >
-                  Cancelar
+                  {t('adm.common.cancel')}
                 </button>
                 <button
                   type="button"
@@ -317,7 +317,7 @@ function UsersPageInner() {
                   ) : (
                     <Trash2 className="h-4 w-4" />
                   )}
-                  Eliminar definitivamente
+                  {t('adm.users.deleteConfirm')}
                 </button>
               </div>
             </div>

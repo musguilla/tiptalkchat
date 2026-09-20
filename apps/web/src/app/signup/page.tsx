@@ -29,7 +29,7 @@ export default function SignupPage() {
       setSession(res.token, res.user);
       router.push('/create');
     } catch {
-      setError('Error al crear cuenta');
+      setError(t('pg.signup.error'));
     } finally {
       setLoading(false);
     }
@@ -60,7 +60,7 @@ export default function SignupPage() {
           {loading ? '…' : t('auth.signup')}
         </button>
         <p className="text-center text-sm text-ink-muted">
-          ¿Ya tienes cuenta?{' '}
+          {t('pg.signup.haveAccount')}{' '}
           <Link href="/login" className="font-semibold text-primary-500 hover:underline">
             {t('auth.login')}
           </Link>

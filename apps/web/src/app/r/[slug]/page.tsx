@@ -19,7 +19,7 @@ import { AttachButton } from '@/components/AttachButton';
 import { CallPanel } from '@/components/CallPanel';
 import type { ChatMessage, Identity } from '@/components/types';
 import { t } from '@/i18n';
-import { useLocale } from '@/i18n/useLocale';
+import { useLocale, useT } from '@/i18n/useLocale';
 
 interface RoomData {
   id: string;
@@ -60,6 +60,7 @@ export default function RoomPage() {
   const router = useRouter();
   const { token, user, clear } = useAuth();
   const roomLocale = useLocale();
+  const tt = useT();
   const [room, setRoom] = useState<RoomData | null>(null);
   const [roomGone, setRoomGone] = useState(false);
   const [needsName, setNeedsName] = useState(false);
@@ -446,15 +447,13 @@ export default function RoomPage() {
       } else if (msg.includes('400')) {
         // Most likely the room creator is anonymous and can't receive yet.
         setTipTarget(null);
-        setUploadError(
-          'Este anfitrión aún no ha activado los pagos. Pídele que pulse "Activar pagos" en la sala.',
-        );
+        setUploadError(tt('pg.room.hostNoPayments'));
       } else {
         setTipTarget(null);
-        setUploadError('No se pudo enviar la propina: ' + msg);
+        setUploadError(tt('pg.room.tipFailed', { err: msg }));
       }
     }
-  }, [tipEurCents, tipTarget, room, chatAuth, refreshWallet]);
+  }, [tipEurCents, tipTarget, room, chatAuth, refreshWallet, tt]);
 
   const confirmCloseRoom = useCallback(async () => {
     if (!room || !chatAuth) return;
@@ -482,10 +481,10 @@ export default function RoomPage() {
       setClosingRoom(false);
       setShowCloseConfirm(false);
       setUploadError(
-        'No se pudo cerrar la sala: ' + (err instanceof Error ? err.message : 'error'),
+        tt('pg.room.closeFailed', { err: err instanceof Error ? err.message : 'error' }),
       );
     }
-  }, [room, chatAuth, router, hostToken, params.slug]);
+  }, [room, chatAuth, router, hostToken, params.slug, tt]);
 
   const startGuestTopup = useCallback(async () => {
     if (!room || !topupEmail || !guestToken) return;
@@ -502,10 +501,10 @@ export default function RoomPage() {
       });
       window.location.href = res.url;
     } catch (err) {
-      alert('No se pudo iniciar el pago: ' + (err instanceof Error ? err.message : 'error'));
+      alert(tt('pg.room.topupFailed', { err: err instanceof Error ? err.message : 'error' }));
       setTopupBusy(false);
     }
-  }, [room, topupEmail, topupEurCents, guestToken]);
+  }, [room, topupEmail, topupEurCents, guestToken, tt]);
 
   // Show "tip sent" toast after returning from Stripe Checkout.
   const [tipToast, setTipToast] = useState<string | null>(null);
@@ -515,7 +514,7 @@ export default function RoomPage() {
     const tip = url.searchParams.get('tip');
     const topup = url.searchParams.get('topup');
     if (tip === 'success' || topup === 'success') {
-      setTipToast(topup ? '✅ ¡Saldo recargado! Ya puedes enviar propinas.' : '✅ ¡Propina enviada!');
+      setTipToast(topup ? tt('pg.room.topupToast') : tt('pg.room.tipToast'));
       url.searchParams.delete('tip');
       url.searchParams.delete('topup');
       url.searchParams.delete('session');
@@ -525,7 +524,7 @@ export default function RoomPage() {
       return () => clearTimeout(t);
     }
     if (tip === 'cancelled' || topup === 'cancelled') {
-      setTipToast('Pago cancelado.');
+      setTipToast(tt('pg.room.paymentCancelled'));
       url.searchParams.delete('tip');
       url.searchParams.delete('topup');
       window.history.replaceState({}, '', url.toString());
@@ -542,7 +541,7 @@ export default function RoomPage() {
   if (!room) {
     return (
       <main className="grid min-h-screen place-items-center">
-        <div className="text-zinc-500">Cargando sala…</div>
+        <div className="text-zinc-500">{tt('pg.room.loading')}</div>
       </main>
     );
   }
@@ -558,20 +557,20 @@ export default function RoomPage() {
           }}
           className="w-full max-w-sm space-y-4 rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900"
         >
-          <h1 className="text-xl font-bold">Unirse a {room.name}</h1>
+          <h1 className="text-xl font-bold">{tt('pg.room.joinTitle', { name: room.name })}</h1>
           {needsName && (
             <label className="block space-y-1 text-sm">
-              <span className="font-medium">Tu nombre</span>
+              <span className="font-medium">{tt('pg.room.yourName')}</span>
               <input required value={guestName} onChange={(e) => setGuestName(e.target.value)} className="w-full rounded-md border border-zinc-300 bg-white p-2 dark:border-zinc-700 dark:bg-zinc-800" />
             </label>
           )}
           {needsPin && (
             <label className="block space-y-1 text-sm">
-              <span className="font-medium">PIN</span>
+              <span className="font-medium">{tt('pg.room.pin')}</span>
               <input type="password" required value={pin} onChange={(e) => setPin(e.target.value)} className="w-full rounded-md border border-zinc-300 bg-white p-2 dark:border-zinc-700 dark:bg-zinc-800" />
             </label>
           )}
-          <button className="w-full rounded-md bg-primary-500 px-4 py-2 font-semibold text-white">Entrar</button>
+          <button className="w-full rounded-md bg-primary-500 px-4 py-2 font-semibold text-white">{tt('pg.room.enter')}</button>
         </form>
       </main>
     );
@@ -593,14 +592,14 @@ export default function RoomPage() {
               <button
                 onClick={() => startCall('audio')}
                 className="grid h-9 w-9 place-items-center rounded-md bg-emerald-100 text-emerald-900 hover:bg-emerald-200 dark:bg-emerald-900 dark:text-emerald-100"
-                title="Llamada de voz"
+                title={tt('pg.room.voiceCall')}
               >
                 <Phone className="h-4 w-4" />
               </button>
               <button
                 onClick={() => startCall('video')}
                 className="grid h-9 w-9 place-items-center rounded-md bg-emerald-100 text-emerald-900 hover:bg-emerald-200 dark:bg-emerald-900 dark:text-emerald-100"
-                title="Videollamada"
+                title={tt('pg.room.videoCall')}
               >
                 <Video className="h-4 w-4" />
               </button>
@@ -610,8 +609,8 @@ export default function RoomPage() {
           <button
             onClick={() => setMobileSidebarOpen(true)}
             className="grid h-9 w-9 place-items-center rounded-md bg-surface-soft text-ink-muted hover:bg-surface-container hover:text-ink md:hidden"
-            title="Personas y galería"
-            aria-label="Abrir panel"
+            title={tt('pg.room.peopleGallery')}
+            aria-label={tt('pg.room.openPanel')}
           >
             <Users className="h-4 w-4" />
           </button>
@@ -620,10 +619,10 @@ export default function RoomPage() {
             <button
               onClick={() => setAuthOverlay('upgrade')}
               className="btn-tactile whitespace-nowrap rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-3 py-1.5 text-xs font-semibold text-white shadow-soft hover:shadow-vivid"
-              title="Activar propinas para esta sala"
+              title={tt('pg.room.enableTipsTitle')}
             >
-              <span className="sm:hidden">Cobrar</span>
-              <span className="hidden sm:inline">Activar propinas en el chat</span>
+              <span className="sm:hidden">{tt('pg.room.getPaidShort')}</span>
+              <span className="hidden sm:inline">{tt('pg.room.enableTipsChat')}</span>
             </button>
           )}
           {/* Visitor: prominent CTA to tip the host */}
@@ -631,10 +630,10 @@ export default function RoomPage() {
             <button
               onClick={() => setTipTarget({ kind: 'room', id: room.id })}
               className="btn-tactile whitespace-nowrap rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-3 py-1.5 text-xs font-semibold text-white shadow-soft hover:shadow-vivid"
-              title="Enviar propinas al anfitrión"
+              title={tt('pg.room.tipHostTitle')}
             >
-              <span className="sm:hidden">Tipear</span>
-              <span className="hidden sm:inline">Dale propinas a tu compi de chat!</span>
+              <span className="sm:hidden">{tt('pg.room.tipShort')}</span>
+              <span className="hidden sm:inline">{tt('pg.room.tipBuddy')}</span>
             </button>
           )}
           {token && (
@@ -643,7 +642,7 @@ export default function RoomPage() {
               onClick={() => setWalletOpen(true)}
               className="rounded-md bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-900 hover:bg-amber-200 dark:bg-amber-900 dark:text-amber-100"
             >
-              Monedero
+              {tt('pg.room.wallet')}
             </button>
           )}
           {user && (
@@ -656,8 +655,8 @@ export default function RoomPage() {
                   router.push('/');
                 }}
                 className="grid h-9 w-9 place-items-center rounded-md text-ink-muted transition hover:bg-surface-soft hover:text-ink"
-                title="Cerrar sesión"
-                aria-label="Cerrar sesión"
+                title={tt('pg.room.logout')}
+                aria-label={tt('pg.room.logout')}
               >
                 <LogOut className="h-4 w-4" />
               </button>
@@ -698,7 +697,7 @@ export default function RoomPage() {
           {uploadError && (
             <div className="border-t border-red-200 bg-red-50 px-3 py-1 text-xs text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
               {uploadError}
-              <button onClick={() => setUploadError(null)} className="ml-2 underline">cerrar</button>
+              <button onClick={() => setUploadError(null)} className="ml-2 underline">{tt('pg.room.closeBanner')}</button>
             </div>
           )}
           <form
@@ -713,7 +712,7 @@ export default function RoomPage() {
                 type="button"
                 onClick={() => setTipTarget({ kind: 'room', id: room.id })}
                 className="grid h-10 w-10 place-items-center rounded-md bg-amber-100 text-amber-900 hover:bg-amber-200 dark:bg-amber-900 dark:text-amber-100"
-                title="Propina al chat"
+                title={tt('pg.room.tipToChat')}
               >
                 <Coins className="h-5 w-5" />
               </button>
@@ -784,9 +783,9 @@ export default function RoomPage() {
           <div className="absolute inset-0 grid place-items-center bg-black/40 p-4">
             <div className="w-full max-w-sm space-y-4 rounded-xl bg-white p-5 dark:bg-zinc-900">
               <div className="flex items-baseline justify-between">
-                <h3 className="text-lg font-bold">Enviar propina</h3>
+                <h3 className="text-lg font-bold">{tt('pg.room.sendTip')}</h3>
                 <span className="text-xs text-zinc-500">
-                  Saldo: <strong className="text-zinc-900 dark:text-zinc-100">
+                  {tt('pg.room.balanceLabel')} <strong className="text-zinc-900 dark:text-zinc-100">
                     {walletBalance !== null ? formatTipsysAsEur(walletBalance) : '…'}
                   </strong>
                 </span>
@@ -796,7 +795,7 @@ export default function RoomPage() {
                 <>
                   <div>
                     <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">
-                      Cantidad
+                      {tt('pg.room.amount')}
                     </div>
                     <div className="grid grid-cols-4 gap-2">
                       {TIP_BUTTONS.map((p) => (
@@ -819,34 +818,34 @@ export default function RoomPage() {
 
                   {walletBalance !== null && walletBalance < eurCentsToTipsys(tipEurCents) ? (
                     <div className="rounded-md bg-amber-50 p-3 text-sm text-amber-900 dark:bg-amber-900/30 dark:text-amber-100">
-                      Saldo insuficiente para esta propina.{' '}
+                      {tt('pg.room.insufficient')}{' '}
                       <button onClick={() => setShowTopup(true)} className="font-bold underline">
-                        Recargar saldo
+                        {tt('pg.room.topupBalance')}
                       </button>
                     </div>
                   ) : null}
 
                   <div className="flex justify-end gap-2">
                     <button onClick={() => setTipTarget(null)} className="rounded-md px-3 py-2 text-sm">
-                      Cancelar
+                      {tt('pg.room.cancel')}
                     </button>
                     <button
                       onClick={sendTip}
                       disabled={walletBalance === null || walletBalance < eurCentsToTipsys(tipEurCents)}
                       className="rounded-md bg-amber-500 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
                     >
-                      Enviar {formatEur(tipEurCents)}
+                      {tt('pg.room.sendAmount', { amount: formatEur(tipEurCents) })}
                     </button>
                   </div>
                 </>
               ) : (
                 <>
                   <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                    Pagas con tarjeta vía Stripe. El saldo queda en tu sesión (12h).
+                    {tt('pg.room.topupExplain')}
                   </p>
                   <div>
                     <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">
-                      Importe a recargar
+                      {tt('pg.room.topupAmount')}
                     </div>
                     <div className="grid grid-cols-4 gap-2">
                       {TIP_BUTTONS.map((p) => (
@@ -867,26 +866,26 @@ export default function RoomPage() {
                     </div>
                   </div>
                   <label className="block space-y-1 text-sm">
-                    <span className="font-medium">Tu email (para el recibo)</span>
+                    <span className="font-medium">{tt('pg.room.emailReceipt')}</span>
                     <input
                       type="email"
                       required
                       value={topupEmail}
                       onChange={(e) => setTopupEmail(e.target.value)}
-                      placeholder="tu@email.com"
+                      placeholder={tt('pg.room.emailPlaceholder')}
                       className="w-full rounded-md border border-zinc-300 bg-white p-2 dark:border-zinc-700 dark:bg-zinc-800"
                     />
                   </label>
                   <div className="flex justify-end gap-2">
                     <button onClick={() => setShowTopup(false)} className="rounded-md px-3 py-2 text-sm">
-                      Volver
+                      {tt('pg.room.back')}
                     </button>
                     <button
                       onClick={startGuestTopup}
                       disabled={topupBusy || !topupEmail || !guestToken}
                       className="rounded-md bg-amber-500 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
                     >
-                      {topupBusy ? 'Redirigiendo…' : `Pagar ${formatEur(topupEurCents)}`}
+                      {topupBusy ? tt('pg.room.redirecting') : tt('pg.room.pay', { amount: formatEur(topupEurCents) })}
                     </button>
                   </div>
                 </>
@@ -906,10 +905,10 @@ export default function RoomPage() {
 
       <ConfirmDialog
         open={showCloseConfirm}
-        title="¿Cerrar esta sala?"
-        description="Se cerrará para todos los participantes y se eliminarán los mensajes, fotos y vídeos del chat. Esta acción no se puede deshacer."
-        confirmLabel="Cerrar sala"
-        cancelLabel="Cancelar"
+        title={tt('pg.room.closeConfirmTitle')}
+        description={tt('pg.room.closeConfirmDesc')}
+        confirmLabel={tt('pg.room.closeRoom')}
+        cancelLabel={tt('pg.room.cancel')}
         tone="danger"
         busy={closingRoom}
         onConfirm={confirmCloseRoom}
@@ -955,6 +954,7 @@ export default function RoomPage() {
  * ya' to short-circuit.
  */
 function RoomGoneScreen({ onDone }: { onDone: () => void }) {
+  const tt = useT();
   const [seconds, setSeconds] = useState(5);
   useEffect(() => {
     if (seconds <= 0) {
@@ -979,11 +979,11 @@ function RoomGoneScreen({ onDone }: { onDone: () => void }) {
         </div>
 
         <h1 className="font-display text-3xl font-extrabold tracking-tight">
-          ¡Puf! Esta sala ya no existe
+          {tt('pg.room.goneTitle')}
         </h1>
         <p className="mt-3 text-base text-ink-muted">
-          Se ha cerrado o ha caducado. Te llevamos al inicio en{' '}
-          <span className="font-semibold text-primary-500">{seconds}s</span>.
+          {tt('pg.room.goneDescPre')}{' '}
+          <span className="font-semibold text-primary-500">{tt('pg.room.goneSeconds', { seconds })}</span>
         </p>
 
         {/* Bouncing dot row for vibe */}
@@ -998,7 +998,7 @@ function RoomGoneScreen({ onDone }: { onDone: () => void }) {
           onClick={onDone}
           className="btn-tactile mt-8 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-6 py-3 text-sm font-bold text-white shadow-vivid hover:shadow-vivid-strong"
         >
-          Volver ya
+          {tt('pg.room.backNow')}
         </button>
       </div>
     </main>

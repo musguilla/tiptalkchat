@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { ChevronDown, Image as ImageIcon, Loader2, Send, Lock } from 'lucide-react';
 import { api } from '@/lib/api';
+import { useT } from '@/i18n/useLocale';
 
 interface GalleryPhoto {
   id: string;
@@ -23,6 +24,7 @@ export function GalleryPicker({
   token: string;
   onSend: (url: string) => Promise<void> | void;
 }) {
+  const t = useT();
   const [photos, setPhotos] = useState<GalleryPhoto[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [open, setOpen] = useState(false);
@@ -54,7 +56,7 @@ export function GalleryPicker({
       <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2.5 text-xs font-bold uppercase tracking-wider text-zinc-500 hover:text-ink">
         <span className="flex items-center gap-1.5">
           <ImageIcon className="h-3.5 w-3.5" />
-          Mi galería
+          {t('cmp.gallery.picker.title')}
         </span>
         <ChevronDown className="h-3.5 w-3.5 transition group-open:rotate-180" />
       </summary>
@@ -65,8 +67,7 @@ export function GalleryPicker({
           </div>
         ) : photos.length === 0 ? (
           <p className="px-1 py-3 text-[11px] leading-relaxed text-zinc-500">
-            Tu galería está vacía. Sube fotos desde tu perfil y aparecerán aquí
-            para mandarlas al chat.
+            {t('cmp.gallery.picker.empty')}
           </p>
         ) : (
           <ul className="grid grid-cols-3 gap-1.5">
@@ -77,7 +78,7 @@ export function GalleryPicker({
                   onClick={() => pick(p)}
                   disabled={sending !== null}
                   className="group relative block aspect-square w-full overflow-hidden rounded-md bg-surface-soft transition hover:ring-2 hover:ring-primary-500 disabled:opacity-50"
-                  title="Enviar al chat"
+                  title={t('cmp.gallery.picker.sendToChat')}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img

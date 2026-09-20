@@ -4,6 +4,7 @@ import { X as XIcon } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth, type SessionUser } from '@/lib/auth-store';
 import { Logo } from './Logo';
+import { useT } from '@/i18n/useLocale';
 
 interface AuthResponse {
   token: string;
@@ -28,6 +29,7 @@ export function AuthOverlay({
   onClose,
   onSuccess,
 }: Props) {
+  const t = useT();
   const setSession = useAuth((s) => s.setSession);
   const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
   const [displayName, setDisplayName] = useState('');
@@ -90,8 +92,8 @@ export function AuthOverlay({
     } catch (err) {
       setError(
         mode === 'login'
-          ? 'Credenciales no válidas.'
-          : 'No se pudo crear la cuenta. ¿El email ya existe?',
+          ? t('cmp.auth.invalidCredentials')
+          : t('cmp.auth.signupFailed'),
       );
       // eslint-disable-next-line no-console
       console.warn(err);
@@ -101,18 +103,18 @@ export function AuthOverlay({
   }
 
   const title = isUpgrade
-    ? 'Activa los tips'
+    ? t('cmp.auth.upgradeTitle')
     : mode === 'login'
-      ? 'Iniciar sesión'
-      : 'Crear cuenta';
+      ? t('cmp.auth.login')
+      : t('cmp.auth.signup');
 
   const buttonLabel = busy
     ? '…'
     : isUpgrade
-      ? 'Activar ahora'
+      ? t('cmp.auth.activateNow')
       : mode === 'login'
-        ? 'Iniciar sesión'
-        : 'Crear cuenta';
+        ? t('cmp.auth.login')
+        : t('cmp.auth.signup');
 
   return (
     <div className="fixed inset-0 z-[60] grid place-items-center bg-ink/40 p-4 backdrop-blur-sm">
@@ -124,7 +126,7 @@ export function AuthOverlay({
           type="button"
           onClick={onClose}
           className="absolute right-4 top-4 grid h-8 w-8 place-items-center rounded-md text-ink-muted transition hover:bg-surface-soft hover:text-ink"
-          aria-label="Cerrar"
+          aria-label={t('cmp.common.close')}
         >
           <XIcon className="h-4 w-4" />
         </button>
@@ -139,8 +141,7 @@ export function AuthOverlay({
           </h2>
           {isUpgrade && (
             <p className="mt-2 text-center text-sm text-ink-muted">
-              Tu sala se queda contigo. Solo necesitamos un email y una contraseña para que puedas
-              recibir propinas.
+              {t('cmp.auth.upgradeBody')}
             </p>
           )}
         </div>
@@ -148,19 +149,19 @@ export function AuthOverlay({
         {/* displayName: only shown when CREATING a new account */}
         {mode === 'signup' && (
           <label className="block space-y-1.5 text-sm">
-            <span className="font-medium text-ink">Tu nombre</span>
+            <span className="font-medium text-ink">{t('cmp.auth.yourName')}</span>
             <input
               required={!isUpgrade}
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               className="w-full rounded-md border border-transparent bg-surface-soft p-2.5 outline-none transition focus:border-primary-500 focus:bg-white"
-              placeholder={isUpgrade ? 'Mantén tu nick o cambia' : ''}
+              placeholder={isUpgrade ? t('cmp.auth.namePlaceholder') : ''}
             />
           </label>
         )}
 
         <label className="block space-y-1.5 text-sm">
-          <span className="font-medium text-ink">Email</span>
+          <span className="font-medium text-ink">{t('cmp.auth.email')}</span>
           <input
             type="email"
             required
@@ -171,7 +172,7 @@ export function AuthOverlay({
         </label>
 
         <label className="block space-y-1.5 text-sm">
-          <span className="font-medium text-ink">Contraseña</span>
+          <span className="font-medium text-ink">{t('cmp.auth.password')}</span>
           <input
             type="password"
             required
@@ -194,7 +195,7 @@ export function AuthOverlay({
 
         {/* Toggle login / signup. Available in both regular and upgrade modes. */}
         <p className="text-center text-sm text-ink-muted">
-          {mode === 'login' ? '¿Sin cuenta?' : '¿Ya tienes cuenta?'}{' '}
+          {mode === 'login' ? t('cmp.auth.noAccount') : t('cmp.auth.haveAccount')}{' '}
           <button
             type="button"
             onClick={() => {
@@ -203,7 +204,7 @@ export function AuthOverlay({
             }}
             className="font-semibold text-primary-500 hover:underline"
           >
-            {mode === 'login' ? 'Crear cuenta' : 'Iniciar sesión'}
+            {mode === 'login' ? t('cmp.auth.signup') : t('cmp.auth.login')}
           </button>
         </p>
       </form>

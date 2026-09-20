@@ -14,6 +14,9 @@ import { api, ApiError } from '@/lib/api';
 import { formatTipsysAsEur, listPackages } from '@tiptalk/economy';
 import { SectionCard } from './SectionCard';
 import { AgeVerificationModal } from './AgeVerificationModal';
+import { useT } from '@/i18n/useLocale';
+
+type TFn = (key: string, vars?: Record<string, string | number>) => string;
 
 interface Overview {
   wallet: { balance: number; payoutMin: number; canRequestPayout: boolean };
@@ -59,60 +62,61 @@ interface PayoutSetupStatus {
  * which processor is behind the payouts.
  */
 const REQUIREMENT_LABELS: Record<string, string> = {
-  external_account: 'Tu número de cuenta bancaria (IBAN)',
-  'individual.verification.document': 'Una foto de tu DNI o pasaporte',
-  'individual.verification.additional_document': 'Un documento adicional',
-  'individual.id_number': 'Tu número de documento',
-  'individual.address.line1': 'Tu dirección',
-  'individual.address.city': 'Tu ciudad',
-  'individual.address.postal_code': 'Tu código postal',
-  'individual.dob.day': 'Tu fecha de nacimiento',
-  'individual.dob.month': 'Tu fecha de nacimiento',
-  'individual.dob.year': 'Tu fecha de nacimiento',
-  'individual.first_name': 'Tu nombre',
-  'individual.last_name': 'Tus apellidos',
-  'individual.email': 'Tu email',
-  'individual.phone': 'Tu teléfono',
-  'tos_acceptance.date': 'Aceptar las condiciones de cobro',
-  'tos_acceptance.ip': 'Aceptar las condiciones de cobro',
+  external_account: 'cmp.money.req.iban',
+  'individual.verification.document': 'cmp.money.req.idPhoto',
+  'individual.verification.additional_document': 'cmp.money.req.additionalDoc',
+  'individual.id_number': 'cmp.money.req.idNumber',
+  'individual.address.line1': 'cmp.money.req.address',
+  'individual.address.city': 'cmp.money.req.city',
+  'individual.address.postal_code': 'cmp.money.req.postalCode',
+  'individual.dob.day': 'cmp.money.req.dob',
+  'individual.dob.month': 'cmp.money.req.dob',
+  'individual.dob.year': 'cmp.money.req.dob',
+  'individual.first_name': 'cmp.money.req.firstName',
+  'individual.last_name': 'cmp.money.req.lastName',
+  'individual.email': 'cmp.money.req.email',
+  'individual.phone': 'cmp.money.req.phone',
+  'tos_acceptance.date': 'cmp.money.req.tos',
+  'tos_acceptance.ip': 'cmp.money.req.tos',
 };
 
-function requirementLabels(codes: string[]): string[] {
-  return [...new Set(codes.map((c) => REQUIREMENT_LABELS[c] ?? c.replace(/[_.]/g, ' ')))];
+function requirementLabels(codes: string[], t: TFn): string[] {
+  return [...new Set(codes.map((c) => (REQUIREMENT_LABELS[c] ? t(REQUIREMENT_LABELS[c]) : c.replace(/[_.]/g, ' '))))];
 }
 
 function eurCents(cents: number): string {
   return `${(cents / 100).toFixed(2).replace('.', ',')} €`;
 }
 
-function ledgerLabel(kind: string): string {
+function ledgerLabel(kind: string, t: TFn): string {
   switch (kind) {
     case 'PURCHASE_CREDIT':
-      return 'Compra de Tipsys';
+      return t('cmp.money.ledger.purchase');
     case 'TIP_SENT':
-      return 'Propina enviada';
+      return t('cmp.money.ledger.tipSent');
     case 'TIP_RECEIVED':
-      return 'Propina recibida';
+      return t('cmp.money.ledger.tipReceived');
     case 'PAYOUT_DEBIT':
-      return 'Cobro solicitado';
+      return t('cmp.money.ledger.payoutDebit');
     case 'PAYOUT_REFUND':
-      return 'Cobro devuelto';
+      return t('cmp.money.ledger.payoutRefund');
     case 'ADJUSTMENT':
-      return 'Ajuste';
+      return t('cmp.money.ledger.adjustment');
     default:
       return kind;
   }
 }
 
 const PAYOUT_META: Record<string, { label: string; className: string }> = {
-  requested: { label: 'Solicitado', className: 'bg-amber-100 text-amber-800' },
-  in_review: { label: 'En revisión', className: 'bg-amber-100 text-amber-800' },
-  paid: { label: 'Pagado', className: 'bg-emerald-100 text-emerald-800' },
-  failed: { label: 'Fallido', className: 'bg-red-100 text-red-800' },
-  refunded: { label: 'Devuelto', className: 'bg-zinc-200 text-zinc-700' },
+  requested: { label: 'cmp.money.payout.requested', className: 'bg-amber-100 text-amber-800' },
+  in_review: { label: 'cmp.money.payout.inReview', className: 'bg-amber-100 text-amber-800' },
+  paid: { label: 'cmp.money.payout.paid', className: 'bg-emerald-100 text-emerald-800' },
+  failed: { label: 'cmp.money.payout.failed', className: 'bg-red-100 text-red-800' },
+  refunded: { label: 'cmp.money.payout.refunded', className: 'bg-zinc-200 text-zinc-700' },
 };
 
 export function ProfileMoney({ token }: { token: string }) {
+  const t = useT();
   const [data, setData] = useState<Overview | null>(null);
   const [setup, setSetup] = useState<PayoutSetupStatus | null>(null);
   const [loading, setLoading] = useState(true);
@@ -131,7 +135,7 @@ export function ProfileMoney({ token }: { token: string }) {
     } catch (err) {
       setMsg({
         tone: 'error',
-        text: err instanceof Error ? err.message : 'No se pudieron cargar tus datos',
+        text: err instanceof Error ? err.message : t('cmp.money.loadFailed'),
       });
     } finally {
       setLoading(false);
@@ -147,12 +151,12 @@ export function ProfileMoney({ token }: { token: string }) {
     if (typeof window === 'undefined') return;
     const p = new URLSearchParams(window.location.search).get('connect');
     if (p === 'done') {
-      setMsg({ tone: 'ok', text: 'Hemos recibido tus datos. La verificación puede tardar unos minutos.' });
+      setMsg({ tone: 'ok', text: t('cmp.money.connectDone') });
       void load();
     } else if (p === 'refresh') {
-      setMsg({ tone: 'error', text: 'El proceso se interrumpió. Puedes retomarlo cuando quieras.' });
+      setMsg({ tone: 'error', text: t('cmp.money.connectRefresh') });
     }
-  }, [load]);
+  }, [load, t]);
 
   async function go(action: string, path: string): Promise<void> {
     setBusy(action);
@@ -169,7 +173,7 @@ export function ProfileMoney({ token }: { token: string }) {
         setVerifyOpen(true);
         return;
       }
-      setMsg({ tone: 'error', text: text || 'No se pudo abrir la configuración de cobros' });
+      setMsg({ tone: 'error', text: text || t('cmp.money.openConfigFailed') });
     }
   }
 
@@ -185,7 +189,7 @@ export function ProfileMoney({ token }: { token: string }) {
       window.location.href = res.url;
     } catch (err) {
       setBusy(null);
-      setMsg({ tone: 'error', text: err instanceof Error ? err.message : 'No se pudo iniciar la compra' });
+      setMsg({ tone: 'error', text: err instanceof Error ? err.message : t('cmp.money.buyFailed') });
     }
   }
 
@@ -199,14 +203,14 @@ export function ProfileMoney({ token }: { token: string }) {
         token,
         body: JSON.stringify({ tipsys: data.wallet.payoutMin }),
       });
-      setMsg({ tone: 'ok', text: 'Cobro solicitado. Lo revisamos y te llega a tu cuenta.' });
+      setMsg({ tone: 'ok', text: t('cmp.money.payoutRequestedOk') });
       await load();
     } catch (err) {
       const apiMsg =
         err instanceof ApiError && err.payload && typeof err.payload === 'object'
           ? ((err.payload as { message?: string }).message ?? null)
           : null;
-      setMsg({ tone: 'error', text: apiMsg ?? 'No se pudo solicitar el cobro' });
+      setMsg({ tone: 'error', text: apiMsg ?? t('cmp.money.payoutFailed') });
     } finally {
       setBusy(null);
     }
@@ -221,7 +225,7 @@ export function ProfileMoney({ token }: { token: string }) {
   }
   if (!data) return null;
 
-  const pending = requirementLabels(setup?.pending ?? []);
+  const pending = requirementLabels(setup?.pending ?? [], t);
   const payoutsOn = setup?.payoutsEnabled ?? data.connect.payoutsEnabled;
   const started = setup?.connected ?? data.connect.connected;
 
@@ -242,7 +246,7 @@ export function ProfileMoney({ token }: { token: string }) {
       <div className="grid gap-4 lg:grid-cols-3">
         {/* ---- Monedero ---- */}
         <SectionCard
-          title="Monedero"
+          title={t('cmp.money.wallet')}
           icon={<Wallet className="h-4 w-4" />}
           className="lg:col-span-2"
           action={
@@ -254,7 +258,7 @@ export function ProfileMoney({ token }: { token: string }) {
           <div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="rounded-lg bg-surface-soft p-4">
-                <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Saldo</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">{t('cmp.money.balance')}</p>
                 <p className="mt-1 font-display text-2xl font-extrabold tracking-tight text-ink">
                   {data.wallet.balance} Tipsys
                 </p>
@@ -262,19 +266,19 @@ export function ProfileMoney({ token }: { token: string }) {
               </div>
 
               <div className="rounded-lg bg-surface-soft p-4">
-                <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Cobros</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">{t('cmp.money.payouts')}</p>
                 <p className="mt-1.5">
                   {payoutsOn ? (
                     <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-800">
-                      <BadgeCheck className="h-3 w-3" /> Activos
+                      <BadgeCheck className="h-3 w-3" /> {t('cmp.money.active')}
                     </span>
                   ) : started ? (
                     <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800">
-                      <Clock className="h-3 w-3" /> Verificación pendiente
+                      <Clock className="h-3 w-3" /> {t('cmp.money.verificationPending')}
                     </span>
                   ) : (
                     <span className="rounded-full bg-zinc-200 px-2 py-0.5 text-xs font-semibold text-zinc-700">
-                      Sin activar
+                      {t('cmp.money.notActivated')}
                     </span>
                   )}
                 </p>
@@ -288,12 +292,12 @@ export function ProfileMoney({ token }: { token: string }) {
                       title={
                         data.wallet.canRequestPayout
                           ? undefined
-                          : `Necesitas al menos ${data.wallet.payoutMin} Tipsys`
+                          : t('cmp.money.needAtLeast', { min: data.wallet.payoutMin })
                       }
                       className="btn-tactile inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-3.5 py-1.5 text-xs font-bold text-white shadow-soft hover:shadow-vivid disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {busy === 'payout' && <Loader2 className="h-3 w-3 animate-spin" />}
-                      Solicitar cobro
+                      {t('cmp.money.requestPayout')}
                     </button>
                     <button
                       type="button"
@@ -306,15 +310,15 @@ export function ProfileMoney({ token }: { token: string }) {
                       ) : (
                         <ExternalLink className="h-3 w-3" />
                       )}
-                      Gestionar
+                      {t('cmp.money.manage')}
                     </button>
                   </div>
                 ) : (
                   <>
                     <p className="mt-2 text-xs leading-relaxed text-ink-muted">
                       {started
-                        ? 'Falta verificar tus datos para poder retirar.'
-                        : 'Actívalos para retirar a tu cuenta las propinas que recibas.'}
+                        ? t('cmp.money.needVerify')
+                        : t('cmp.money.activateToWithdraw')}
                     </p>
                     {pending.length > 0 && (
                       <ul className="mt-2 space-y-0.5">
@@ -326,7 +330,7 @@ export function ProfileMoney({ token }: { token: string }) {
                         ))}
                         {pending.length > 3 && (
                           <li className="pl-4.5 text-xs text-ink-soft">
-                            y {pending.length - 3} más
+                            {t('cmp.money.andMore', { count: pending.length - 3 })}
                           </li>
                         )}
                       </ul>
@@ -338,7 +342,7 @@ export function ProfileMoney({ token }: { token: string }) {
                       className="btn-tactile mt-3 inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-3.5 py-1.5 text-xs font-bold text-white shadow-soft hover:shadow-vivid disabled:opacity-60"
                     >
                       {busy === 'onboard' && <Loader2 className="h-3 w-3 animate-spin" />}
-                      {started ? 'Continuar' : 'Activar cobros'}
+                      {started ? t('cmp.money.continue') : t('cmp.money.activatePayouts')}
                     </button>
                   </>
                 )}
@@ -346,10 +350,10 @@ export function ProfileMoney({ token }: { token: string }) {
             </div>
 
             <h4 className="mt-5 text-xs font-semibold uppercase tracking-wider text-ink-muted">
-              Últimos movimientos
+              {t('cmp.money.recentMovements')}
             </h4>
             {data.recentLedger.length === 0 ? (
-              <p className="mt-2 text-sm text-ink-muted">Sin movimientos todavía.</p>
+              <p className="mt-2 text-sm text-ink-muted">{t('cmp.money.noMovements')}</p>
             ) : (
               <ul className="mt-2 divide-y divide-surface-container rounded-lg border border-surface-container">
                 {data.recentLedger.slice(0, 8).map((e) => (
@@ -358,7 +362,7 @@ export function ProfileMoney({ token }: { token: string }) {
                     className="flex items-center justify-between gap-3 px-3 py-2 text-sm"
                   >
                     <div className="min-w-0">
-                      <p className="truncate font-medium text-ink">{ledgerLabel(e.kind)}</p>
+                      <p className="truncate font-medium text-ink">{ledgerLabel(e.kind, t)}</p>
                       <p className="text-xs text-ink-muted">
                         {new Date(e.createdAt).toLocaleString('es-ES')}
                       </p>
@@ -372,7 +376,7 @@ export function ProfileMoney({ token }: { token: string }) {
                         {e.amount > 0 ? '+' : ''}
                         {e.amount} Tipsys
                       </p>
-                      <p className="text-xs tabular-nums text-ink-soft">Saldo: {e.balanceAfter}</p>
+                      <p className="text-xs tabular-nums text-ink-soft">{t('cmp.money.balanceAfter', { balance: e.balanceAfter })}</p>
                     </div>
                   </li>
                 ))}
@@ -382,11 +386,11 @@ export function ProfileMoney({ token }: { token: string }) {
         </SectionCard>
 
         {/* ---- Tips + comprar ---- */}
-        <SectionCard title="Tips" icon={<Coins className="h-4 w-4" />}>
+        <SectionCard title={t('cmp.money.tips')} icon={<Coins className="h-4 w-4" />}>
           <div className="space-y-3">
             <div className="rounded-lg bg-surface-soft p-4">
               <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
-                Recibidos
+                {t('cmp.money.received')}
               </p>
               <p className="mt-1 font-display text-2xl font-extrabold tracking-tight text-ink">
                 {data.tips.received.count}
@@ -397,7 +401,7 @@ export function ProfileMoney({ token }: { token: string }) {
             </div>
             <div className="rounded-lg bg-surface-soft p-4">
               <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
-                Enviados
+                {t('cmp.money.sent')}
               </p>
               <p className="mt-1 font-display text-2xl font-extrabold tracking-tight text-ink">
                 {data.tips.sent.count}
@@ -409,7 +413,7 @@ export function ProfileMoney({ token }: { token: string }) {
 
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
-                Comprar Tipsys
+                {t('cmp.money.buyTipsys')}
               </p>
               <div className="mt-2 grid grid-cols-2 gap-2">
                 {listPackages().map((p) => (
@@ -437,25 +441,26 @@ export function ProfileMoney({ token }: { token: string }) {
       {/* ---- Cobros (solo si los hay) ---- */}
       {data.payouts.length > 0 && (
         <SectionCard
-          title="Cobros"
+          title={t('cmp.money.payouts')}
           icon={<Banknote className="h-4 w-4" />}
-          action={<span className="text-sm text-ink-muted">{data.payouts.length} solicitud(es)</span>}
+          action={<span className="text-sm text-ink-muted">{t('cmp.money.requestCount', { count: data.payouts.length })}</span>}
         >
           <div className="overflow-x-auto">
             <table className="w-full min-w-[460px] text-sm">
               <thead>
                 <tr className="border-b border-surface-container text-left text-xs uppercase tracking-wider text-ink-muted">
-                  <th className="pb-2 font-semibold">Fecha</th>
+                  <th className="pb-2 font-semibold">{t('cmp.money.date')}</th>
                   <th className="pb-2 font-semibold">Tipsys</th>
-                  <th className="pb-2 font-semibold">Neto</th>
-                  <th className="pb-2 font-semibold">Estado</th>
+                  <th className="pb-2 font-semibold">{t('cmp.money.net')}</th>
+                  <th className="pb-2 font-semibold">{t('cmp.money.status')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-surface-container">
                 {data.payouts.map((p) => {
-                  const meta = PAYOUT_META[p.status] ?? {
-                    label: p.status,
-                    className: 'bg-zinc-200 text-zinc-700',
+                  const metaDef = PAYOUT_META[p.status];
+                  const meta = {
+                    label: metaDef ? t(metaDef.label) : p.status,
+                    className: metaDef?.className ?? 'bg-zinc-200 text-zinc-700',
                   };
                   return (
                     <tr key={p.id}>

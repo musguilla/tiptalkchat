@@ -19,6 +19,7 @@ import {
   X as XIcon,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-store';
+import { useT } from '@/i18n/useLocale';
 import { Logo } from '@/components/Logo';
 import { AuthOverlay } from '@/components/AuthOverlay';
 import { Avatar } from './_components/Avatar';
@@ -26,21 +27,21 @@ import { RolePill } from './_components/RolePill';
 
 interface NavItem {
   href: string;
-  label: string;
+  labelKey: string;
   icon: typeof Users;
   /** Match only the exact path (used for the dashboard root). */
   exact?: boolean;
 }
 
 const NAV: ReadonlyArray<NavItem> = [
-  { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
-  { href: '/admin/usuarios', label: 'Usuarios', icon: Users },
-  { href: '/admin/salas', label: 'Salas', icon: MessagesSquare },
-  { href: '/admin/camaras', label: 'Cámaras', icon: Cctv },
-  { href: '/admin/media', label: 'Media', icon: ImageIcon },
-  { href: '/admin/payouts', label: 'Payouts', icon: Banknote },
-  { href: '/admin/verificacion', label: 'Verificación', icon: BadgeCheck },
-  { href: '/admin/contacto', label: 'Contacto', icon: Mail },
+  { href: '/admin', labelKey: 'adm.nav.dashboard', icon: LayoutDashboard, exact: true },
+  { href: '/admin/usuarios', labelKey: 'adm.nav.users', icon: Users },
+  { href: '/admin/salas', labelKey: 'adm.nav.rooms', icon: MessagesSquare },
+  { href: '/admin/camaras', labelKey: 'adm.nav.cameras', icon: Cctv },
+  { href: '/admin/media', labelKey: 'adm.nav.media', icon: ImageIcon },
+  { href: '/admin/payouts', labelKey: 'adm.nav.payouts', icon: Banknote },
+  { href: '/admin/verificacion', labelKey: 'adm.nav.verification', icon: BadgeCheck },
+  { href: '/admin/contacto', labelKey: 'adm.nav.contact', icon: Mail },
 ];
 
 function isActive(item: NavItem, pathname: string): boolean {
@@ -48,6 +49,7 @@ function isActive(item: NavItem, pathname: string): boolean {
 }
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
+  const t = useT();
   const token = useAuth((s) => s.token);
   const user = useAuth((s) => s.user);
   const pathname = usePathname();
@@ -82,12 +84,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             <Lock className="h-8 w-8" />
           </div>
           <h1 className="mt-5 font-display text-3xl font-extrabold tracking-tight">
-            Acceso restringido
+            {t('adm.gate.title')}
           </h1>
           <p className="mt-3 text-base text-ink-muted">
-            {token
-              ? 'Esta zona es solo para administradores de tiptalk.chat. Tu cuenta no tiene permisos para entrar.'
-              : 'Esta zona es solo para administradores de tiptalk.chat. Inicia sesión con una cuenta de administración.'}
+            {token ? t('adm.gate.noPermission') : t('adm.gate.needLogin')}
           </p>
           <div className="mt-7 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
             <button
@@ -96,13 +96,13 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               className="btn-tactile inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-6 py-3 text-sm font-bold text-white shadow-vivid hover:shadow-vivid-strong"
             >
               <LogIn className="h-4 w-4" />
-              Iniciar sesión
+              {t('adm.gate.login')}
             </button>
             <Link
               href="/"
               className="text-sm font-medium text-ink-muted transition hover:text-ink"
             >
-              Volver al inicio
+              {t('adm.gate.backHome')}
             </Link>
           </div>
         </div>
@@ -132,7 +132,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           } ${variant === 'menu' ? 'py-2.5' : ''}`}
         >
           <Icon className={`h-4 w-4 shrink-0 ${active ? 'text-primary-500' : ''}`} />
-          {item.label}
+          {t(item.labelKey)}
         </Link>
       );
     });
@@ -158,10 +158,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           </Link>
           <span className="inline-flex items-center gap-1 rounded-full bg-ink px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
             <ShieldCheck className="h-3 w-3" />
-            Admin
+            {t('adm.badge.admin')}
           </span>
         </div>
-        <nav className="flex-1 space-y-1 px-3" aria-label="Secciones del panel">
+        <nav className="flex-1 space-y-1 px-3" aria-label={t('adm.nav.aria')}>
           {navLinks('sidebar')}
         </nav>
         <div className="space-y-2 p-3">
@@ -171,7 +171,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-ink-muted transition hover:bg-surface-soft hover:text-ink"
           >
             <LogOut className="h-4 w-4" />
-            Salir del panel
+            {t('adm.nav.exit')}
           </Link>
         </div>
       </aside>
@@ -183,21 +183,21 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             <Logo className="text-lg" />
             <span className="inline-flex items-center gap-1 rounded-full bg-ink px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
               <ShieldCheck className="h-3 w-3" />
-              Admin
+              {t('adm.badge.admin')}
             </span>
           </Link>
           <button
             type="button"
             onClick={() => setMenuOpen((o) => !o)}
             aria-expanded={menuOpen}
-            aria-label={menuOpen ? 'Cerrar menú' : 'Abrir menú'}
+            aria-label={menuOpen ? t('adm.nav.closeMenu') : t('adm.nav.openMenu')}
             className="grid h-9 w-9 place-items-center rounded-md text-ink transition hover:bg-surface-soft"
           >
             {menuOpen ? <XIcon className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
         {menuOpen && (
-          <nav className="space-y-1 border-t border-surface-container px-3 py-3" aria-label="Secciones del panel">
+          <nav className="space-y-1 border-t border-surface-container px-3 py-3" aria-label={t('adm.nav.aria')}>
             {navLinks('menu')}
             <div className="pt-2">{adminChip}</div>
             <Link
@@ -205,7 +205,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               className="flex items-center gap-2 rounded-md px-3 py-2.5 text-sm font-medium text-ink-muted transition hover:bg-surface-soft hover:text-ink"
             >
               <LogOut className="h-4 w-4" />
-              Salir del panel
+              {t('adm.nav.exit')}
             </Link>
           </nav>
         )}

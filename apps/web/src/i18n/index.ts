@@ -1,6 +1,6 @@
 import type { Locale } from './config';
-import { DEFAULT_LOCALE } from './config';
-import { es, type MessageKey } from './locales/es';
+import { DEFAULT_LOCALE, LOCALES } from './config';
+import { es } from './locales/es';
 import { en } from './locales/en';
 import { fr } from './locales/fr';
 import { de } from './locales/de';
@@ -17,14 +17,20 @@ import { ru } from './locales/ru';
 import { id } from './locales/id';
 import { ko } from './locales/ko';
 import { ja } from './locales/ja';
+import { ur } from './locales/ur';
+import { tr } from './locales/tr';
+import { pcm } from './locales/pcm';
+import { gen } from './gen';
 
 export type { Locale } from './config';
 export { DEFAULT_LOCALE } from './config';
-export type Key = MessageKey;
+// Keys are plain strings now — the dictionary is assembled from the base
+// locale files plus the generated namespace files (see ./gen).
+export type Key = string;
 
-type Partial = { [K in MessageKey]?: string };
+type Dict = Record<string, string>;
 
-const overrides: Record<Locale, Partial> = {
+const base: Record<Locale, Dict> = {
   es,
   en,
   fr,
@@ -42,15 +48,23 @@ const overrides: Record<Locale, Partial> = {
   id,
   ko,
   ja,
+  ur,
+  tr,
+  pcm,
 };
+
+// Assemble the final dictionary per locale: base file + generated namespaces.
+const DICT: Record<Locale, Dict> = Object.fromEntries(
+  LOCALES.map((loc) => [loc, { ...(base[loc] ?? {}), ...(gen[loc] ?? {}) }]),
+) as Record<Locale, Dict>;
 
 /** Translate a key for a locale, falling back to Spanish then the key itself. */
 export function t(
   locale: Locale,
-  key: MessageKey,
+  key: string,
   vars: Record<string, string | number> = {},
 ): string {
-  const raw = overrides[locale]?.[key] ?? es[key] ?? key;
+  const raw = DICT[locale]?.[key] ?? DICT[DEFAULT_LOCALE]?.[key] ?? key;
   return Object.entries(vars).reduce<string>(
     (acc, [k, v]) => acc.replace(new RegExp(`\\{${k}\\}`, 'g'), String(v)),
     raw,

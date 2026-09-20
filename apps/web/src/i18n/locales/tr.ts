@@ -1,0 +1,127 @@
+import type { MessageKey } from './es';
+export const tr: { [K in MessageKey]?: string } = {
+  // --- Common ---
+  'common.loading': 'Yükleniyor…',
+  'common.save': 'Kaydet',
+  'common.cancel': 'İptal',
+  'common.close': 'Kapat',
+  'common.retry': 'Tekrar dene',
+  'common.back': 'Geri',
+  'common.backHome': 'Ana sayfaya dön',
+  'common.send': 'Gönder',
+  'common.online': 'Şu an çevrimiçi',
+  'common.offline': 'Çevrimdışı',
+  'common.online.short': 'Çevrimiçi',
+
+  // --- Header / nav ---
+  'nav.createChat': 'Sohbet oluştur',
+  'nav.howItWorks': 'Nasıl çalışır',
+  'nav.features': 'Özellikler',
+  'nav.wallet': 'Cüzdan',
+  'nav.login': 'Giriş yap',
+  'nav.logout': 'Çıkış yap',
+  'nav.messages': 'Mesajlar',
+
+  // --- Footer ---
+  'footer.tagline': 'Bahşişli özel sohbet odaları.',
+  'footer.col.platform': 'Platform',
+  'footer.col.legal': 'Yasal',
+  'footer.col.support': 'Destek',
+  'footer.link.createChat': 'Sohbet oluştur',
+  'footer.link.howItWorks': 'Nasıl çalışır',
+  'footer.link.features': 'Özellikler',
+  'footer.link.terms': 'Hizmet şartları',
+  'footer.link.privacy': 'Gizlilik politikası',
+  'footer.link.creators': 'İçerik üreticileri rehberi',
+  'footer.link.contact': 'İletişim',
+  'footer.rights': 'Tüm hakları saklıdır.',
+  'footer.madeWith': 'İçerik üreticileri için ❤ ile yapıldı',
+
+  // --- Home / landing ---
+  'home.hero.title': 'Özel bire bir sohbet odaları',
+  'home.hero.subtitle': 'İstediğinle görüntülü, sesli ya da sadece yazışarak sohbet et.',
+  'home.hero.cta': 'Sohbet odası oluştur',
+  'home.hero.live': 'CANLI: ÖZEL OTURUM',
+  'home.discover.title': 'Yeni arkadaşlar edin',
+  'home.discover.subtitle': 'Onları takip et ya da sohbet için mesaj gönder.',
+  'home.discover.message': 'Mesaj',
+  'home.finalCta.cta': 'Sohbet odası oluştur',
+
+  // --- Auth ---
+  'auth.login': 'Giriş yap',
+  'auth.signup': 'Hesap oluştur',
+  'auth.email': 'E-posta',
+  'auth.password': 'Şifre',
+  'auth.displayName': 'Adın',
+  'auth.haveAccount': 'Zaten hesabın var mı?',
+  'auth.noAccount': 'Hesabın yok mu?',
+
+  // --- Profile ---
+  'profile.follow': 'Takip et',
+  'profile.following': 'Takip ediliyor',
+  'profile.message': 'Mesaj',
+  'profile.messageCta': 'Sohbet için ona mesaj gönder',
+  'profile.followers': 'takipçi',
+  'profile.followingCount': 'takip',
+  'profile.editProfile': 'Profili düzenle',
+  'profile.memberSince': '{date} tarihinden beri tiptalk.chat’te',
+  'profile.gallery': 'Galeri',
+  'profile.privatePhoto': 'Özel fotoğraf',
+  'profile.notFound.title': 'Profil bulunamadı',
+  'profile.notFound.body': 'Bu kullanıcı yok ya da artık mevcut değil.',
+
+  // --- Messages / composer ---
+  'msg.composer.title': 'Şunun için mesaj',
+  'msg.composer.label': 'Mesajın',
+  'msg.composer.placeholder': 'Sohbete başlamak için {name} kişisine yaz…',
+  'msg.composer.send': 'Mesaj gönder',
+  'msg.composer.sent.title': 'Mesaj gönderildi!',
+  'msg.composer.sent.body': '{name} sana cevap vermek için e-posta ile bilgilendirilecek.',
+  'msg.inbox.title': 'Mesajlar',
+  'msg.inbox.empty': 'Henüz mesaj yok',
+  'msg.inbox.reply': 'Cevabını yaz…',
+
+  // --- Wallet ---
+  'wallet.title': 'Cüzdan',
+  'wallet.balance': 'Bakiye',
+  'wallet.buy': 'Tipsys al',
+  'wallet.payout.request': 'Ödeme talep et',
+  'wallet.activate': 'Ödemeleri etkinleştir',
+
+  // --- Room / chat ---
+  'chat.send': 'Gönder',
+  'chat.placeholder': 'Bir mesaj yaz…',
+  'chat.guestCta.q': 'Sohbeti beğendin mi?',
+  'chat.guestCta.link': 'Ücretsiz kaydol',
+  'chat.guestCta.rest': 'profilini kaydetmek, başkalarını takip etmek ve arkadaşlarınla bağlantıda kalmak için.',
+
+  // --- Create room page ---
+  'create.title': 'Oda oluştur',
+  'create.creatingAs': '{name} olarak oluşturuyorsun.',
+  'create.logout': 'Çıkış yap',
+  'create.toCreateAnon': 'hesapsız oluşturmak için.',
+  'create.anonDisclaimer': 'Hesaba gerek yok. Sadece takma adını ve oda için bir ad yaz.',
+  'create.yourNick': 'Takma adın',
+  'create.nickPlaceholder': 'Adın ne?',
+  'create.roomName': 'Oda adı',
+  'create.roomPlaceholder': 'Marta’nın partisi',
+  'create.sessionExpired': 'Oturumun sona erdi. Tekrar giriş yap ya da odayı misafir olarak oluştur.',
+  'create.error': 'Oda oluşturulamadı. Tekrar dene.',
+  'create.login': 'Giriş yap',
+  'create.ready.title': 'Odan hazır!',
+  'create.ready.subtitle': 'Davet etmek istediğin herkesle bu bağlantıyı paylaş.',
+  'create.ready.linkLabel': 'Oda bağlantısı',
+  'create.ready.copied': 'Kopyalandı',
+  'create.ready.copy': 'Kopyala',
+  'create.ready.enter': 'Odana gir',
+
+  // --- Legacy keys (kept for existing t() callers) ---
+  'landing.title': 'Özel bire bir sohbet odaları',
+  'landing.subtitle': 'Bir oda oluştur, bağlantıyı paylaş ve bahşiş al.',
+  'landing.cta.create': 'Oda oluştur',
+  'landing.cta.join': 'Bir odaya katıl',
+  'create.name': 'Oda adı',
+  'create.submit': 'Oda oluştur',
+  'tip.send': 'Tipsy gönder',
+  'wallet.payout.min': 'En az {min} Tipsys',
+};

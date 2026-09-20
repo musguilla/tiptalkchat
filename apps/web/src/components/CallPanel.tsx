@@ -10,6 +10,7 @@ import {
 } from 'livekit-client';
 import { Mic, MicOff, Video, VideoOff, PhoneOff } from 'lucide-react';
 import { api } from '@/lib/api';
+import { useT } from '@/i18n/useLocale';
 
 const CALL_WIDTH_KEY = 'tiptalk-call-width';
 const CALL_WIDTH_MIN = 280;
@@ -36,6 +37,7 @@ interface ParticipantTile {
  * tiles, controls at the bottom.
  */
 export function CallPanel({ roomId, token, mode, onClose }: CallPanelProps) {
+  const t = useT();
   const [error, setError] = useState<string | null>(null);
   const [micOn, setMicOn] = useState(true);
   const [camOn, setCamOn] = useState(mode === 'video');
@@ -139,7 +141,7 @@ export function CallPanel({ roomId, token, mode, onClose }: CallPanelProps) {
         if (!cancelled) {
           // eslint-disable-next-line no-console
           console.error('[call] failed', err);
-          setError(err instanceof Error ? err.message : 'No se pudo iniciar la llamada');
+          setError(err instanceof Error ? err.message : t('cmp.call.startFailed'));
         }
       }
     }
@@ -213,16 +215,18 @@ export function CallPanel({ roomId, token, mode, onClose }: CallPanelProps) {
         onTouchStart={startResize}
         role="separator"
         aria-orientation="vertical"
-        aria-label="Redimensionar llamada"
+        aria-label={t('cmp.call.resize')}
         className="absolute left-0 top-0 z-20 hidden h-full w-1.5 -translate-x-1/2 cursor-col-resize bg-transparent transition hover:bg-primary-500/50 md:block"
       />
 
       <div className="flex items-center justify-between border-b border-white/10 px-4 py-2">
         <span className="text-sm font-semibold">
-          {mode === 'video' ? 'Videollamada' : 'Llamada de voz'}
+          {mode === 'video' ? t('cmp.call.videoTitle') : t('cmp.call.voiceTitle')}
         </span>
         <span className="text-xs text-white/60">
-          {peers.length === 0 ? 'Esperando…' : `${peers.length + 1} en llamada`}
+          {peers.length === 0
+            ? t('cmp.call.waiting')
+            : t('cmp.call.inCall', { count: peers.length + 1 })}
         </span>
       </div>
 
@@ -232,7 +236,7 @@ export function CallPanel({ roomId, token, mode, onClose }: CallPanelProps) {
         </div>
       ) : (
         <div className="flex-1 space-y-2 overflow-auto p-3">
-          <Tile label="Tú" innerRef={localVideoRef} muted hideIfNoVideo={!camOn} />
+          <Tile label={t('cmp.call.you')} innerRef={localVideoRef} muted hideIfNoVideo={!camOn} />
           {peers.map((p) => (
             <RemoteTile key={p.identity} tile={p} />
           ))}
@@ -245,7 +249,7 @@ export function CallPanel({ roomId, token, mode, onClose }: CallPanelProps) {
           className={`btn-tactile grid h-11 w-11 place-items-center rounded-full ${
             micOn ? 'bg-zinc-700 text-white' : 'bg-red-600 text-white'
           }`}
-          title={micOn ? 'Silenciar' : 'Activar mic'}
+          title={micOn ? t('cmp.call.mute') : t('cmp.call.unmute')}
         >
           {micOn ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
         </button>
@@ -255,7 +259,7 @@ export function CallPanel({ roomId, token, mode, onClose }: CallPanelProps) {
             className={`btn-tactile grid h-11 w-11 place-items-center rounded-full ${
               camOn ? 'bg-zinc-700 text-white' : 'bg-red-600 text-white'
             }`}
-            title={camOn ? 'Apagar cámara' : 'Encender cámara'}
+            title={camOn ? t('cmp.call.camOff') : t('cmp.call.camOn')}
           >
             {camOn ? <Video className="h-4 w-4" /> : <VideoOff className="h-4 w-4" />}
           </button>
@@ -263,7 +267,7 @@ export function CallPanel({ roomId, token, mode, onClose }: CallPanelProps) {
         <button
           onClick={onClose}
           className="btn-tactile grid h-11 w-11 place-items-center rounded-full bg-red-600 text-white"
-          title="Colgar"
+          title={t('cmp.call.hangUp')}
         >
           <PhoneOff className="h-4 w-4" />
         </button>

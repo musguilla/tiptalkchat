@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { DoorClosed, Eye, MessagesSquare } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-store';
+import { useT } from '@/i18n/useLocale';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { useAdminFetch } from '../_components/useAdminFetch';
 import { readPage, useUrlState } from '../_components/useUrlState';
@@ -26,27 +27,28 @@ import type {
 
 const LIMIT = 25;
 
-const STATUS_TABS: ReadonlyArray<TabItem<RoomStatusFilter>> = [
-  { key: 'open', label: 'Abiertas' },
-  { key: 'closed', label: 'Cerradas' },
-  { key: 'all', label: 'Todas' },
-];
-
 function readStatus(raw: string | null): RoomStatusFilter {
   return raw === 'closed' || raw === 'all' ? raw : 'open';
 }
 
 export default function AdminRoomsPage() {
+  const t = useT();
   return (
-    <Suspense fallback={<PageHeader title="Salas" />}>
+    <Suspense fallback={<PageHeader title={t('adm.rooms.title')} />}>
       <RoomsPageInner />
     </Suspense>
   );
 }
 
 function RoomsPageInner() {
+  const t = useT();
   const token = useAuth((s) => s.token);
   const { searchParams, set } = useUrlState();
+  const statusTabs: TabItem<RoomStatusFilter>[] = [
+    { key: 'open', label: t('adm.rooms.tab.open') },
+    { key: 'closed', label: t('adm.rooms.tab.closed') },
+    { key: 'all', label: t('adm.rooms.tab.all') },
+  ];
   const status = readStatus(searchParams.get('status'));
   const q = searchParams.get('q') ?? '';
   const page = readPage(searchParams);
@@ -81,21 +83,21 @@ function RoomsPageInner() {
   return (
     <div>
       <PageHeader
-        title="Salas"
-        subtitle="Salas de chat creadas por usuarios e invitados."
+        title={t('adm.rooms.title')}
+        subtitle={t('adm.rooms.subtitle')}
         refreshing={refreshing}
       >
         <SearchInput
           initial={q}
           onCommit={commitSearch}
-          placeholder="Buscar por nombre o slug…"
+          placeholder={t('adm.rooms.searchPlaceholder')}
           className="w-full sm:w-72"
         />
       </PageHeader>
 
       <div className="mb-4">
         <Tabs
-          items={STATUS_TABS}
+          items={statusTabs}
           value={status}
           onChange={(key) => set({ status: key === 'open' ? null : key, page: null })}
         />
@@ -112,26 +114,26 @@ function RoomsPageInner() {
             icon={<MessagesSquare className="h-6 w-6" />}
             title={
               q
-                ? `Sin salas para «${q}»`
+                ? t('adm.rooms.emptySearch', { q })
                 : status === 'open'
-                  ? 'No hay salas abiertas ahora mismo'
+                  ? t('adm.rooms.emptyOpen')
                   : status === 'closed'
-                    ? 'No hay salas cerradas'
-                    : 'Todavía no hay salas'
+                    ? t('adm.rooms.emptyClosed')
+                    : t('adm.rooms.empty')
             }
             className="border-0"
           />
         ) : (
           <TableShell minWidth="min-w-[900px]">
             <TableHead>
-              <Th>Sala</Th>
-              <Th>Creador</Th>
-              <Th>En directo</Th>
-              <Th align="right">Miembros</Th>
-              <Th align="right">Mensajes</Th>
-              <Th>Creada</Th>
-              <Th>Cerrada</Th>
-              <Th align="right">Acciones</Th>
+              <Th>{t('adm.rooms.col.room')}</Th>
+              <Th>{t('adm.rooms.col.creator')}</Th>
+              <Th>{t('adm.rooms.col.live')}</Th>
+              <Th align="right">{t('adm.rooms.col.members')}</Th>
+              <Th align="right">{t('adm.rooms.col.messages')}</Th>
+              <Th>{t('adm.rooms.col.created')}</Th>
+              <Th>{t('adm.rooms.col.closed')}</Th>
+              <Th align="right">{t('adm.common.actions')}</Th>
             </TableHead>
             <tbody>
               {rows.map((r, i) => {
@@ -142,12 +144,12 @@ function RoomsPageInner() {
                       <div className="min-w-0">
                         <p className="flex items-center gap-2 truncate font-semibold text-ink">
                           {r.name}
-                          <Badge tone={open ? 'success' : 'neutral'}>{open ? 'Abierta' : 'Cerrada'}</Badge>
+                          <Badge tone={open ? 'success' : 'neutral'}>{open ? t('adm.common.roomOpen') : t('adm.common.roomClosed')}</Badge>
                         </p>
                         <Link
                           href={`/admin/salas/${r.id}`}
                           className="inline-flex items-center gap-1 text-xs text-ink-muted hover:text-primary-600 hover:underline"
-                          title="Ver la conversación como observador (no te une a la sala)"
+                          title={t('adm.rooms.observeTitle')}
                         >
                           /r/{r.slug}
                           <Eye className="h-3 w-3" />
@@ -169,7 +171,7 @@ function RoomsPageInner() {
                         </Link>
                       ) : (
                         <span className="inline-flex items-center gap-2 text-ink-muted">
-                          <Badge tone="neutral">invitado</Badge>
+                          <Badge tone="neutral">{t('adm.common.guest')}</Badge>
                           <span className="truncate">{r.creator.displayName}</span>
                         </span>
                       )}
@@ -177,7 +179,7 @@ function RoomsPageInner() {
                     <Td>
                       <OnlineDot
                         online={r.liveCount > 0}
-                        label={r.liveCount > 0 ? `${formatInt(r.liveCount)} en directo` : 'Nadie'}
+                        label={r.liveCount > 0 ? t('adm.rooms.liveCount', { n: formatInt(r.liveCount) }) : t('adm.rooms.nobody')}
                       />
                     </Td>
                     <Td align="right" className="tabular-nums">
@@ -199,7 +201,7 @@ function RoomsPageInner() {
                           className="btn-tactile inline-flex items-center gap-1.5 rounded-md bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-100"
                         >
                           <DoorClosed className="h-3.5 w-3.5" />
-                          Cerrar
+                          {t('adm.common.close')}
                         </button>
                       ) : (
                         <span className="text-xs text-ink-soft">—</span>
@@ -226,13 +228,13 @@ function RoomsPageInner() {
 
       <ConfirmDialog
         open={pending !== null}
-        title="Cerrar sala"
+        title={t('adm.rooms.closeTitle')}
         description={
           pending
-            ? `Se cerrará «${pending.name}» (/r/${pending.slug}) y se borrarán sus mensajes y archivos. Esta acción no se puede deshacer.`
+            ? t('adm.rooms.closeDesc', { name: pending.name, slug: pending.slug })
             : undefined
         }
-        confirmLabel="Cerrar sala"
+        confirmLabel={t('adm.rooms.close')}
         tone="danger"
         busy={busy}
         onConfirm={() => void confirmClose()}

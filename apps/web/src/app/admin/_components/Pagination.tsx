@@ -1,5 +1,6 @@
 'use client';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useT } from '@/i18n/useLocale';
 import { formatInt } from './format';
 
 export interface PaginationProps {
@@ -12,6 +13,7 @@ export interface PaginationProps {
 
 /** "Mostrando 1–25 de 120" + prev/next. */
 export function Pagination({ page, limit, total, onPage, disabled = false }: PaginationProps) {
+  const t = useT();
   const pages = Math.max(1, Math.ceil(total / Math.max(1, limit)));
   const from = total === 0 ? 0 : (page - 1) * limit + 1;
   const to = Math.min(total, page * limit);
@@ -24,26 +26,22 @@ export function Pagination({ page, limit, total, onPage, disabled = false }: Pag
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-ink-muted">
       <p>
-        {total === 0 ? (
-          'Sin resultados'
-        ) : (
-          <>
-            Mostrando <span className="font-semibold text-ink">{formatInt(from)}</span>–
-            <span className="font-semibold text-ink">{formatInt(to)}</span> de{' '}
-            <span className="font-semibold text-ink">{formatInt(total)}</span>
-          </>
-        )}
+        {total === 0
+          ? t('adb.pag.noResults')
+          : t('adb.pag.range', {
+              from: formatInt(from),
+              to: formatInt(to),
+              total: formatInt(total),
+            })}
       </p>
       <div className="flex items-center gap-2">
         <button type="button" onClick={() => onPage(page - 1)} disabled={!canPrev} className={btn}>
           <ChevronLeft className="h-4 w-4" />
-          Anterior
+          {t('adb.pag.prev')}
         </button>
-        <span className="px-1 text-xs">
-          Página {page} / {pages}
-        </span>
+        <span className="px-1 text-xs">{t('adb.pag.pageOf', { page, pages })}</span>
         <button type="button" onClick={() => onPage(page + 1)} disabled={!canNext} className={btn}>
-          Siguiente
+          {t('adb.pag.next')}
           <ChevronRight className="h-4 w-4" />
         </button>
       </div>

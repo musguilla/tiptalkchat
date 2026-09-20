@@ -1,5 +1,6 @@
 'use client';
 import type { ReactNode } from 'react';
+import { useT } from '@/i18n/useLocale';
 import { payoutStatusLabel } from './format';
 import type { ContactStatus, PayoutStatus } from './types';
 
@@ -13,10 +14,16 @@ const PAYOUT_TONES: Record<PayoutStatus, BadgeTone> = {
   refunded: 'neutral',
 };
 
-const CONTACT_META: Record<ContactStatus, { label: string; tone: BadgeTone }> = {
-  new: { label: 'Nuevo', tone: 'warning' },
-  read: { label: 'Leído', tone: 'info' },
-  archived: { label: 'Archivado', tone: 'neutral' },
+const CONTACT_TONES: Record<ContactStatus, BadgeTone> = {
+  new: 'warning',
+  read: 'info',
+  archived: 'neutral',
+};
+
+const CONTACT_KEYS: Record<ContactStatus, string> = {
+  new: 'adb.contact.status.new',
+  read: 'adb.contact.status.read',
+  archived: 'adb.contact.status.archived',
 };
 
 export function PayoutStatusBadge({ status }: { status: PayoutStatus }) {
@@ -24,8 +31,9 @@ export function PayoutStatusBadge({ status }: { status: PayoutStatus }) {
 }
 
 export function ContactStatusBadge({ status }: { status: ContactStatus }) {
-  const meta = CONTACT_META[status] ?? CONTACT_META.new;
-  return <Badge tone={meta.tone}>{meta.label}</Badge>;
+  const t = useT();
+  const tone = CONTACT_TONES[status] ?? 'warning';
+  return <Badge tone={tone}>{t(CONTACT_KEYS[status] ?? CONTACT_KEYS.new)}</Badge>;
 }
 
 const TONES: Record<BadgeTone, string> = {

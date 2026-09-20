@@ -2,6 +2,7 @@
 import { Coins, Loader2, AlertCircle, Phone, Video as VideoIcon } from 'lucide-react';
 import type { ChatMessage } from './types';
 import { HlsPlayer } from './HlsPlayer';
+import { useT } from '@/i18n/useLocale';
 
 interface CallInvite {
   type: 'call_invite';
@@ -36,12 +37,17 @@ export function ChatMessageItem({
   /** False for the owner of the room — they can't tip themselves. */
   canTip?: boolean;
 }) {
+  const t = useT();
   // System call-invite messages get their own bubble (no avatar / no tip btn).
   if (msg.kind === 'system') {
     const invite = parseCallInvite(msg.body);
     if (invite) {
       const Icon = invite.mode === 'video' ? VideoIcon : Phone;
-      const label = invite.mode === 'video' ? 'videollamada' : 'llamada de voz';
+      const who = invite.by || t('cmp.chat.someone');
+      const startedText =
+        invite.mode === 'video'
+          ? t('cmp.chat.startedVideoCall', { name: who })
+          : t('cmp.chat.startedVoiceCall', { name: who });
       return (
         <div className="my-2 px-2">
           <div className="flex w-full max-w-md items-center gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm dark:border-emerald-900/40 dark:bg-emerald-950/30">
@@ -49,11 +55,9 @@ export function ChatMessageItem({
               <Icon className="h-5 w-5" />
             </div>
             <div className="flex-1 text-emerald-900 dark:text-emerald-100">
-              <p className="font-semibold">
-                {invite.by || 'Alguien'} ha iniciado una {label}
-              </p>
+              <p className="font-semibold">{startedText}</p>
               <p className="text-xs text-emerald-800/80 dark:text-emerald-200/70">
-                Pulsa para unirte ahora mismo.
+                {t('cmp.chat.tapToJoin')}
               </p>
             </div>
             {onJoinCall && (
@@ -62,7 +66,7 @@ export function ChatMessageItem({
                 onClick={() => onJoinCall(invite.mode)}
                 className="btn-tactile rounded-md bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-600"
               >
-                Unirse
+                {t('cmp.chat.join')}
               </button>
             )}
           </div>
@@ -113,7 +117,7 @@ export function ChatMessageItem({
               target="_blank"
               rel="noopener noreferrer"
               className="shrink-0 transition hover:opacity-80"
-              title={`Ver perfil de ${msg.author.displayName}`}
+              title={t('cmp.chat.viewProfile', { name: msg.author.displayName })}
             >
               {node}
             </a>
@@ -124,11 +128,11 @@ export function ChatMessageItem({
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline gap-2">
           <span className="text-sm font-semibold">
-            {(msg.author ?? msg.guest)?.displayName ?? 'Anónimo'}
+            {(msg.author ?? msg.guest)?.displayName ?? t('cmp.chat.anonymous')}
           </span>
           {!msg.author && msg.guest && (
             <span className="rounded bg-zinc-200 px-1 text-[10px] font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
-              invitado
+              {t('cmp.chat.guest')}
             </span>
           )}
           <span className="text-[11px] text-zinc-500">
@@ -141,14 +145,14 @@ export function ChatMessageItem({
         {isFailed && (
           <div className="mt-1 flex items-center gap-2 text-xs text-red-600">
             <AlertCircle className="h-3.5 w-3.5" />
-            <span>No se pudo enviar.</span>
+            <span>{t('cmp.chat.sendFailed')}</span>
             {onRetry && (
               <button
                 type="button"
                 onClick={() => onRetry(msg)}
                 className="font-semibold underline hover:no-underline"
               >
-                Reintentar
+                {t('cmp.chat.retry')}
               </button>
             )}
           </div>
@@ -158,8 +162,8 @@ export function ChatMessageItem({
         <button
           onClick={() => onTip(msg)}
           className="opacity-0 transition group-hover:opacity-100"
-          aria-label="Enviar propina"
-          title="Tip"
+          aria-label={t('cmp.chat.sendTip')}
+          title={t('cmp.chat.tip')}
         >
           <Coins className="h-5 w-5 text-amber-500 hover:text-amber-600" />
         </button>
@@ -192,13 +196,14 @@ function TextOrImage({ body }: { body: string | null }) {
 }
 
 function MediaImage({ msg }: { msg: ChatMessage }) {
+  const t = useT();
   const url = msg.media?.publicUrl;
-  if (!url) return <span className="text-xs text-zinc-500">[imagen no disponible]</span>;
+  if (!url) return <span className="text-xs text-zinc-500">{t('cmp.chat.imageUnavailable')}</span>;
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
       src={url}
-      alt={msg.body ?? 'imagen'}
+      alt={msg.body ?? t('cmp.chat.imageAlt')}
       className="mt-1 max-h-72 cursor-zoom-in rounded-lg"
       onClick={() => window.open(url, '_blank', 'noopener,noreferrer')}
     />
@@ -206,14 +211,15 @@ function MediaImage({ msg }: { msg: ChatMessage }) {
 }
 
 function MediaVideo({ msg }: { msg: ChatMessage }) {
+  const t = useT();
   if (!msg.media) {
-    return <span className="text-xs text-zinc-500">[vídeo]</span>;
+    return <span className="text-xs text-zinc-500">{t('cmp.chat.videoLabel')}</span>;
   }
   if (msg.media.status !== 'ready' || !msg.media.hlsUrl) {
     return (
       <div className="mt-1 flex items-center gap-2 rounded-lg border border-dashed border-zinc-300 bg-zinc-50 px-3 py-4 text-sm text-zinc-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300">
         <Loader2 className="h-4 w-4 animate-spin" />
-        Procesando vídeo… (suele tardar 30-60s)
+        {t('cmp.chat.processingVideo')}
       </div>
     );
   }

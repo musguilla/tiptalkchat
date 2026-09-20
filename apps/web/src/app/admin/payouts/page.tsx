@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Banknote, CheckCircle2, XCircle } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-store';
+import { useT } from '@/i18n/useLocale';
 import { useAdminFetch } from '../_components/useAdminFetch';
 import { useUrlState } from '../_components/useUrlState';
 import { PageHeader } from '../_components/PageHeader';
@@ -42,14 +43,16 @@ const INPUT_CLASSES =
   'w-full rounded-md border border-transparent bg-surface-soft p-2.5 text-sm text-ink outline-none transition focus:border-primary-500 focus:bg-white';
 
 export default function AdminPayoutsPage() {
+  const t = useT();
   return (
-    <Suspense fallback={<PageHeader title="Payouts" />}>
+    <Suspense fallback={<PageHeader title={t('adb.payouts.title')} />}>
       <PayoutsPageInner />
     </Suspense>
   );
 }
 
 function PayoutsPageInner() {
+  const t = useT();
   const token = useAuth((s) => s.token);
   const { searchParams, set } = useUrlState();
   const tab = readTab(searchParams.get('tab'));
@@ -69,11 +72,11 @@ function PayoutsPageInner() {
   const rows = useMemo(() => all.filter((p) => matchesTab(p, tab)), [all, tab]);
 
   const tabs: ReadonlyArray<TabItem<PayoutTab>> = [
-    { key: 'pending', label: 'Pendientes', count: all.filter(isPending).length },
-    { key: 'paid', label: 'Pagados', count: all.filter((p) => p.status === 'paid').length },
-    { key: 'failed', label: 'Fallidos', count: all.filter((p) => p.status === 'failed').length },
-    { key: 'refunded', label: 'Reembolsados', count: all.filter((p) => p.status === 'refunded').length },
-    { key: 'all', label: 'Todos', count: all.length },
+    { key: 'pending', label: t('adb.payouts.tab.pending'), count: all.filter(isPending).length },
+    { key: 'paid', label: t('adb.payouts.tab.paid'), count: all.filter((p) => p.status === 'paid').length },
+    { key: 'failed', label: t('adb.payouts.tab.failed'), count: all.filter((p) => p.status === 'failed').length },
+    { key: 'refunded', label: t('adb.payouts.tab.refunded'), count: all.filter((p) => p.status === 'refunded').length },
+    { key: 'all', label: t('adb.payouts.tab.all'), count: all.length },
   ];
 
   function openModal(next: PayoutModal): void {
@@ -122,8 +125,8 @@ function PayoutsPageInner() {
   return (
     <div>
       <PageHeader
-        title="Payouts"
-        subtitle="Solicitudes de cobro de Tipsys. Aprobar marca el pago como hecho; rechazar devuelve los Tipsys al monedero."
+        title={t('adb.payouts.title')}
+        subtitle={t('adb.payouts.subtitle')}
         refreshing={refreshing}
       />
 
@@ -142,25 +145,25 @@ function PayoutsPageInner() {
             icon={<Banknote className="h-6 w-6" />}
             title={
               tab === 'pending'
-                ? 'No hay payouts pendientes'
+                ? t('adb.payouts.empty.pending')
                 : tab === 'all'
-                  ? 'Todavía no hay solicitudes de cobro'
-                  : 'No hay payouts en este estado'
+                  ? t('adb.payouts.empty.all')
+                  : t('adb.payouts.empty.state')
             }
             className="border-0"
           />
         ) : (
           <TableShell minWidth="min-w-[960px]">
             <TableHead>
-              <Th>Usuario</Th>
+              <Th>{t('adb.payouts.th.user')}</Th>
               <Th align="right">Tipsys</Th>
-              <Th align="right">Bruto</Th>
-              <Th align="right">Comisión</Th>
-              <Th align="right">Neto</Th>
+              <Th align="right">{t('adb.payouts.th.gross')}</Th>
+              <Th align="right">{t('adb.payouts.th.fee')}</Th>
+              <Th align="right">{t('adb.payouts.th.net')}</Th>
               <Th>Connect</Th>
-              <Th>Estado</Th>
-              <Th>Solicitado</Th>
-              <Th align="right">Acciones</Th>
+              <Th>{t('adb.payouts.th.status')}</Th>
+              <Th>{t('adb.payouts.th.requested')}</Th>
+              <Th align="right">{t('adb.payouts.th.actions')}</Th>
             </TableHead>
             <tbody>
               {rows.map((p, i) => (
@@ -196,18 +199,18 @@ function PayoutsPageInner() {
                       p.connect.payoutsEnabled ? (
                         <Badge tone="success">
                           <CheckCircle2 className="h-3 w-3" />
-                          Payouts OK
+                          {t('adb.payouts.connectOk')}
                         </Badge>
                       ) : (
                         <Badge tone="warning">
                           <XCircle className="h-3 w-3" />
-                          Payouts desactivados
+                          {t('adb.payouts.connectOff')}
                         </Badge>
                       )
                     ) : (
                       <Badge tone="danger">
                         <XCircle className="h-3 w-3" />
-                        Sin Connect
+                        {t('adb.payouts.noConnect')}
                       </Badge>
                     )}
                     {p.connect && (
@@ -223,7 +226,7 @@ function PayoutsPageInner() {
                     <PayoutStatusBadge status={p.status} />
                     {p.status === 'paid' && (
                       <p className="mt-1 text-[11px] text-ink-muted">
-                        Pagado el {formatDate(p.paidAt)}
+                        {t('adb.payouts.paidOn', { date: formatDate(p.paidAt) })}
                         {p.stripeTransferId && (
                           <>
                             <br />
@@ -253,7 +256,7 @@ function PayoutsPageInner() {
                           className="btn-tactile inline-flex items-center gap-1.5 rounded-md bg-primary-500 px-3 py-1.5 text-xs font-semibold text-white shadow-soft transition hover:bg-primary-600"
                         >
                           <CheckCircle2 className="h-3.5 w-3.5" />
-                          Aprobar
+                          {t('adb.payouts.approve')}
                         </button>
                         <button
                           type="button"
@@ -264,7 +267,7 @@ function PayoutsPageInner() {
                           className="btn-tactile inline-flex items-center gap-1.5 rounded-md bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-100"
                         >
                           <XCircle className="h-3.5 w-3.5" />
-                          Rechazar
+                          {t('adb.payouts.reject')}
                         </button>
                       </div>
                     ) : (
@@ -281,13 +284,17 @@ function PayoutsPageInner() {
       {/* Approve: optional Stripe transfer id */}
       <InlineModal
         open={modal?.kind === 'approve'}
-        title="Aprobar payout"
+        title={t('adb.payouts.approveTitle')}
         description={
           modal
-            ? `Se marcará como pagado el cobro de ${modal.payout.user.displayName} por ${formatEurCents(modal.payout.netEurCents)} netos (${formatInt(modal.payout.tipsys)} Tipsys). Asegúrate de haber hecho la transferencia en Stripe.`
+            ? t('adb.payouts.approveDesc', {
+                name: modal.payout.user.displayName,
+                eur: formatEurCents(modal.payout.netEurCents),
+                tipsys: formatInt(modal.payout.tipsys),
+              })
             : undefined
         }
-        confirmLabel="Marcar como pagado"
+        confirmLabel={t('adb.payouts.markPaid')}
         tone="primary"
         busy={busy}
         onConfirm={() => void runModal()}
@@ -295,7 +302,7 @@ function PayoutsPageInner() {
       >
         <label className="block space-y-1.5 text-sm">
           <span className="font-medium text-ink">
-            ID de transferencia de Stripe <span className="text-ink-soft">(opcional)</span>
+            {t('adb.payouts.stripeId')} <span className="text-ink-soft">{t('adb.payouts.optional')}</span>
           </span>
           <input
             value={stripeId}
@@ -310,13 +317,16 @@ function PayoutsPageInner() {
       {/* Reject: required reason */}
       <InlineModal
         open={modal?.kind === 'reject'}
-        title="Rechazar payout"
+        title={t('adb.payouts.rejectTitle')}
         description={
           modal
-            ? `Se devolverán ${formatInt(modal.payout.tipsys)} Tipsys al monedero de ${modal.payout.user.displayName} y la solicitud quedará como reembolsada.`
+            ? t('adb.payouts.rejectDesc', {
+                tipsys: formatInt(modal.payout.tipsys),
+                name: modal.payout.user.displayName,
+              })
             : undefined
         }
-        confirmLabel="Rechazar y devolver"
+        confirmLabel={t('adb.payouts.rejectConfirm')}
         tone="danger"
         busy={busy}
         confirmDisabled={!reasonValid}
@@ -325,7 +335,7 @@ function PayoutsPageInner() {
       >
         <label className="block space-y-1.5 text-sm">
           <span className="font-medium text-ink">
-            Motivo <span className="text-red-500">*</span>
+            {t('adb.payouts.reason')} <span className="text-red-500">*</span>
           </span>
           <textarea
             value={reason}
@@ -334,7 +344,7 @@ function PayoutsPageInner() {
             maxLength={REASON_MAX}
             required
             autoFocus
-            placeholder="Explica por qué se rechaza (lo verá el usuario)."
+            placeholder={t('adb.payouts.reasonPlaceholder')}
             className={`${INPUT_CLASSES} resize-y`}
           />
           <span className="block text-right text-[11px] text-ink-soft">

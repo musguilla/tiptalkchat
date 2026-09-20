@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-store';
+import { useT } from '@/i18n/useLocale';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { useAdminFetch } from '../_components/useAdminFetch';
 import { readPage, useUrlState } from '../_components/useUrlState';
@@ -62,10 +63,10 @@ interface MediaResponse {
   chatBytes: number;
 }
 
-const SOURCE_META: Record<MediaItem['source'], { label: string; icon: typeof ImageIcon }> = {
-  chat: { label: 'Chat', icon: MessagesSquare },
-  avatar: { label: 'Avatar', icon: UserIcon },
-  gallery: { label: 'Galería', icon: ImageIcon },
+const SOURCE_META: Record<MediaItem['source'], { labelKey: string; icon: typeof ImageIcon }> = {
+  chat: { labelKey: 'adb.media.source.chat', icon: MessagesSquare },
+  avatar: { labelKey: 'adb.media.source.avatar', icon: UserIcon },
+  gallery: { labelKey: 'adb.media.source.gallery', icon: ImageIcon },
 };
 
 function formatBytes(bytes: number | null): string | null {
@@ -91,6 +92,7 @@ export default function AdminMediaPage() {
 }
 
 function MediaInner() {
+  const t = useT();
   const { searchParams, set } = useUrlState();
   const source = readSource(searchParams.get('source'));
   const kind = readKind(searchParams.get('kind'));
@@ -109,15 +111,15 @@ function MediaInner() {
 
   const counts = data?.counts;
   const sourceTabs: ReadonlyArray<TabItem<MediaSource>> = [
-    { key: 'all', label: 'Todo', count: counts?.total },
-    { key: 'chat', label: 'Chats', count: counts?.chat },
-    { key: 'avatar', label: 'Avatares', count: counts?.avatar },
-    { key: 'gallery', label: 'Galerías', count: counts?.gallery },
+    { key: 'all', label: t('adb.media.tab.all'), count: counts?.total },
+    { key: 'chat', label: t('adb.media.tab.chats'), count: counts?.chat },
+    { key: 'avatar', label: t('adb.media.tab.avatars'), count: counts?.avatar },
+    { key: 'gallery', label: t('adb.media.tab.galleries'), count: counts?.gallery },
   ];
   const kindTabs: ReadonlyArray<TabItem<MediaKind>> = [
-    { key: 'all', label: 'Todo' },
-    { key: 'image', label: 'Imágenes' },
-    { key: 'video', label: 'Vídeos' },
+    { key: 'all', label: t('adb.media.tab.all') },
+    { key: 'image', label: t('adb.media.kind.images') },
+    { key: 'video', label: t('adb.media.kind.videos') },
   ];
 
   const chatWeight = data ? formatBytes(data.chatBytes) : null;
@@ -125,8 +127,8 @@ function MediaInner() {
   return (
     <div>
       <PageHeader
-        title="Media"
-        subtitle="Todo lo que se ha subido: imágenes y vídeos de los chats, fotos de perfil y galerías."
+        title={t('adb.media.title')}
+        subtitle={t('adb.media.subtitle')}
         refreshing={refreshing}
       >
         <button
@@ -134,7 +136,7 @@ function MediaInner() {
           onClick={reload}
           className="btn-tactile rounded-md border border-surface-container bg-white px-3 py-2 text-sm font-semibold text-ink transition hover:bg-surface-soft"
         >
-          Actualizar
+          {t('adb.media.refresh')}
         </button>
       </PageHeader>
 
@@ -143,7 +145,7 @@ function MediaInner() {
         <Tabs items={kindTabs} value={kind} onChange={(k) => set({ kind: k === 'all' ? null : k, page: null })} />
         {chatWeight && (
           <span className="text-xs text-ink-muted">
-            {chatWeight} en archivos de chat
+            {t('adb.media.chatWeight', { weight: chatWeight })}
           </span>
         )}
       </div>
@@ -155,8 +157,8 @@ function MediaInner() {
       ) : !data || data.items.length === 0 ? (
         <EmptyState
           icon={<ImageIcon className="h-6 w-6" />}
-          title="Sin archivos"
-          hint="Cuando alguien suba una foto a un chat, cambie su avatar o añada fotos a su galería, aparecerán aquí."
+          title={t('adb.media.empty.title')}
+          hint={t('adb.media.empty.hint')}
         />
       ) : (
         <>
@@ -181,6 +183,7 @@ function MediaInner() {
 }
 
 function MediaCard({ item, onDeleted }: { item: MediaItem; onDeleted: () => void }) {
+  const t = useT();
   const token = useAuth((s) => s.token);
   const [broken, setBroken] = useState(false);
   const [confirming, setConfirming] = useState(false);
@@ -225,7 +228,7 @@ function MediaCard({ item, onDeleted }: { item: MediaItem; onDeleted: () => void
 
         <span className="absolute left-1.5 top-1.5 inline-flex items-center gap-1 rounded-full bg-ink/70 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm">
           <SourceIcon className="h-3 w-3" />
-          {meta.label}
+          {t(meta.labelKey)}
         </span>
 
         {item.kind === 'video' && (
@@ -236,20 +239,20 @@ function MediaCard({ item, onDeleted }: { item: MediaItem; onDeleted: () => void
 
         {item.isPublic === false && (
           <span className="absolute bottom-1.5 left-1.5 inline-flex items-center gap-1 rounded-full bg-ink/70 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm">
-            <Lock className="h-2.5 w-2.5" /> Privada
+            <Lock className="h-2.5 w-2.5" /> {t('adb.media.private')}
           </span>
         )}
 
         {processing && (
           <span className="absolute inset-x-1.5 bottom-1.5 rounded bg-amber-500/90 px-2 py-0.5 text-center text-[10px] font-semibold text-white">
-            Procesando
+            {t('adb.media.processing')}
           </span>
         )}
 
         <button
           type="button"
           onClick={() => setConfirming(true)}
-          title="Borrar archivo"
+          title={t('adb.media.deleteTitle')}
           className="absolute right-1.5 top-1.5 z-10 grid h-7 w-7 place-items-center rounded-full bg-red-600/90 text-white opacity-0 shadow transition hover:bg-red-700 group-hover:opacity-100"
         >
           <Trash2 className="h-3.5 w-3.5" />
@@ -261,10 +264,10 @@ function MediaCard({ item, onDeleted }: { item: MediaItem; onDeleted: () => void
             target="_blank"
             rel="noopener noreferrer"
             className="absolute inset-0 grid place-items-center bg-ink/40 opacity-0 transition group-hover:opacity-100"
-            title="Abrir original"
+            title={t('adb.media.openOriginal')}
           >
             <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-ink">
-              <ExternalLink className="h-3.5 w-3.5" /> Abrir
+              <ExternalLink className="h-3.5 w-3.5" /> {t('adb.media.open')}
             </span>
           </a>
         )}
@@ -282,18 +285,18 @@ function MediaCard({ item, onDeleted }: { item: MediaItem; onDeleted: () => void
           ) : (
             <p className="truncate font-semibold text-ink">
               {item.owner.displayName}{' '}
-              <span className="font-normal text-ink-soft">(invitado)</span>
+              <span className="font-normal text-ink-soft">{t('adb.media.guest')}</span>
             </p>
           )
         ) : (
-          <p className="truncate text-ink-soft">Sin autor</p>
+          <p className="truncate text-ink-soft">{t('adb.media.noAuthor')}</p>
         )}
 
         {item.room && (
           <Link
             href={`/admin/salas/${item.room.id}`}
             className="inline-flex max-w-full items-center gap-1 truncate text-ink-muted hover:text-primary-600 hover:underline"
-            title={`Ver «${item.room.name}» como observador`}
+            title={t('adb.media.viewRoom', { name: item.room.name })}
           >
             <Eye className="h-3 w-3 shrink-0" />
             <span className="truncate">{item.room.name}</span>
@@ -313,13 +316,15 @@ function MediaCard({ item, onDeleted }: { item: MediaItem; onDeleted: () => void
 
       <ConfirmDialog
         open={confirming}
-        title="Borrar archivo"
+        title={t('adb.media.deleteTitle')}
         description={
           item.source === 'avatar'
-            ? `Se eliminará el avatar de ${item.owner?.displayName ?? 'este usuario'} y el archivo del almacenamiento. No se puede deshacer.`
-            : 'Se eliminará este archivo del almacenamiento y del registro. No se puede deshacer.'
+            ? t('adb.media.delete.descAvatar', {
+                name: item.owner?.displayName ?? t('adb.media.thisUser'),
+              })
+            : t('adb.media.delete.descFile')
         }
-        confirmLabel="Borrar"
+        confirmLabel={t('adb.media.deleteConfirm')}
         tone="danger"
         busy={deleting}
         onConfirm={() => void confirmDelete()}
