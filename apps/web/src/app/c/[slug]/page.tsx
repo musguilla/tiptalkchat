@@ -5,26 +5,42 @@ import type { Metadata } from 'next';
 import { ArrowRight } from 'lucide-react';
 import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
-import { seoPageMap, seoSlugs, type SeoPage } from '@/lib/seo-pages';
+import { seoSlugs, type SeoPage } from '@/lib/seo-pages';
+import { getSeoPage, hasSeoCatalog } from '@/lib/seo-i18n';
+import { getServerLocale } from '@/i18n/server';
+import { t } from '@/i18n';
+import { localizeHref } from '@/i18n/routing';
+import { DEFAULT_LOCALE, LOCALES } from '@/i18n/config';
 
 export function generateStaticParams(): Array<{ slug: string }> {
   return seoSlugs.map((slug) => ({ slug }));
 }
 
+const SITE = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://tiptalk.chat').replace(/\/$/, '');
+
 export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
-  const page = seoPageMap[params.slug];
+  const locale = getServerLocale();
+  const page = getSeoPage(params.slug, locale);
   if (!page) return {};
+
+  // hreflang: the Spanish canonical + every locale that has translated content.
+  const languages: Record<string, string> = {
+    [DEFAULT_LOCALE]: `${SITE}/c/${page.slug}`,
+  };
+  for (const loc of LOCALES) {
+    if (loc !== DEFAULT_LOCALE && hasSeoCatalog(loc)) {
+      languages[loc] = `${SITE}${localizeHref(`/c/${page.slug}`, loc)}`;
+    }
+  }
+
   return {
     title: page.metaTitle,
     description: page.metaDescription,
     alternates: {
-      canonical: `/c/${page.slug}`,
+      canonical: `${SITE}${localizeHref(`/c/${page.slug}`, locale)}`,
+      languages,
     },
-    openGraph: {
-      title: page.metaTitle,
-      description: page.metaDescription,
-      type: 'website',
-    },
+    openGraph: { title: page.metaTitle, description: page.metaDescription, type: 'website' },
   };
 }
 
@@ -50,51 +66,41 @@ function faqSchema(page: SeoPage): string {
     mainEntity: page.faqs.map((f) => ({
       '@type': 'Question',
       name: f.q,
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: f.a,
-      },
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
     })),
   });
 }
 
 export default function SeoLandingPage({ params }: { params: { slug: string } }) {
-  const page = seoPageMap[params.slug];
+  const locale = getServerLocale();
+  const page = getSeoPage(params.slug, locale);
   if (!page) notFound();
+  const createHref = localizeHref('/create', locale);
 
   return (
     <div className="flex min-h-screen flex-col bg-canvas text-ink">
-      {/* FAQ JSON-LD for Search Console rich results */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: faqSchema(page) }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: faqSchema(page) }} />
 
       <SiteHeader />
 
       <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-14">
-        {/* Top CTA — conversion point above the fold. */}
         <div className="mb-10 flex flex-col items-start gap-4 rounded-xl border border-primary-200 bg-primary-50/70 p-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="font-display text-base font-bold text-primary-700">
-              Abre tu sala en menos de un minuto
+              {t(locale, 'seo.cta.top.title')}
             </p>
-            <p className="text-sm text-primary-700/80">
-              Sin registro. Pon un nick, un nombre y comparte el enlace.
-            </p>
+            <p className="text-sm text-primary-700/80">{t(locale, 'seo.cta.top.sub')}</p>
           </div>
           <Link
-            href="/create"
+            href={createHref}
             className="btn-tactile inline-flex shrink-0 items-center gap-2 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-5 py-2.5 text-sm font-bold text-white shadow-vivid hover:shadow-vivid-strong"
           >
-            Crear sala de chat
+            {t(locale, 'home.hero.cta')}
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
 
-        <h1 className="font-display text-4xl font-extrabold tracking-tight sm:text-5xl">
-          {page.h1}
-        </h1>
+        <h1 className="font-display text-4xl font-extrabold tracking-tight sm:text-5xl">{page.h1}</h1>
 
         <p className="mt-4 text-lg leading-relaxed text-ink">{renderMarkdown(page.intro)}</p>
 
@@ -104,10 +110,9 @@ export default function SeoLandingPage({ params }: { params: { slug: string } })
           ))}
         </div>
 
-        {/* FAQ block */}
         <section className="mt-14">
           <h2 className="font-display text-2xl font-extrabold tracking-tight sm:text-3xl">
-            Preguntas frecuentes
+            {t(locale, 'seo.faq.title')}
           </h2>
           <div className="mt-6 divide-y divide-surface-container rounded-xl border border-surface-container bg-white shadow-soft">
             {page.faqs.map((faq, i) => (
@@ -124,17 +129,14 @@ export default function SeoLandingPage({ params }: { params: { slug: string } })
           </div>
         </section>
 
-        {/* Bottom CTA repeat — natural second exit point. */}
         <div className="mt-14 rounded-xl border border-surface-container bg-white p-7 text-center shadow-soft">
-          <p className="font-display text-lg font-bold">¿Listo para empezar?</p>
-          <p className="mt-1 text-sm text-ink-muted">
-            Tarda menos que leer este párrafo otra vez.
-          </p>
+          <p className="font-display text-lg font-bold">{t(locale, 'seo.cta.bottom.title')}</p>
+          <p className="mt-1 text-sm text-ink-muted">{t(locale, 'seo.cta.bottom.sub')}</p>
           <Link
-            href="/create"
+            href={createHref}
             className="btn-tactile mt-4 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-6 py-3 text-sm font-bold text-white shadow-vivid hover:shadow-vivid-strong"
           >
-            Crear sala de chat
+            {t(locale, 'home.hero.cta')}
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>

@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useT } from '@/i18n/useLocale';
 
 const BASE = 45352;
 const MIN = 44000;
@@ -36,6 +37,7 @@ function computeCount(date: Date): number {
 }
 
 export function LiveRoomsBadge() {
+  const t = useT();
   const [count, setCount] = useState<number>(BASE);
 
   useEffect(() => {
@@ -57,7 +59,7 @@ export function LiveRoomsBadge() {
         <p className="font-display text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
           {formatted}
         </p>
-        <p className="text-sm text-ink-muted">Salas de chat activas ahora mismo</p>
+        <p className="text-sm text-ink-muted">{t('home.live.label')}</p>
       </div>
     </div>
   );

@@ -69,30 +69,30 @@ export default function HomePage() {
         <div className="mx-auto max-w-7xl px-6">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="font-display text-4xl font-extrabold tracking-tight sm:text-5xl">
-              Empieza a chatear
+              {t(locale, 'home.steps.title')}
             </h2>
             <p className="mt-4 text-base text-ink-muted">
-              Lo tienes a 2 clicks.
+              {t(locale, 'home.steps.subtitle')}
             </p>
           </div>
           <div className="mt-14 grid gap-6 md:grid-cols-3">
             <StepCard
               color="bg-primary-500"
               icon={<Lock className="h-5 w-5" />}
-              title="Crea tu sala privada"
-              body="Dale un nombre y listo!"
+              title={t(locale, 'home.steps.1.title')}
+              body={t(locale, 'home.steps.1.body')}
             />
             <StepCard
               color="bg-secondary-500"
               icon={<Share2 className="h-5 w-5" />}
-              title="Comparte tu enlace"
-              body="Comparte tu enlace con quien tu quieras."
+              title={t(locale, 'home.steps.2.title')}
+              body={t(locale, 'home.steps.2.body')}
             />
             <StepCard
               color="bg-blue-500"
               icon={<MessageCircle className="h-5 w-5" />}
-              title="Empieza a chatear"
-              body="Chat de voz y video con sistema de propinas integrado."
+              title={t(locale, 'home.steps.3.title')}
+              body={t(locale, 'home.steps.3.body')}
             />
           </div>
         </div>
@@ -102,33 +102,33 @@ export default function HomePage() {
       <section id="caracteristicas" className="bg-canvas py-20">
         <div className="mx-auto grid max-w-7xl items-center gap-14 px-6 lg:grid-cols-2">
           <div className="grid grid-cols-2 gap-4">
-            <FeaturePill icon={<Video className="h-4 w-4" />} title="HD Video" sub="Calidad premium garantizada." />
-            <FeaturePill icon={<Lock className="h-4 w-4" />} title="Privacidad" sub="Encriptación de punta a punta." />
-            <FeaturePill icon={<ShieldCheck className="h-4 w-4" />} title="Pagos Seguros" sub="Protección contra fraudes." />
-            <FeaturePill icon={<Zap className="h-4 w-4" />} title="Instantáneo" sub="Cerca de tus seguidores." />
+            <FeaturePill icon={<Video className="h-4 w-4" />} title={t(locale, 'home.features.hd.title')} sub={t(locale, 'home.features.hd.sub')} />
+            <FeaturePill icon={<Lock className="h-4 w-4" />} title={t(locale, 'home.features.privacy.title')} sub={t(locale, 'home.features.privacy.sub')} />
+            <FeaturePill icon={<ShieldCheck className="h-4 w-4" />} title={t(locale, 'home.features.payments.title')} sub={t(locale, 'home.features.payments.sub')} />
+            <FeaturePill icon={<Zap className="h-4 w-4" />} title={t(locale, 'home.features.instant.title')} sub={t(locale, 'home.features.instant.sub')} />
           </div>
           <div>
             <h2 className="font-display text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl">
-              Tecnología de élite para creadores premium
+              {t(locale, 'home.features.title')}
             </h2>
             <div className="mt-10 space-y-7">
               <FeatureItem
                 icon={<Mic className="h-5 w-5" />}
                 color="bg-primary-50 text-primary-500"
-                title="Voz y Video de Alta Calidad"
-                body="Experimenta una conexión sin latencia. La mejor tecnología WebRTC para tus sesiones más importantes."
+                title={t(locale, 'home.features.voice.title')}
+                body={t(locale, 'home.features.voice.body')}
               />
               <FeatureItem
                 icon={<CreditCard className="h-5 w-5" />}
                 color="bg-secondary-50 text-secondary-500"
-                title="Sistema de Propinas Seguro"
-                body="Tus ingresos están protegidos. Integramos los procesadores de pago más confiables del mundo."
+                title={t(locale, 'home.features.tips.title')}
+                body={t(locale, 'home.features.tips.body')}
               />
               <FeatureItem
                 icon={<ShieldCheck className="h-5 w-5" />}
                 color="bg-blue-50 text-blue-500"
-                title="Privacidad por Diseño"
-                body="Tú tienes el control total. No guardamos grabaciones y tus datos personales son sagrados."
+                title={t(locale, 'home.features.design.title')}
+                body={t(locale, 'home.features.design.body')}
               />
             </div>
           </div>
@@ -139,17 +139,16 @@ export default function HomePage() {
       <section id="precios" className="px-6 pb-20">
         <div className="mx-auto max-w-5xl rounded-xl bg-surface-container px-6 py-16 text-center">
           <h2 className="font-display text-4xl font-extrabold tracking-tight sm:text-5xl">
-            ¿Listo para empezar?
+            {t(locale, 'home.final.title')}
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-base text-ink-muted">
-            Únete a los miles de creadores que están transformando su comunidad en una fuente de
-            ingresos real.
+            {t(locale, 'home.final.subtitle')}
           </p>
           <Link
-            href="/create"
+            href={localizeHref('/create', locale)}
             className="btn-tactile mt-10 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-8 py-4 text-base font-bold text-white shadow-vivid-strong transition hover:opacity-95"
           >
-            Crea tu sala hoy <ArrowRight className="h-4 w-4" />
+            {t(locale, 'home.final.cta')} <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
       </section>

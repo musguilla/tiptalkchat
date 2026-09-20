@@ -1,4 +1,6 @@
 import { DollarSign, Unlock } from 'lucide-react';
+import { getServerLocale } from '@/i18n/server';
+import { t } from '@/i18n';
 
 /**
  * Decorative video-session mockup that anchors the hero. The subject image
@@ -6,6 +8,7 @@ import { DollarSign, Unlock } from 'lucide-react';
  * subject. Overlays (LIVE pulse, balance, UNLOCKED) are pure CSS.
  */
 export function HeroVideoPreview() {
+  const locale = getServerLocale();
   return (
     <div className="relative mx-auto w-full max-w-sm">
       {/* Video card */}
@@ -16,7 +19,7 @@ export function HeroVideoPreview() {
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-secondary-500 opacity-75" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-secondary-500" />
           </span>
-          <span className="label-mono text-white/90">LIVE: SESIÓN PRIVADA</span>
+          <span className="label-mono text-white/90">{t(locale, 'home.hero.live')}</span>
         </div>
 
         {/* Centred avatar placeholder with radial glow — neutral letter
@@ -39,7 +42,7 @@ export function HeroVideoPreview() {
           </div>
           <div className="flex items-center gap-1.5 rounded-md bg-black/40 px-3 py-1.5 backdrop-blur-sm">
             <Unlock className="h-3.5 w-3.5 text-secondary-300" />
-            <span className="label-mono text-white">UNLOCKED</span>
+            <span className="label-mono text-white">{t(locale, 'home.card.unlocked')}</span>
           </div>
         </div>
       </div>
