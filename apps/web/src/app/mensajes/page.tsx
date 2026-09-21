@@ -67,6 +67,27 @@ export default function MensajesPage() {
     loadThreads();
   }, [loadThreads]);
 
+  // Poll every 15s so online dots, unread badges and the open conversation's
+  // header stay fresh without re-fetching the message list (no scroll jump).
+  useEffect(() => {
+    if (!token) return;
+    const id = window.setInterval(() => {
+      api<{ threads: Thread[] }>('/users/me/messages', { token })
+        .then((r) => {
+          setThreads(r.threads);
+          setConv((prev) => {
+            if (!prev) return prev;
+            const th = r.threads.find((x) => x.partner.id === prev.partner.id);
+            return th
+              ? { ...prev, partner: { ...prev.partner, online: th.partner.online } }
+              : prev;
+          });
+        })
+        .catch(() => undefined);
+    }, 15000);
+    return () => window.clearInterval(id);
+  }, [token]);
+
   const openThread = useCallback(
     (partnerId: string) => {
       if (!token) return;
