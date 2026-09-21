@@ -29,18 +29,13 @@ export async function api<T>(
   const text = await res.text();
   const payload = text ? safeJson(text) : null;
   if (!res.ok) {
-    // A rejected JWT drops the session — but ONLY when the token that was
-    // rejected is the session token itself. Room pages also send guest and
-    // anonymous-host tokens (chatAuth), which have their own short lifetime
-    // tied to the room; one of those expiring must never log the user out.
-    if (res.status === 401 && init.token && typeof window !== 'undefined') {
-      void import('./auth-store')
-        .then((mod) => {
-          const state = mod.useAuth.getState();
-          if (state.token && state.token === init.token) state.clear();
-        })
-        .catch(() => undefined);
-    }
+    // We deliberately DO NOT clear the session on 401 here. A single failing
+    // request — a background poll, a stale guest/chat token, an endpoint the
+    // user isn't authorized for, or a transient hiccup — must never log the
+    // user out; that was causing surprise logouts while simply navigating
+    // (e.g. leaving a profile with "Volver"). The persisted session is only
+    // ever dropped by an explicit "log out". Callers handle this ApiError
+    // locally (ignore it, retry, or prompt the user to sign in again).
     throw new ApiError(res.status, payload);
   }
   return payload as T;

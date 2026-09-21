@@ -1,7 +1,7 @@
 'use client';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { api, ApiError } from './api';
+import { api } from './api';
 
 export interface SessionUser {
   id: string;
@@ -39,13 +39,12 @@ export const useAuth = create<AuthState>()(
           set((s) =>
             s.user ? { user: { ...s.user, ...fresh } } : { user: fresh },
           );
-        } catch (err) {
-          // Defense in depth: api.ts already clears on 401, but if the
-          // dynamic import there ever fails or runs after our chip-aware
-          // code reads the store, drop the stale session here too.
-          if (err instanceof ApiError && err.status === 401) {
-            set({ token: null, user: null });
-          }
+        } catch {
+          // Never drop the session here. /auth/me is only a best-effort
+          // refresh of profile fields; if it fails (offline, a transient 5xx,
+          // or even a rejected token) we keep the persisted session intact so
+          // the user is not logged out behind their back. Only an explicit
+          // "log out" clears the session.
         }
       },
     }),
