@@ -48,7 +48,7 @@ export function MessagesBell({ className = '' }: { className?: string }) {
     >
       <MessageCircle className="h-5 w-5" />
       {count > 0 && (
-        <span className="absolute -right-1 -top-1 grid h-5 min-w-[20px] place-items-center rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-1 text-[11px] font-bold text-white shadow ring-2 ring-white">
+        <span className="absolute -right-1 -top-1 grid h-5 min-w-[20px] place-items-center rounded-full bg-emerald-500 px-1 text-[11px] font-bold text-white shadow ring-2 ring-white">
           {count > 99 ? '99+' : count}
         </span>
       )}

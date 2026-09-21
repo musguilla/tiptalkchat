@@ -8,6 +8,7 @@ import { useAuth } from '@/lib/auth-store';
 import { PAYOUT_MIN_TIPSYS, formatTipsysAsEur, listPackages } from '@tiptalk/economy';
 import { useT } from '@/i18n/useLocale';
 import { Logo } from '@/components/Logo';
+import { UserChip } from '@/components/UserChip';
 
 interface LedgerEntry {
   id: string;
@@ -27,7 +28,7 @@ interface WalletState {
 export default function WalletPage() {
   const t = useT();
   const router = useRouter();
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [wallet, setWallet] = useState<WalletState | null>(null);
   const [entries, setEntries] = useState<LedgerEntry[]>([]);
   const [busy, setBusy] = useState(false);
@@ -103,6 +104,7 @@ export default function WalletPage() {
           <Logo className="text-xl" />
         </Link>
         <div className="flex items-center gap-2">
+          {user && <UserChip user={user} />}
           <Link href="/create" className="text-sm font-semibold text-primary-500 hover:underline">{t('pg.wallet.createRoom')}</Link>
           <button
             type="button"

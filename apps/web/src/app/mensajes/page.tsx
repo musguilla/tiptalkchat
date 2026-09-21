@@ -6,6 +6,7 @@ import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-store';
 import { useT } from '@/i18n/useLocale';
 import { Logo } from '@/components/Logo';
+import { UserChip } from '@/components/UserChip';
 import { SiteFooter } from '@/components/SiteFooter';
 import { AuthOverlay } from '@/components/AuthOverlay';
 import { Avatar } from '@/app/admin/_components/Avatar';
@@ -41,6 +42,7 @@ function timeLabel(iso: string): string {
 export default function MensajesPage() {
   const t = useT();
   const token = useAuth((s) => s.token);
+  const user = useAuth((s) => s.user);
   const [hydrated, setHydrated] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
 
@@ -179,13 +181,16 @@ export default function MensajesPage() {
           <Link href="/" className="flex items-center">
             <Logo className="text-xl" />
           </Link>
-          <Link
-            href="/"
-            className="flex items-center gap-1 text-sm text-ink-muted transition hover:text-ink"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            {t('pg.msgs.back')}
-          </Link>
+          <div className="flex items-center gap-3">
+            {user && <UserChip user={user} />}
+            <Link
+              href="/"
+              className="flex items-center gap-1 text-sm text-ink-muted transition hover:text-ink"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              {t('pg.msgs.back')}
+            </Link>
+          </div>
         </div>
       </header>
 

@@ -24,6 +24,7 @@ import { MessagesBell } from '@/components/MessagesBell';
 import { AuthOverlay } from '@/components/AuthOverlay';
 import { FollowButton } from '@/components/FollowButton';
 import { FollowListModal } from '@/components/FollowListModal';
+import { UserChip } from '@/components/UserChip';
 
 interface PublicUser {
   id: string;
@@ -62,6 +63,7 @@ export default function UserProfilePage() {
   const [hydrated, setHydrated] = useState(false);
   const meAvatarUrl = useAuth((s) => s.user?.avatarUrl);
   const meDisplayName = useAuth((s) => s.user?.displayName);
+  const me = useAuth((s) => s.user);
 
   // Mark hydrated after first client effect so we don't paint the gate
   // with a momentarily-null token during Zustand persist hydration.
@@ -129,6 +131,7 @@ export default function UserProfilePage() {
           </Link>
           <div className="flex items-center gap-3">
             <MessagesBell />
+            {me && <UserChip user={me} />}
             <Link
               href="/"
               className="flex items-center gap-1 text-sm text-ink-muted transition hover:text-ink"
