@@ -46,6 +46,12 @@ export function MessageComposerModal({
     return () => window.removeEventListener('keydown', onKey);
   }, [open, onClose]);
 
+  useEffect(() => {
+    if (!sent) return;
+    const id = window.setTimeout(onClose, 2000);
+    return () => window.clearTimeout(id);
+  }, [sent, onClose]);
+
   if (!open) return null;
 
   async function send(): Promise<void> {
@@ -100,16 +106,9 @@ export function MessageComposerModal({
               <CheckCircle2 className="h-8 w-8" />
             </div>
             <h3 className="mt-4 font-display text-xl font-extrabold text-ink">{t('msg.composer.sent.title')}</h3>
-            <p className="mt-2 text-sm text-ink-muted">
-              {t('msg.composer.sent.body', { name: toName })}
-            </p>
-            <button
-              type="button"
-              onClick={onClose}
-              className="btn-tactile mt-6 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-6 py-2.5 text-sm font-bold text-white shadow-soft hover:shadow-vivid"
-            >
-              Entendido
-            </button>
+            <div className="mx-auto mt-5 h-1 w-40 overflow-hidden rounded-full bg-surface-container">
+              <div className="msg-progress-bar h-full w-full rounded-full bg-gradient-to-r from-secondary-500 to-primary-500" />
+            </div>
           </div>
         ) : (
           <div className="p-5">

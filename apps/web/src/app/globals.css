@@ -64,3 +64,13 @@ h6 {
     animation: none;
   }
 }
+
+/* Auto-close progress line for the "message sent" confirmation. */
+@keyframes msg-progress {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
+.msg-progress-bar {
+  transform-origin: center;
+  animation: msg-progress 2s linear forwards;
+}
