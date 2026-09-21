@@ -41,10 +41,10 @@ export function SiteHeader({ variant = 'landing' }: { variant?: 'landing' | 'min
             </nav>
           )}
           {variant === 'landing' && user && (
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-3.5 md:mx-3 lg:mx-5">
               <Link
                 href={L('/wallet')}
-                className="rounded-md bg-amber-100 px-3 py-1.5 text-sm font-semibold text-amber-900 transition hover:bg-amber-200 dark:bg-amber-900 dark:text-amber-100"
+                className="rounded-full border border-surface-container bg-emerald-50 px-3.5 py-1.5 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-100 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200"
               >
                 {t('nav.wallet')}
               </Link>
