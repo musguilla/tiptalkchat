@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Plus_Jakarta_Sans, Inter, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { AuthBoot } from '@/components/AuthBoot';
+import { PresenceConnection } from '@/components/PresenceConnection';
 import { getServerLocale, getServerDir } from '@/i18n/server';
 
 const display = Plus_Jakarta_Sans({
@@ -42,6 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <body className="bg-canvas font-body text-ink antialiased">
         <AuthBoot />
+        <PresenceConnection />
         {children}
       </body>
     </html>
