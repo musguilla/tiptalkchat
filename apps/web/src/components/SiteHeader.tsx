@@ -21,13 +21,14 @@ export function SiteHeader({ variant = 'landing' }: { variant?: 'landing' | 'min
   const L = (href: string): string => localizeHref(href, locale);
   return (
     <header className="sticky top-0 z-40 border-b border-surface-container bg-canvas/80 backdrop-blur-[20px]">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
-        <Link href="/" className="flex items-center">
-          <Logo className="text-2xl" />
-        </Link>
-        {variant === 'landing' ? (
-          <>
-            <nav className="hidden items-center gap-10 text-sm font-medium text-ink-muted md:flex">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-3">
+        {/* LEFT: logo + primary nav (tight, near the logo) + account controls */}
+        <div className="flex items-center gap-7">
+          <Link href="/" className="flex items-center">
+            <Logo className="text-2xl" />
+          </Link>
+          {variant === 'landing' && (
+            <nav className="hidden items-center gap-5 text-sm font-medium text-ink-muted md:flex">
               <Link href={L('/create')} className="transition hover:text-primary-500">
                 {t('nav.createChat')}
               </Link>
@@ -38,47 +39,52 @@ export function SiteHeader({ variant = 'landing' }: { variant?: 'landing' | 'min
                 {t('nav.features')}
               </a>
             </nav>
-            <div className="flex items-center gap-3">
-              {user ? (
-                <>
-                  <Link
-                    href={L('/wallet')}
-                    className="rounded-md bg-amber-100 px-3 py-1.5 text-sm font-semibold text-amber-900 transition hover:bg-amber-200 dark:bg-amber-900 dark:text-amber-100"
-                  >
-                    {t('nav.wallet')}
-                  </Link>
-                  <MessagesBell />
-                  <UserChip user={user} />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      clear();
-                      router.refresh();
-                    }}
-                    className="grid h-9 w-9 place-items-center rounded-md text-ink-muted transition hover:bg-surface-soft hover:text-ink"
-                    title={t('nav.logout')}
-                    aria-label={t('nav.logout')}
-                  >
-                    <LogOut className="h-4 w-4" />
-                  </button>
-                </>
-              ) : (
-                <Link
-                  href={L('/login')}
-                  className="text-sm font-medium text-ink-muted transition hover:text-ink"
-                >
-                  {t('nav.login')}
-                </Link>
-              )}
+          )}
+          {variant === 'landing' && user && (
+            <div className="flex items-center gap-2.5">
               <Link
-                href={L('/create')}
-                className="btn-tactile rounded-full bg-primary-500 px-8 py-2.5 text-sm font-semibold text-white shadow-soft transition hover:bg-primary-600"
+                href={L('/wallet')}
+                className="rounded-md bg-amber-100 px-3 py-1.5 text-sm font-semibold text-amber-900 transition hover:bg-amber-200 dark:bg-amber-900 dark:text-amber-100"
               >
-                {t('nav.createChat')}
+                {t('nav.wallet')}
               </Link>
-              <LanguageSwitcher />
+              <MessagesBell />
+              <UserChip user={user} />
+              <button
+                type="button"
+                onClick={() => {
+                  clear();
+                  router.refresh();
+                }}
+                className="grid h-9 w-9 place-items-center rounded-md text-ink-muted transition hover:bg-surface-soft hover:text-ink"
+                title={t('nav.logout')}
+                aria-label={t('nav.logout')}
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
             </div>
-          </>
+          )}
+        </div>
+
+        {variant === 'landing' ? (
+          /* RIGHT: create-chat + language switcher, kept apart with air */
+          <div className="flex items-center gap-4">
+            {!user && (
+              <Link
+                href={L('/login')}
+                className="text-sm font-medium text-ink-muted transition hover:text-ink"
+              >
+                {t('nav.login')}
+              </Link>
+            )}
+            <Link
+              href={L('/create')}
+              className="btn-tactile rounded-full bg-primary-500 px-8 py-2.5 text-sm font-semibold text-white shadow-soft transition hover:bg-primary-600"
+            >
+              {t('nav.createChat')}
+            </Link>
+            <LanguageSwitcher />
+          </div>
         ) : (
           <Link href="/" className="text-sm text-ink-muted hover:text-ink">
             Volver
