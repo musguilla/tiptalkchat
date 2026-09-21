@@ -1,53 +1,59 @@
 'use client';
-import { useEffect, useState } from 'react';
-import { useT } from '@/i18n/useLocale';
+import { useEffect, useRef, useState } from 'react';
+import { useT, useLocale } from '@/i18n/useLocale';
+import { INTL_TAG } from '@/i18n/config';
 
-const BASE = 45352;
-const MIN = 44000;
-const MAX = 47500;
-const TICK_MS = 60_000;
+const BASE = 46000;
+const MIN = 44800;
+const MAX = 47600;
 
 /**
- * Decorative live-counter for the social-proof strip. Seeds at ~45.352
- * and walks by small deltas every minute so the number looks alive without
- * spiking. Pure client-side noise — not backed by real metrics.
- *
- * The deltas come from a hash of (minute-of-day, day-of-month) so all
- * clients converge on the same value when they refresh, avoiding the
- * embarrassment of two browsers showing wildly different "live" counts.
+ * Decorative "active rooms" live-counter for the social-proof strip.
+ * It random-walks by ±1 at irregular ~1–4.5s intervals so it feels like a
+ * real, breathing metric, with a mild pull toward a center that drifts over
+ * the day (busier in the evening, quieter at dawn). Pure client-side — not a
+ * real metric.
  */
-function pseudoNoiseAt(minute: number): number {
-  // Cheap deterministic hash → range [-6, +12] biased upward.
-  let h = (minute * 2654435761) >>> 0;
-  h ^= h >>> 13;
-  h = (h * 1597334677) >>> 0;
-  const sample = (h >>> 0) % 19; // 0..18
-  return sample - 6; // -6..+12
-}
-
-function computeCount(date: Date): number {
-  // Walk from a fixed epoch so values are stable across reloads.
-  const epoch = Date.UTC(2026, 5, 1) / 60_000; // minutes since 2026-06-01 UTC
-  const minutes = Math.floor(date.getTime() / 60_000) - epoch;
-  let n = BASE;
-  for (let i = Math.max(0, minutes - 240); i <= minutes; i += 1) {
-    n += pseudoNoiseAt(i);
-  }
-  return Math.min(MAX, Math.max(MIN, n));
+function centerAt(date: Date): number {
+  const hour = date.getHours() + date.getMinutes() / 60;
+  // Daily activity wave: trough ~5h, peak ~21h.
+  const wave = Math.sin(((hour - 5) / 24) * 2 * Math.PI);
+  return Math.round(BASE + wave * 850);
 }
 
 export function LiveRoomsBadge() {
   const t = useT();
+  const locale = useLocale();
   const [count, setCount] = useState<number>(BASE);
+  const currentRef = useRef<number>(BASE);
 
   useEffect(() => {
-    const tick = (): void => setCount(computeCount(new Date()));
-    tick();
-    const id = window.setInterval(tick, TICK_MS);
-    return () => window.clearInterval(id);
+    // Seed near today's center with a small random offset.
+    currentRef.current = centerAt(new Date()) + (Math.floor(Math.random() * 41) - 20);
+    setCount(currentRef.current);
+
+    let timer: number;
+    const step = (): void => {
+      const center = centerAt(new Date());
+      const diff = center - currentRef.current;
+      // Bias the coin toward the center (mean reversion), capped so it never
+      // marches in a straight line.
+      const bias = Math.max(-0.32, Math.min(0.32, diff / 220));
+      const r = Math.random();
+      let delta = 0;
+      if (r < 0.82) {
+        // 82% of ticks move by exactly one; the rest are natural pauses.
+        delta = Math.random() < 0.5 + bias ? 1 : -1;
+      }
+      currentRef.current = Math.min(MAX, Math.max(MIN, currentRef.current + delta));
+      setCount(currentRef.current);
+      timer = window.setTimeout(step, 1200 + Math.random() * 3300);
+    };
+    timer = window.setTimeout(step, 1200 + Math.random() * 2000);
+    return () => window.clearTimeout(timer);
   }, []);
 
-  const formatted = new Intl.NumberFormat('es-ES').format(count);
+  const formatted = new Intl.NumberFormat(INTL_TAG[locale]).format(count);
 
   return (
     <div className="flex items-center gap-3">
@@ -56,7 +62,7 @@ export function LiveRoomsBadge() {
         <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
       </span>
       <div>
-        <p className="font-display text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
+        <p className="font-display text-2xl font-extrabold tracking-tight text-ink tabular-nums sm:text-3xl">
           {formatted}
         </p>
         <p className="text-sm text-ink-muted">{t('home.live.label')}</p>
