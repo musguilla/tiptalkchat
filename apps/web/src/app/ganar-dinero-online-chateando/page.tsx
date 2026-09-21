@@ -20,9 +20,9 @@ import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
 
 export const metadata: Metadata = {
-  title: 'Ganar dinero online chateando — tiptalk.chat',
+  title: 'Gana dinero online chateando - Chat con propinas',
   description:
-    'Gana dinero online chateando desde casa: abre una sala privada, habla por texto, voz o vídeo y recibe propinas en directo. Gratis para empezar, sin descargas y con retiradas en euros.',
+    'Aprende a ganar dinero chateando desde casa con tiptalk.chat: chat con propinas por texto, voz y vídeo, tips en directo, gratis para empezar y retiradas en euros.',
   alternates: { canonical: 'https://tiptalk.chat/ganar-dinero-online-chateando' },
 };
 

@@ -5,7 +5,7 @@ import { LegalArticle } from '@/components/LegalArticle';
 
 export function generateMetadata(): Metadata {
   const doc = getLegalDoc('aviso-legal', getServerLocale());
-  return { title: `${doc.title} · tiptalk.chat` };
+  return { title: `${doc.title} · tiptalk.chat`, description: 'Aviso legal de tiptalk.chat, tu chat con propinas para ganar dinero chat por texto, voz y vídeo.' };
 }
 
 export default function LegalPage() {

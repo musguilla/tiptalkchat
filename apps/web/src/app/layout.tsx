@@ -29,7 +29,7 @@ const mono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: 'Salas chat privadas con propinas - Tiptalk',
   description:
-    'Crea una sala de chat privada, comparte el enlace y recibe propinas en directo. Chat, voz y vídeo en tiptalk.chat. Sin registro, sin instalar nada.',
+    'Chat gratis con salas privadas y propinas en directo. Crea tu sala, habla por texto, voz o vídeo y empieza a ganar dinero chateando. Sin registro ni descargas.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
