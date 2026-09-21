@@ -23,7 +23,8 @@ export const pcm: { [K in MessageKey]?: string } = {
   'nav.messages': 'Messages',
 
   // --- Footer ---
-  'footer.tagline': 'Private chat rooms wey get tips.',
+  'footer.tagline': 'Private chat rooms wey get tips. Make money online as you dey chat',
+  'footer.languages': 'Languages',
   'footer.col.platform': 'Platform',
   'footer.col.legal': 'Legal',
   'footer.col.support': 'Support',

@@ -1,14 +1,17 @@
 'use client';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Logo } from './Logo';
-import { LanguageSwitcher } from './LanguageSwitcher';
 import { seoFooterColumns, seoPageMap } from '@/lib/seo-pages';
-import { useLocale, useT, localizeHref } from '@/i18n/useLocale';
+import { useLocale, useT, localizeHref, stripLocale } from '@/i18n/useLocale';
+import { LOCALES, LOCALE_FLAGS, LOCALE_NAMES, DEFAULT_LOCALE } from '@/i18n/config';
 
 export function SiteFooter() {
   const locale = useLocale();
   const t = useT();
   const L = (href: string): string => localizeHref(href, locale);
+  const pathname = usePathname() || '/';
+  const base = stripLocale(pathname);
 
   return (
     <footer className="bg-canvas">
@@ -45,9 +48,6 @@ export function SiteFooter() {
           <div className="col-span-2">
             <Logo className="text-2xl" />
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-ink-muted">{t('footer.tagline')}</p>
-            <div className="mt-5">
-              <LanguageSwitcher />
-            </div>
           </div>
 
           <div>
@@ -69,6 +69,39 @@ export function SiteFooter() {
             </ul>
           </div>
 
+        </div>
+      </div>
+
+      <div className="border-t border-surface-container">
+        <div className="mx-auto max-w-7xl px-6 py-10">
+          <h4 className="mb-4 text-xs font-bold uppercase tracking-wider text-ink-muted">{t('footer.languages')}</h4>
+          <ul className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+            {LOCALES.map((l) => {
+              const href = l === DEFAULT_LOCALE ? base : localizeHref(base, l);
+              const active = l === locale;
+              return (
+                <li key={l}>
+                  <Link
+                    href={href}
+                    hrefLang={l}
+                    onClick={() => {
+                      try {
+                        document.cookie = `NEXT_LOCALE=${l}; path=/; max-age=31536000; samesite=lax`;
+                      } catch {
+                        /* ignore */
+                      }
+                    }}
+                    className={`flex items-center gap-2 transition hover:text-primary-500 ${
+                      active ? 'font-semibold text-primary-600' : 'text-ink-muted'
+                    }`}
+                  >
+                    <span className="text-base">{LOCALE_FLAGS[l]}</span>
+                    <span>{LOCALE_NAMES[l]}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
         </div>
       </div>
 

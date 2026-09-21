@@ -24,7 +24,8 @@ export const id: { [K in MessageKey]?: string } = {
   'nav.messages': 'Pesan',
 
   // --- Footer ---
-  'footer.tagline': 'Ruang chat pribadi satu lawan satu dengan tip.',
+  'footer.tagline': 'Ruang chat pribadi dengan tip. Hasilkan uang online dengan mengobrol',
+  'footer.languages': 'Bahasa',
   'footer.col.platform': 'Platform',
   'footer.col.legal': 'Legal',
   'footer.col.support': 'Dukungan',

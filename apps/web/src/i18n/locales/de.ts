@@ -24,7 +24,8 @@ export const de: { [K in MessageKey]?: string } = {
   'nav.messages': 'Nachrichten',
 
   // --- Footer ---
-  'footer.tagline': 'Private Chaträume mit Trinkgeld.',
+  'footer.tagline': 'Private Chaträume mit Trinkgeld. Verdiene online Geld beim Chatten',
+  'footer.languages': 'Sprachen',
   'footer.col.platform': 'Plattform',
   'footer.col.legal': 'Rechtliches',
   'footer.col.support': 'Support',

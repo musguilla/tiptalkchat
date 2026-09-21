@@ -24,7 +24,8 @@ export const zh: { [K in MessageKey]?: string } = {
   'nav.messages': '消息',
 
   // --- Footer ---
-  'footer.tagline': '私密的一对一聊天室，还能打赏。',
+  'footer.tagline': '带打赏的私密聊天室。在线聊天赚钱',
+  'footer.languages': '语言',
   'footer.col.platform': '平台',
   'footer.col.legal': '法律',
   'footer.col.support': '支持',

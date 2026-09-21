@@ -23,7 +23,8 @@ export const tr: { [K in MessageKey]?: string } = {
   'nav.messages': 'Mesajlar',
 
   // --- Footer ---
-  'footer.tagline': 'Bahşişli özel sohbet odaları.',
+  'footer.tagline': 'Bahşişli özel sohbet odaları. Sohbet ederek çevrimiçi para kazan',
+  'footer.languages': 'Diller',
   'footer.col.platform': 'Platform',
   'footer.col.legal': 'Yasal',
   'footer.col.support': 'Destek',

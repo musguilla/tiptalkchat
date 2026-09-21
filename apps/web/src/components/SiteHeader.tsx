@@ -8,6 +8,7 @@ import { Logo } from './Logo';
 import { ProfileOverlay } from './ProfileOverlay';
 import { UserChip } from './UserChip';
 import { MessagesBell } from './MessagesBell';
+import { LanguageSwitcher } from './LanguageSwitcher';
 import { useT, useLocale, localizeHref } from '@/i18n/useLocale';
 
 export function SiteHeader({ variant = 'landing' }: { variant?: 'landing' | 'minimal' }) {
@@ -71,10 +72,11 @@ export function SiteHeader({ variant = 'landing' }: { variant?: 'landing' | 'min
               )}
               <Link
                 href={L('/create')}
-                className="btn-tactile rounded-full bg-primary-500 px-5 py-2.5 text-sm font-semibold text-white shadow-soft transition hover:bg-primary-600"
+                className="btn-tactile rounded-full bg-primary-500 px-8 py-2.5 text-sm font-semibold text-white shadow-soft transition hover:bg-primary-600"
               >
                 {t('nav.createChat')}
               </Link>
+              <LanguageSwitcher />
             </div>
           </>
         ) : (

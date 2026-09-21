@@ -24,7 +24,8 @@ export const ja: { [K in MessageKey]?: string } = {
   'nav.messages': 'メッセージ',
 
   // --- Footer ---
-  'footer.tagline': 'チップ付きのプライベートな1対1チャットルーム。',
+  'footer.tagline': 'チップ付きのプライベートチャットルーム。チャットでオンライン収入を',
+  'footer.languages': '言語',
   'footer.col.platform': 'プラットフォーム',
   'footer.col.legal': '法的情報',
   'footer.col.support': 'サポート',

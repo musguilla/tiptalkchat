@@ -37,7 +37,7 @@ export function LanguageSwitcher({ className = '' }: { className?: string }) {
       {open && (
         <div
           role="listbox"
-          className="absolute bottom-full right-0 z-50 mb-2 max-h-80 w-52 overflow-y-auto rounded-xl border border-surface-container bg-white py-1 shadow-vivid-strong"
+          className="absolute top-full right-0 z-50 mt-2 max-h-80 w-52 overflow-y-auto rounded-xl border border-surface-container bg-white py-1 shadow-vivid-strong"
         >
           {LOCALES.map((l) => (
             <button
