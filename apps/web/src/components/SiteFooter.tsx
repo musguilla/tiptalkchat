@@ -90,23 +90,19 @@ export function SiteFooter() {
               const active = l === locale;
               return (
                 <li key={l}>
-                  <Link
+                  {/* Plain <a> (full reload) so server-rendered text re-renders
+                      in the new locale — a client <Link> nav would leave the
+                      cached RSC (and its language) in place. */}
+                  <a
                     href={href}
                     hrefLang={l}
-                    onClick={() => {
-                      try {
-                        document.cookie = `NEXT_LOCALE=${l}; path=/; max-age=31536000; samesite=lax`;
-                      } catch {
-                        /* ignore */
-                      }
-                    }}
                     className={`flex items-center gap-2 transition hover:text-primary-500 ${
                       active ? 'font-semibold text-primary-600' : 'text-ink-muted'
                     }`}
                   >
                     <span className="text-base">{LOCALE_FLAGS[l]}</span>
                     <span>{LOCALE_NAMES[l]}</span>
-                  </Link>
+                  </a>
                 </li>
               );
             })}

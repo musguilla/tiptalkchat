@@ -1,5 +1,5 @@
 'use client';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useCallback } from 'react';
 import { DEFAULT_LOCALE, isLocale, type Locale } from './config';
 import { t, type Key } from './index';
@@ -22,7 +22,6 @@ export function useT(): (key: Key, vars?: Record<string, string | number>) => st
 
 /** Switch to another locale, keeping the current path. */
 export function useSwitchLocale(): (next: Locale) => void {
-  const router = useRouter();
   const pathname = usePathname() || '/';
   return useCallback(
     (next: Locale) => {
@@ -33,9 +32,14 @@ export function useSwitchLocale(): (next: Locale) => void {
       } catch {
         /* ignore */
       }
-      router.push(target);
-      router.refresh();
+      // Full document navigation, not router.push: the home (and other pages)
+      // render locale-dependent text on the SERVER via getServerLocale(). A
+      // client-side push reuses the cached RSC for the shared underlying route,
+      // so server-rendered strings kept the old language while client
+      // components (useT) updated — i.e. "some texts didn't refresh". A hard
+      // navigation guarantees a fresh server render in the new locale.
+      window.location.assign(target);
     },
-    [router, pathname],
+    [pathname],
   );
 }
