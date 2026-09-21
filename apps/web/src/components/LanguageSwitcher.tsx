@@ -37,7 +37,7 @@ export function LanguageSwitcher({ className = '' }: { className?: string }) {
       {open && (
         <div
           role="listbox"
-          className="absolute top-full right-0 z-50 mt-2 max-h-80 w-52 overflow-y-auto rounded-xl border border-surface-container bg-white py-1 shadow-vivid-strong"
+          className="absolute top-full right-0 z-50 mt-2 grid w-[24rem] max-w-[92vw] grid-cols-2 gap-0.5 rounded-xl border border-surface-container bg-white p-1.5 shadow-vivid-strong"
         >
           {LOCALES.map((l) => (
             <button
@@ -49,7 +49,7 @@ export function LanguageSwitcher({ className = '' }: { className?: string }) {
                 setOpen(false);
                 if (l !== locale) switchTo(l);
               }}
-              className={`flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-sm transition hover:bg-surface-soft ${
+              className={`flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-left text-sm transition hover:bg-surface-soft ${
                 l === locale ? 'font-semibold text-primary-600' : 'text-ink'
               }`}
             >
