@@ -141,10 +141,7 @@ export default function GanarDineroPage(): React.ReactElement {
         <div className="absolute -left-32 top-40 -z-10 h-[440px] w-[440px] rounded-full bg-[radial-gradient(closest-side,rgba(255,0,122,0.12),transparent_70%)]" />
         <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 py-16 md:grid-cols-2 md:py-24">
           <div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-primary-200 bg-primary-50 px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider text-primary-600">
-              <Sparkles className="h-3.5 w-3.5" /> Convierte tu tiempo en ingresos
-            </span>
-            <h1 className="mt-5 font-display text-4xl font-extrabold leading-[1.05] tracking-tight text-ink sm:text-5xl lg:text-6xl">
+            <h1 className="font-display text-4xl font-extrabold leading-[1.05] tracking-tight text-ink sm:text-5xl lg:text-6xl">
               Gana dinero online <span className="bg-gradient-to-r from-secondary-500 to-primary-500 bg-clip-text text-transparent">chateando</span>
             </h1>
             <p className="mt-5 max-w-lg text-lg leading-relaxed text-ink-muted">
@@ -166,7 +163,7 @@ export default function GanarDineroPage(): React.ReactElement {
               </a>
             </div>
             <ul className="mt-7 flex flex-wrap gap-x-6 gap-y-2 text-sm text-ink-muted">
-              {['Gratis para empezar', 'Sin descargas', 'Cobros en euros', 'Tus datos privados'].map((x) => (
+              {['Gratis', 'Sin descargas', 'Tus datos privados'].map((x) => (
                 <li key={x} className="inline-flex items-center gap-1.5">
                   <Check className="h-4 w-4 text-emerald-500" /> {x}
                 </li>
