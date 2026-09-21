@@ -1,9 +1,15 @@
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 export const REALTIME_BASE = process.env.NEXT_PUBLIC_REALTIME_URL ?? 'http://localhost:4001';
 
+import { localizeApiMessage } from './api-errors';
+
 export class ApiError extends Error {
   constructor(public status: number, public payload: unknown) {
-    super(`API error ${status}`);
+    const raw =
+      payload && typeof payload === 'object' && 'message' in payload
+        ? (payload as { message?: unknown }).message
+        : undefined;
+    super(localizeApiMessage(typeof raw === 'string' ? raw : undefined) || `API error ${status}`);
   }
 }
 

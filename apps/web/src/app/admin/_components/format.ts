@@ -1,5 +1,6 @@
 import { formatTipsysAsEur } from '@tiptalk/economy';
 import { ApiError } from '@/lib/api';
+import { localizeApiMessage } from '@/lib/api-errors';
 
 /** "1.234 Tipsys" (Spanish thousands separator). */
 export function formatTipsys(tipsys: number): string {
@@ -49,16 +50,16 @@ export function describeApiError(err: unknown): string {
     const p = err.payload;
     if (p && typeof p === 'object' && 'message' in p) {
       const msg = (p as { message: unknown }).message;
-      if (typeof msg === 'string' && msg.trim()) return msg;
+      if (typeof msg === 'string' && msg.trim()) return localizeApiMessage(msg);
     }
-    if (err.status === 401) return 'Sesión caducada. Vuelve a iniciar sesión.';
-    if (err.status === 403) return 'No tienes permisos para esta acción.';
-    if (err.status === 404) return 'No encontrado.';
-    if (err.status === 409) return 'Conflicto: el estado ya ha cambiado.';
+    if (err.status === 401) return localizeApiMessage('Sesión caducada. Vuelve a iniciar sesión.');
+    if (err.status === 403) return localizeApiMessage('No tienes permisos para esta acción.');
+    if (err.status === 404) return localizeApiMessage('No encontrado.');
+    if (err.status === 409) return localizeApiMessage('Conflicto: el estado ya ha cambiado.');
     return `Error ${err.status}`;
   }
   if (err instanceof Error && err.message) return err.message;
-  return 'Error desconocido';
+  return localizeApiMessage('Error desconocido');
 }
 
 export function ledgerKindLabel(kind: string): string {
