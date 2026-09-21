@@ -56,6 +56,7 @@ export function SiteFooter() {
               <li><Link href={L('/create')} className="transition hover:text-primary-500">{t('footer.link.createChat')}</Link></li>
               <li><a href="#como-funciona" className="transition hover:text-primary-500">{t('footer.link.howItWorks')}</a></li>
               <li><a href="#caracteristicas" className="transition hover:text-primary-500">{t('footer.link.features')}</a></li>
+              <li><Link href={L('/contacto')} className="transition hover:text-primary-500">{t('footer.link.contact')}</Link></li>
             </ul>
           </div>
 
@@ -68,19 +69,12 @@ export function SiteFooter() {
             </ul>
           </div>
 
-          <div>
-            <h4 className="mb-4 text-sm font-bold text-ink">{t('footer.col.support')}</h4>
-            <ul className="space-y-2.5 text-sm text-ink-muted">
-              <li><Link href={L('/contacto')} className="transition hover:text-primary-500">{t('footer.link.contact')}</Link></li>
-            </ul>
-          </div>
         </div>
       </div>
 
       <div className="border-t border-surface-container">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-6 py-5 text-xs text-ink-muted">
           <span>© {new Date().getFullYear()} tiptalk.chat — {t('footer.rights')}</span>
-          <span>{t('footer.madeWith')}</span>
         </div>
       </div>
     </footer>

@@ -24,7 +24,7 @@ export const es = {
   'nav.messages': 'Mensajes',
 
   // --- Footer ---
-  'footer.tagline': 'Salas de chats privadas con tips.',
+  'footer.tagline': 'Salas de chats privadas con propinas. Ganar dinero online chateando',
   'footer.col.platform': 'Plataforma',
   'footer.col.legal': 'Legal',
   'footer.col.support': 'Soporte',
