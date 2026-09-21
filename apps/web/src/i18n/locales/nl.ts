@@ -26,6 +26,10 @@ export const nl: { [K in MessageKey]?: string } = {
   // --- Footer ---
   'footer.tagline': 'Privé-chatrooms met fooien. Verdien online geld met chatten',
   'footer.languages': 'Talen',
+  'footer.seo.chat': 'Chat',
+  'footer.seo.spanish': 'In het Spaans',
+  'footer.seo.countriesAM': 'Landen (A–M)',
+  'footer.seo.countriesNV': 'Landen (N–V)',
   'footer.col.platform': 'Platform',
   'footer.col.legal': 'Juridisch',
   'footer.col.support': 'Support',

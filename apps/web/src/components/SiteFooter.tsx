@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Logo } from './Logo';
 import { seoFooterColumns, seoPageMap } from '@/lib/seo-pages';
+import { getSeoFooterLabel } from '@/lib/seo-i18n';
 import { useLocale, useT, localizeHref, stripLocale } from '@/i18n/useLocale';
 import { LOCALES, LOCALE_FLAGS, LOCALE_NAMES, DEFAULT_LOCALE } from '@/i18n/config';
 
@@ -22,7 +23,7 @@ export function SiteFooter() {
             {seoFooterColumns.map((col) => (
               <div key={col.title}>
                 <h4 className="mb-3 text-xs font-bold uppercase tracking-wider text-ink-muted">
-                  {col.title}
+                  {t(col.titleKey)}
                 </h4>
                 <ul className="space-y-1.5 text-sm text-ink">
                   {col.slugs.map((slug) => {
@@ -31,7 +32,7 @@ export function SiteFooter() {
                     return (
                       <li key={slug}>
                         <Link href={L(`/c/${slug}`)} className="transition hover:text-primary-500">
-                          {page.label}
+                          {getSeoFooterLabel(slug, locale)}
                         </Link>
                       </li>
                     );

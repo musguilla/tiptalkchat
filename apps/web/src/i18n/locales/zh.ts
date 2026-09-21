@@ -26,6 +26,10 @@ export const zh: { [K in MessageKey]?: string } = {
   // --- Footer ---
   'footer.tagline': '带打赏的私密聊天室。在线聊天赚钱',
   'footer.languages': '语言',
+  'footer.seo.chat': '聊天',
+  'footer.seo.spanish': '西班牙语',
+  'footer.seo.countriesAM': '国家（A–M）',
+  'footer.seo.countriesNV': '国家（N–V）',
   'footer.col.platform': '平台',
   'footer.col.legal': '法律',
   'footer.col.support': '支持',

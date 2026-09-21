@@ -26,6 +26,10 @@ export const ptBr: { [K in MessageKey]?: string } = {
   // --- Footer ---
   'footer.tagline': 'Salas de chat privadas com gorjetas. Ganhe dinheiro online conversando',
   'footer.languages': 'Idiomas',
+  'footer.seo.chat': 'Chat',
+  'footer.seo.spanish': 'Em espanhol',
+  'footer.seo.countriesAM': 'Países (A–M)',
+  'footer.seo.countriesNV': 'Países (N–V)',
   'footer.col.platform': 'Plataforma',
   'footer.col.legal': 'Jurídico',
   'footer.col.support': 'Suporte',

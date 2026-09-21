@@ -42,6 +42,8 @@ export interface SeoPage {
 
 export interface SeoColumn {
   title: string;
+  /** i18n key for the localized column heading (t(col.titleKey)). */
+  titleKey: string;
   slugs: string[];
 }
 
@@ -755,14 +757,16 @@ export const seoSlugs: string[] = allPages.map((p) => p.slug);
 
 /** Used to render the footer 4-column link grid (in order). */
 export const seoFooterColumns: SeoColumn[] = [
-  { title: 'Chat', slugs: features.map((p) => p.slug) },
-  { title: 'En español', slugs: spanish.map((p) => p.slug) },
+  { title: 'Chat', titleKey: 'footer.seo.chat', slugs: features.map((p) => p.slug) },
+  { title: 'En español', titleKey: 'footer.seo.spanish', slugs: spanish.map((p) => p.slug) },
   {
     title: 'Países (A-M)',
+    titleKey: 'footer.seo.countriesAM',
     slugs: countriesRaw.slice(0, 12).map((c) => c.slug),
   },
   {
     title: 'Países (N-V)',
+    titleKey: 'footer.seo.countriesNV',
     slugs: countriesRaw.slice(12).map((c) => c.slug),
   },
 ];

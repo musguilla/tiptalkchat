@@ -26,6 +26,10 @@ export const de: { [K in MessageKey]?: string } = {
   // --- Footer ---
   'footer.tagline': 'Private Chaträume mit Trinkgeld. Verdiene online Geld beim Chatten',
   'footer.languages': 'Sprachen',
+  'footer.seo.chat': 'Chat',
+  'footer.seo.spanish': 'Auf Spanisch',
+  'footer.seo.countriesAM': 'Länder (A–M)',
+  'footer.seo.countriesNV': 'Länder (N–V)',
   'footer.col.platform': 'Plattform',
   'footer.col.legal': 'Rechtliches',
   'footer.col.support': 'Support',

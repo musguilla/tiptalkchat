@@ -26,6 +26,10 @@ export const ko: { [K in MessageKey]?: string } = {
   // --- Footer ---
   'footer.tagline': '팁을 주고받는 프라이빗 채팅방. 채팅하며 온라인으로 돈 벌기',
   'footer.languages': '언어',
+  'footer.seo.chat': '채팅',
+  'footer.seo.spanish': '스페인어',
+  'footer.seo.countriesAM': '국가 (A–M)',
+  'footer.seo.countriesNV': '국가 (N–V)',
   'footer.col.platform': '플랫폼',
   'footer.col.legal': '법적 고지',
   'footer.col.support': '지원',

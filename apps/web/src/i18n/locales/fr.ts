@@ -26,6 +26,10 @@ export const fr: { [K in MessageKey]?: string } = {
   // --- Footer ---
   'footer.tagline': 'Salons de chat privés avec pourboires. Gagnez de l’argent en ligne en discutant',
   'footer.languages': 'Langues',
+  'footer.seo.chat': 'Chat',
+  'footer.seo.spanish': 'En espagnol',
+  'footer.seo.countriesAM': 'Pays (A–M)',
+  'footer.seo.countriesNV': 'Pays (N–V)',
   'footer.col.platform': 'Plateforme',
   'footer.col.legal': 'Mentions légales',
   'footer.col.support': 'Assistance',

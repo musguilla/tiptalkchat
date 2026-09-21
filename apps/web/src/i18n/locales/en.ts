@@ -26,6 +26,10 @@ export const en: { [K in MessageKey]?: string } = {
   // --- Footer ---
   'footer.tagline': 'Private chat rooms with tips. Earn money online chatting',
   'footer.languages': 'Languages',
+  'footer.seo.chat': 'Chat',
+  'footer.seo.spanish': 'In Spanish',
+  'footer.seo.countriesAM': 'Countries (A–M)',
+  'footer.seo.countriesNV': 'Countries (N–V)',
   'footer.col.platform': 'Platform',
   'footer.col.legal': 'Legal',
   'footer.col.support': 'Support',

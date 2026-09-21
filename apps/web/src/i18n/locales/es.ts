@@ -26,6 +26,10 @@ export const es = {
   // --- Footer ---
   'footer.tagline': 'Salas de chats privadas con propinas. Ganar dinero online chateando',
   'footer.languages': 'Idiomas',
+  'footer.seo.chat': 'Chat',
+  'footer.seo.spanish': 'En español',
+  'footer.seo.countriesAM': 'Países (A–M)',
+  'footer.seo.countriesNV': 'Países (N–V)',
   'footer.col.platform': 'Plataforma',
   'footer.col.legal': 'Legal',
   'footer.col.support': 'Soporte',

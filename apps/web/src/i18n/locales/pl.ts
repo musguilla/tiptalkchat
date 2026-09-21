@@ -26,6 +26,10 @@ export const pl: { [K in MessageKey]?: string } = {
   // --- Footer ---
   'footer.tagline': 'Prywatne pokoje czatu z napiwkami. Zarabiaj online, czatując',
   'footer.languages': 'Języki',
+  'footer.seo.chat': 'Czat',
+  'footer.seo.spanish': 'Po hiszpańsku',
+  'footer.seo.countriesAM': 'Kraje (A–M)',
+  'footer.seo.countriesNV': 'Kraje (N–V)',
   'footer.col.platform': 'Platforma',
   'footer.col.legal': 'Informacje prawne',
   'footer.col.support': 'Pomoc',

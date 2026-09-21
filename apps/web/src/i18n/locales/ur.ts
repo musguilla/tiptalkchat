@@ -25,6 +25,10 @@ export const ur: { [K in MessageKey]?: string } = {
   // --- Footer ---
   'footer.tagline': 'ٹپس کے ساتھ نجی چیٹ رومز۔ آن لائن چیٹ کر کے پیسے کمائیں',
   'footer.languages': 'زبانیں',
+  'footer.seo.chat': 'چیٹ',
+  'footer.seo.spanish': 'ہسپانوی میں',
+  'footer.seo.countriesAM': 'ممالک (A–M)',
+  'footer.seo.countriesNV': 'ممالک (N–V)',
   'footer.col.platform': 'پلیٹ فارم',
   'footer.col.legal': 'قانونی',
   'footer.col.support': 'مدد',

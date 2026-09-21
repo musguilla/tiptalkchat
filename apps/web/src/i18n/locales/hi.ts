@@ -26,6 +26,10 @@ export const hi: { [K in MessageKey]?: string } = {
   // --- Footer ---
   'footer.tagline': 'टिप्स के साथ निजी चैट रूम। ऑनलाइन चैट करके पैसे कमाएँ',
   'footer.languages': 'भाषाएँ',
+  'footer.seo.chat': 'चैट',
+  'footer.seo.spanish': 'स्पेनिश में',
+  'footer.seo.countriesAM': 'देश (A–M)',
+  'footer.seo.countriesNV': 'देश (N–V)',
   'footer.col.platform': 'प्लेटफ़ॉर्म',
   'footer.col.legal': 'कानूनी',
   'footer.col.support': 'सहायता',

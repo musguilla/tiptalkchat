@@ -1,4 +1,5 @@
 import { seoPageMap, type SeoPage } from './seo-pages';
+import { SEO_FOOTER_LABELS } from './seo-footer-labels';
 import type { Locale } from '@/i18n/config';
 import { en } from './seo/en';
 import { fr } from './seo/fr';
@@ -57,4 +58,17 @@ export function getSeoPage(slug: string, locale: Locale): SeoPage | null {
   if (!base) return null;
   const ov = CATALOGS[locale]?.[slug];
   return ov ? { ...base, ...ov } : base;
+}
+
+/**
+ * Best available footer label for a slug in a locale: a translated catalog
+ * label wins, then the footer-only supplement (for locales without a full
+ * catalog yet), and finally the Spanish base so it's never blank.
+ */
+export function getSeoFooterLabel(slug: string, locale: Locale): string {
+  const cat = CATALOGS[locale]?.[slug]?.label;
+  if (cat) return cat;
+  const supp = SEO_FOOTER_LABELS[locale]?.[slug];
+  if (supp) return supp;
+  return seoPageMap[slug]?.label ?? slug;
 }

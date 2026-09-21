@@ -26,6 +26,10 @@ export const id: { [K in MessageKey]?: string } = {
   // --- Footer ---
   'footer.tagline': 'Ruang chat pribadi dengan tip. Hasilkan uang online dengan mengobrol',
   'footer.languages': 'Bahasa',
+  'footer.seo.chat': 'Chat',
+  'footer.seo.spanish': 'Dalam bahasa Spanyol',
+  'footer.seo.countriesAM': 'Negara (A–M)',
+  'footer.seo.countriesNV': 'Negara (N–V)',
   'footer.col.platform': 'Platform',
   'footer.col.legal': 'Legal',
   'footer.col.support': 'Dukungan',

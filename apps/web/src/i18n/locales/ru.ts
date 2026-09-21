@@ -26,6 +26,10 @@ export const ru: { [K in MessageKey]?: string } = {
   // --- Footer ---
   'footer.tagline': 'Приватные чаты с чаевыми. Зарабатывайте онлайн, общаясь',
   'footer.languages': 'Языки',
+  'footer.seo.chat': 'Чат',
+  'footer.seo.spanish': 'На испанском',
+  'footer.seo.countriesAM': 'Страны (A–M)',
+  'footer.seo.countriesNV': 'Страны (N–V)',
   'footer.col.platform': 'Платформа',
   'footer.col.legal': 'Правовая информация',
   'footer.col.support': 'Поддержка',

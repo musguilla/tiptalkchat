@@ -25,6 +25,10 @@ export const pcm: { [K in MessageKey]?: string } = {
   // --- Footer ---
   'footer.tagline': 'Private chat rooms wey get tips. Make money online as you dey chat',
   'footer.languages': 'Languages',
+  'footer.seo.chat': 'Chat',
+  'footer.seo.spanish': 'For Spanish',
+  'footer.seo.countriesAM': 'Kontri (A–M)',
+  'footer.seo.countriesNV': 'Kontri (N–V)',
   'footer.col.platform': 'Platform',
   'footer.col.legal': 'Legal',
   'footer.col.support': 'Support',

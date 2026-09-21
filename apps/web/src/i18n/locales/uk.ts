@@ -26,6 +26,10 @@ export const uk: { [K in MessageKey]?: string } = {
   // --- Footer ---
   'footer.tagline': 'Приватні чат-кімнати з чайовими. Заробляйте гроші онлайн, спілкуючись',
   'footer.languages': 'Мови',
+  'footer.seo.chat': 'Чат',
+  'footer.seo.spanish': 'Іспанською',
+  'footer.seo.countriesAM': 'Країни (A–M)',
+  'footer.seo.countriesNV': 'Країни (N–V)',
   'footer.col.platform': 'Платформа',
   'footer.col.legal': 'Правова інформація',
   'footer.col.support': 'Підтримка',
