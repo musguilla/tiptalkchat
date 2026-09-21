@@ -24,7 +24,8 @@ export const pt: { [K in MessageKey]?: string } = {
   'nav.messages': 'Mensagens',
 
   // --- Footer ---
-  'footer.tagline': 'Salas de chat privadas com gorjetas. Ganhe dinheiro online conversando',
+  'footer.tagline': 'Salas de chat privadas com gorjetas.',
+  'footer.earnCta': 'Ganhe dinheiro online conversando',
   'footer.languages': 'Idiomas',
   'footer.seo.chat': 'Chat',
   'footer.seo.spanish': 'Em espanhol',

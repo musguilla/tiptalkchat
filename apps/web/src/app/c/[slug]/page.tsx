@@ -5,16 +5,17 @@ import type { Metadata } from 'next';
 import { ArrowRight } from 'lucide-react';
 import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
-import { seoSlugs, type SeoPage } from '@/lib/seo-pages';
+import { type SeoPage } from '@/lib/seo-pages';
 import { getSeoPage, hasSeoCatalog } from '@/lib/seo-i18n';
 import { getServerLocale } from '@/i18n/server';
 import { t } from '@/i18n';
 import { localizeHref } from '@/i18n/routing';
 import { DEFAULT_LOCALE, LOCALES } from '@/i18n/config';
 
-export function generateStaticParams(): Array<{ slug: string }> {
-  return seoSlugs.map((slug) => ({ slug }));
-}
+// Rendered per request so the middleware's x-locale header is read at
+// request time. With generateStaticParams these pages were prerendered once
+// in Spanish and served that way for every locale (/zh/c/…, /hi/c/… all ES).
+export const dynamic = 'force-dynamic';
 
 const SITE = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://tiptalk.chat').replace(/\/$/, '');
 

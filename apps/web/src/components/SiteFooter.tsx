@@ -48,7 +48,15 @@ export function SiteFooter() {
         <div className="grid grid-cols-2 gap-10 md:grid-cols-4">
           <div className="col-span-2">
             <Logo className="text-2xl" />
-            <p className="mt-4 max-w-xs text-sm leading-relaxed text-ink-muted">{t('footer.tagline')}</p>
+            <p className="mt-4 max-w-xs text-sm leading-relaxed text-ink-muted">
+              {t('footer.tagline')}{' '}
+              <Link
+                href={L('/ganar-dinero')}
+                className="font-semibold text-primary-600 underline decoration-primary-300 underline-offset-2 transition hover:text-primary-500"
+              >
+                {t('footer.earnCta')}
+              </Link>
+            </p>
           </div>
 
           <div>

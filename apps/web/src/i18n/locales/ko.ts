@@ -24,7 +24,8 @@ export const ko: { [K in MessageKey]?: string } = {
   'nav.messages': '메시지',
 
   // --- Footer ---
-  'footer.tagline': '팁을 주고받는 프라이빗 채팅방. 채팅하며 온라인으로 돈 벌기',
+  'footer.tagline': '팁을 주고받는 프라이빗 채팅방.',
+  'footer.earnCta': '채팅하며 온라인으로 돈 벌기',
   'footer.languages': '언어',
   'footer.seo.chat': '채팅',
   'footer.seo.spanish': '스페인어',

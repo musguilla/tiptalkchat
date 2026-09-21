@@ -24,7 +24,8 @@ export const it: { [K in MessageKey]?: string } = {
   'nav.messages': 'Messaggi',
 
   // --- Footer ---
-  'footer.tagline': 'Stanze di chat private con mance. Guadagna online chattando',
+  'footer.tagline': 'Stanze di chat private con mance.',
+  'footer.earnCta': 'Guadagna online chattando',
   'footer.languages': 'Lingue',
   'footer.seo.chat': 'Chat',
   'footer.seo.spanish': 'In spagnolo',

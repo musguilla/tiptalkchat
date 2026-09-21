@@ -24,7 +24,8 @@ export const nl: { [K in MessageKey]?: string } = {
   'nav.messages': 'Berichten',
 
   // --- Footer ---
-  'footer.tagline': 'Privé-chatrooms met fooien. Verdien online geld met chatten',
+  'footer.tagline': 'Privé-chatrooms met fooien.',
+  'footer.earnCta': 'Verdien online geld met chatten',
   'footer.languages': 'Talen',
   'footer.seo.chat': 'Chat',
   'footer.seo.spanish': 'In het Spaans',

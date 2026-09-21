@@ -24,7 +24,8 @@ export const ar: { [K in MessageKey]?: string } = {
   'nav.messages': 'الرسائل',
 
   // --- Footer ---
-  'footer.tagline': 'غرف محادثة خاصة مع إكراميات. اربح المال عبر الإنترنت من خلال الدردشة',
+  'footer.tagline': 'غرف محادثة خاصة مع إكراميات.',
+  'footer.earnCta': 'اربح المال عبر الإنترنت من خلال الدردشة',
   'footer.languages': 'اللغات',
   'footer.seo.chat': 'دردشة',
   'footer.seo.spanish': 'بالإسبانية',

@@ -23,7 +23,8 @@ export const ur: { [K in MessageKey]?: string } = {
   'nav.messages': 'پیغامات',
 
   // --- Footer ---
-  'footer.tagline': 'ٹپس کے ساتھ نجی چیٹ رومز۔ آن لائن چیٹ کر کے پیسے کمائیں',
+  'footer.tagline': 'ٹپس کے ساتھ نجی چیٹ رومز۔',
+  'footer.earnCta': 'آن لائن چیٹ کر کے پیسے کمائیں',
   'footer.languages': 'زبانیں',
   'footer.seo.chat': 'چیٹ',
   'footer.seo.spanish': 'ہسپانوی میں',
