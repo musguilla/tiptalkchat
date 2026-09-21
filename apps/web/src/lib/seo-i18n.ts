@@ -6,6 +6,19 @@ import { de } from './seo/de';
 import { it } from './seo/it';
 import { pt } from './seo/pt';
 import { ptBr } from './seo/pt-br';
+import { pl } from './seo/pl';
+import { uk } from './seo/uk';
+import { nl } from './seo/nl';
+import { zh } from './seo/zh';
+import { hi } from './seo/hi';
+import { ar } from './seo/ar';
+import { ru } from './seo/ru';
+import { id } from './seo/id';
+import { ko } from './seo/ko';
+import { ja } from './seo/ja';
+import { ur } from './seo/ur';
+import { tr } from './seo/tr';
+import { pcm } from './seo/pcm';
 
 type Catalog = Record<string, Partial<SeoPage>>;
 
@@ -18,6 +31,19 @@ const CATALOGS: Partial<Record<Locale, Catalog>> = {
   it,
   pt,
   'pt-br': ptBr,
+  pl,
+  uk,
+  nl,
+  zh,
+  hi,
+  ar,
+  ru,
+  id,
+  ko,
+  ja,
+  ur,
+  tr,
+  pcm,
 };
 
 /** Locales that currently have translated SEO landing content. */
