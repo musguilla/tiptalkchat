@@ -52,7 +52,7 @@ export function SiteFooter() {
               {t('footer.tagline')}
             </p>
             <Link
-              href={L('/ganar-dinero')}
+              href={L('/ganar-dinero-online-chateando')}
               className="mt-2 inline-block text-sm font-semibold text-primary-600 underline decoration-primary-300 underline-offset-2 transition hover:text-primary-500"
             >
               {t('footer.earnCta')}

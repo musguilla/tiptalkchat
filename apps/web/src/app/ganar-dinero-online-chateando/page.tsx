@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   title: 'Ganar dinero online chateando — tiptalk.chat',
   description:
     'Gana dinero online chateando desde casa: abre una sala privada, habla por texto, voz o vídeo y recibe propinas en directo. Gratis para empezar, sin descargas y con retiradas en euros.',
-  alternates: { canonical: 'https://tiptalk.chat/ganar-dinero' },
+  alternates: { canonical: 'https://tiptalk.chat/ganar-dinero-online-chateando' },
 };
 
 const FAQS: Array<{ q: string; a: string }> = [
