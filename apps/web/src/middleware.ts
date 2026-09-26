@@ -5,6 +5,19 @@ const NON_DEFAULT = LOCALES.filter((l) => l !== DEFAULT_LOCALE);
 
 export function middleware(req: NextRequest): NextResponse {
   const { pathname } = req.nextUrl;
+
+  // Canonical host is www. Redirect the bare apex (tiptalk.chat) to
+  // https://www.tiptalk.chat. This only fires once the apex actually reaches
+  // this app (i.e. after its DNS points at Railway); until then it is inert.
+  const host = (req.headers.get('host') ?? '').split(':')[0];
+  if (host === 'tiptalk.chat') {
+    const url = req.nextUrl.clone();
+    url.protocol = 'https:';
+    url.host = 'www.tiptalk.chat';
+    url.port = '';
+    return NextResponse.redirect(url, 308);
+  }
+
   const seg = pathname.split('/')[1] ?? '';
 
   // A non-default locale prefix (/en, /fr, /pt-br…) → rewrite to the
