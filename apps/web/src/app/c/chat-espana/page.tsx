@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   title: 'Chat España - Chat gratis con propinas por provincias',
   description:
     'Chat España gratis y privado con propinas en directo. Habla por texto, voz o vídeo y empieza a ganar dinero chateando. Entra en el chat de tu provincia: Madrid, Barcelona, Valencia, Sevilla y todas las demás.',
-  alternates: { canonical: 'https://tiptalk.chat/c/chat-espana' },
+  alternates: { canonical: 'https://www.tiptalk.chat/c/chat-espana' },
 };
 
 const provinces = [...spainProvinces].sort((a, b) =>

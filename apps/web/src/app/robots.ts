@@ -1,6 +1,8 @@
 import type { MetadataRoute } from 'next';
 
-const BASE = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://tiptalk.chat').replace(/\/$/, '');
+const BASE = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.tiptalk.chat')
+  .replace(/\/$/, '')
+  .replace('://tiptalk.chat', '://www.tiptalk.chat');
 
 export default function robots(): MetadataRoute.Robots {
   return {

@@ -17,7 +17,9 @@ import { DEFAULT_LOCALE, LOCALES } from '@/i18n/config';
 // in Spanish and served that way for every locale (/zh/c/…, /hi/c/… all ES).
 export const dynamic = 'force-dynamic';
 
-const SITE = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://tiptalk.chat').replace(/\/$/, '');
+const SITE = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.tiptalk.chat')
+  .replace(/\/$/, '')
+  .replace('://tiptalk.chat', '://www.tiptalk.chat');
 
 export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
   const locale = getServerLocale();

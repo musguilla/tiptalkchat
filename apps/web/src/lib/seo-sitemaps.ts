@@ -6,7 +6,9 @@ import { seoSlugs, COUNTRY_REGIONS } from './seo-pages';
  * rest. This lets Search Console report indexation per country so we can see
  * which markets are working and prioritise. Profiles (/u/) stay out for now.
  */
-const BASE = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://tiptalk.chat').replace(/\/$/, '');
+const BASE = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.tiptalk.chat')
+  .replace(/\/$/, '')
+  .replace('://tiptalk.chat', '://www.tiptalk.chat');
 
 const STATIC_PATHS: Array<{ path: string; priority: number }> = [
   { path: '/', priority: 1 },
