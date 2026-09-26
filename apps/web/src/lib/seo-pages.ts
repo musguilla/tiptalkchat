@@ -746,8 +746,103 @@ const countries: SeoPage[] = countriesRaw.map((c, i) => ({
   ],
 }));
 
+interface ProvinceEntry {
+  slug: string;
+  label: string;
+  display: string;
+  capital: string;
+}
+
+// The 50 provinces of Spain — each renders a /c/<slug> landing via the
+// SEO template below and is linked from the bespoke /c/chat-espana page.
+const provincesRaw: ProvinceEntry[] = [
+  { slug: 'chat-alava', label: 'Chat Álava', display: 'Álava', capital: 'Vitoria-Gasteiz' },
+  { slug: 'chat-albacete', label: 'Chat Albacete', display: 'Albacete', capital: 'Albacete' },
+  { slug: 'chat-alicante', label: 'Chat Alicante', display: 'Alicante', capital: 'Alicante' },
+  { slug: 'chat-almeria', label: 'Chat Almería', display: 'Almería', capital: 'Almería' },
+  { slug: 'chat-asturias', label: 'Chat Asturias', display: 'Asturias', capital: 'Oviedo' },
+  { slug: 'chat-avila', label: 'Chat Ávila', display: 'Ávila', capital: 'Ávila' },
+  { slug: 'chat-badajoz', label: 'Chat Badajoz', display: 'Badajoz', capital: 'Badajoz' },
+  { slug: 'chat-baleares', label: 'Chat Baleares', display: 'Baleares', capital: 'Palma' },
+  { slug: 'chat-barcelona', label: 'Chat Barcelona', display: 'Barcelona', capital: 'Barcelona' },
+  { slug: 'chat-bizkaia', label: 'Chat Bizkaia', display: 'Bizkaia', capital: 'Bilbao' },
+  { slug: 'chat-burgos', label: 'Chat Burgos', display: 'Burgos', capital: 'Burgos' },
+  { slug: 'chat-caceres', label: 'Chat Cáceres', display: 'Cáceres', capital: 'Cáceres' },
+  { slug: 'chat-cadiz', label: 'Chat Cádiz', display: 'Cádiz', capital: 'Cádiz' },
+  { slug: 'chat-cantabria', label: 'Chat Cantabria', display: 'Cantabria', capital: 'Santander' },
+  { slug: 'chat-castellon', label: 'Chat Castellón', display: 'Castellón', capital: 'Castellón' },
+  { slug: 'chat-ciudad-real', label: 'Chat Ciudad Real', display: 'Ciudad Real', capital: 'Ciudad Real' },
+  { slug: 'chat-cordoba', label: 'Chat Córdoba', display: 'Córdoba', capital: 'Córdoba' },
+  { slug: 'chat-a-coruna', label: 'Chat A Coruña', display: 'A Coruña', capital: 'A Coruña' },
+  { slug: 'chat-cuenca', label: 'Chat Cuenca', display: 'Cuenca', capital: 'Cuenca' },
+  { slug: 'chat-girona', label: 'Chat Girona', display: 'Girona', capital: 'Girona' },
+  { slug: 'chat-granada', label: 'Chat Granada', display: 'Granada', capital: 'Granada' },
+  { slug: 'chat-guadalajara', label: 'Chat Guadalajara', display: 'Guadalajara', capital: 'Guadalajara' },
+  { slug: 'chat-gipuzkoa', label: 'Chat Gipuzkoa', display: 'Gipuzkoa', capital: 'San Sebastián' },
+  { slug: 'chat-huelva', label: 'Chat Huelva', display: 'Huelva', capital: 'Huelva' },
+  { slug: 'chat-huesca', label: 'Chat Huesca', display: 'Huesca', capital: 'Huesca' },
+  { slug: 'chat-jaen', label: 'Chat Jaén', display: 'Jaén', capital: 'Jaén' },
+  { slug: 'chat-leon', label: 'Chat León', display: 'León', capital: 'León' },
+  { slug: 'chat-lleida', label: 'Chat Lleida', display: 'Lleida', capital: 'Lleida' },
+  { slug: 'chat-lugo', label: 'Chat Lugo', display: 'Lugo', capital: 'Lugo' },
+  { slug: 'chat-madrid', label: 'Chat Madrid', display: 'Madrid', capital: 'Madrid' },
+  { slug: 'chat-malaga', label: 'Chat Málaga', display: 'Málaga', capital: 'Málaga' },
+  { slug: 'chat-murcia', label: 'Chat Murcia', display: 'Murcia', capital: 'Murcia' },
+  { slug: 'chat-navarra', label: 'Chat Navarra', display: 'Navarra', capital: 'Pamplona' },
+  { slug: 'chat-ourense', label: 'Chat Ourense', display: 'Ourense', capital: 'Ourense' },
+  { slug: 'chat-palencia', label: 'Chat Palencia', display: 'Palencia', capital: 'Palencia' },
+  { slug: 'chat-las-palmas', label: 'Chat Las Palmas', display: 'Las Palmas', capital: 'Las Palmas de Gran Canaria' },
+  { slug: 'chat-pontevedra', label: 'Chat Pontevedra', display: 'Pontevedra', capital: 'Pontevedra' },
+  { slug: 'chat-la-rioja', label: 'Chat La Rioja', display: 'La Rioja', capital: 'Logroño' },
+  { slug: 'chat-salamanca', label: 'Chat Salamanca', display: 'Salamanca', capital: 'Salamanca' },
+  { slug: 'chat-tenerife', label: 'Chat Santa Cruz de Tenerife', display: 'Santa Cruz de Tenerife', capital: 'Santa Cruz de Tenerife' },
+  { slug: 'chat-segovia', label: 'Chat Segovia', display: 'Segovia', capital: 'Segovia' },
+  { slug: 'chat-sevilla', label: 'Chat Sevilla', display: 'Sevilla', capital: 'Sevilla' },
+  { slug: 'chat-soria', label: 'Chat Soria', display: 'Soria', capital: 'Soria' },
+  { slug: 'chat-tarragona', label: 'Chat Tarragona', display: 'Tarragona', capital: 'Tarragona' },
+  { slug: 'chat-teruel', label: 'Chat Teruel', display: 'Teruel', capital: 'Teruel' },
+  { slug: 'chat-toledo', label: 'Chat Toledo', display: 'Toledo', capital: 'Toledo' },
+  { slug: 'chat-valencia', label: 'Chat Valencia', display: 'Valencia', capital: 'Valencia' },
+  { slug: 'chat-valladolid', label: 'Chat Valladolid', display: 'Valladolid', capital: 'Valladolid' },
+  { slug: 'chat-zamora', label: 'Chat Zamora', display: 'Zamora', capital: 'Zamora' },
+  { slug: 'chat-zaragoza', label: 'Chat Zaragoza', display: 'Zaragoza', capital: 'Zaragoza' },
+];
+
+const provinces: SeoPage[] = provincesRaw.map((p, i) => ({
+  slug: p.slug,
+  label: p.label,
+  h1: `Chat ${p.display}`,
+  metaTitle: mt(p.label, titleSuffixes[i % titleSuffixes.length]!),
+  metaDescription: `Chat gratis en ${p.display} con propinas en directo. Crea tu sala privada, habla por texto, voz o vídeo y empieza a ganar dinero chateando. Sin registro.`,
+  intro: `**Chat ${p.display}** gratis y privado, con propinas integradas. Abre tu sala desde el navegador y habla con quien quieras en ${p.display}.`,
+  paragraphs: [
+    `Si estás en ${p.display} o en cualquier pueblo de la provincia, en tiptalk.chat tienes un **chat ${p.display}** listo en segundos. La sala se crea desde el navegador —móvil, tablet u ordenador— sin instalar ninguna app.`,
+    `Comparte el enlace y empieza a hablar por texto, voz o vídeo. Vale para reencontrarte con gente de ${p.capital}, conocer a alguien de la zona o mantener una conversación privada sin pasar por las redes sociales.`,
+    `Además es un **chat con propinas**: si la gente valora tu tiempo, te envía Tipsys que se acumulan en tu monedero. Así puedes **ganar dinero chateando** desde ${p.display} y retirarlo a tu cuenta en euros cuando quieras.`,
+    `El **chat ${p.display}** es gratis para empezar: abrir salas y chatear no cuesta nada. Solo se mueve dinero real cuando hay propinas (tips) de por medio, y siempre de forma transparente.`,
+    `La privacidad es real: al cerrar la sala (o pasadas 24 horas) se borra todo —mensajes, fotos y vídeos—. No guardamos grabaciones de tus conversaciones en ${p.display}.`,
+    `Funciona en cualquier navegador moderno (Chrome, Safari, Firefox, Edge) y adapta la calidad del vídeo a tu conexión, así que aguanta bien incluso con datos móviles por la provincia de ${p.display}.`,
+  ],
+  faqs: [
+    {
+      q: `¿El chat ${p.display} es gratis?`,
+      a: `Sí. Crear tu sala y chatear en ${p.display} es gratis, sin registro. Solo las propinas (tips) mueven dinero real, porque van directas de una persona a otra.`,
+    },
+    {
+      q: `¿Puedo ganar dinero con un chat en ${p.display}?`,
+      a: `Sí. Si recibes propinas, los Tipsys se acumulan en tu monedero y los conviertes a euros para retirarlos. Es la forma de ganar dinero chateando desde ${p.display}.`,
+    },
+    FAQ_REGISTRO,
+    FAQ_PRIVACIDAD,
+    FAQ_MOVIL,
+  ],
+}));
+
 // === Exports ===========================================================
-const allPages: SeoPage[] = [...features, ...spanish, ...countries];
+const allPages: SeoPage[] = [...features, ...spanish, ...countries, ...provinces];
+
+/** The 50 Spanish provinces, for the /c/chat-espana province index. */
+export const spainProvinces = provincesRaw;
 
 export const seoPageMap: Record<string, SeoPage> = Object.fromEntries(
   allPages.map((p) => [p.slug, p]),
