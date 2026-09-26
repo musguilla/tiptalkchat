@@ -106,11 +106,28 @@ export default function SeoLandingPage({ params }: { params: { slug: string } })
 
         <p className="mt-4 text-lg leading-relaxed text-ink">{renderMarkdown(page.intro)}</p>
 
-        <div className="mt-8 space-y-5 text-base leading-relaxed text-ink-muted">
-          {page.paragraphs.map((p, i) => (
-            <p key={i}>{renderMarkdown(p)}</p>
-          ))}
-        </div>
+        {page.sections && page.sections.length > 0 ? (
+          <div className="mt-10 space-y-10">
+            {page.sections.map((sec, i) => (
+              <section key={i}>
+                <h2 className="font-display text-2xl font-extrabold tracking-tight sm:text-3xl">
+                  {sec.h2}
+                </h2>
+                <div className="mt-3 space-y-4 text-base leading-relaxed text-ink-muted">
+                  {sec.body.map((b, j) => (
+                    <p key={j}>{renderMarkdown(b)}</p>
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-8 space-y-5 text-base leading-relaxed text-ink-muted">
+            {page.paragraphs.map((p, i) => (
+              <p key={i}>{renderMarkdown(p)}</p>
+            ))}
+          </div>
+        )}
 
         <section className="mt-14">
           <h2 className="font-display text-2xl font-extrabold tracking-tight sm:text-3xl">

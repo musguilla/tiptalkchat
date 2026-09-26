@@ -57,7 +57,10 @@ export function getSeoPage(slug: string, locale: Locale): SeoPage | null {
   const base = seoPageMap[slug];
   if (!base) return null;
   const ov = CATALOGS[locale]?.[slug];
-  return ov ? { ...base, ...ov } : base;
+  if (!ov) return base;
+  // A translated catalog provides flat `paragraphs`; drop the Spanish-only
+  // `sections` so the template renders the translated content, not the ES one.
+  return { ...base, ...ov, sections: ov.sections };
 }
 
 /**

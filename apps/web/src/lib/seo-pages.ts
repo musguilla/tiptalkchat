@@ -31,14 +31,23 @@ export interface SeoPage {
   h1: string;
   /** Lead paragraph immediately under the H1 — keep it punchy. */
   intro: string;
-  /** Body paragraphs (use **kw** to bold) */
+  /** Body paragraphs (use **kw** to bold) — legacy flat layout. */
   paragraphs: string[];
+  /** Optional H2-structured sections (preferred for market landings). */
+  sections?: SeoSection[];
   /** FAQs rendered as accordion + JSON-LD schema */
   faqs: SeoFaq[];
   /** <title> */
   metaTitle: string;
   /** <meta name="description"> */
   metaDescription: string;
+}
+
+export interface SeoSection {
+  /** H2 heading for the section. */
+  h2: string;
+  /** Paragraphs under the heading (support **bold** markdown). */
+  body: string[];
 }
 
 export interface SeoColumn {
@@ -714,24 +723,132 @@ const countriesRaw: CountryEntry[] = [
 
 const titleSuffixes: (keyof typeof T)[] = ['ganarDinero', 'salas', 'chatPrivado', 'ganarDineroIng'];
 
+
+// ---- Market content helpers -------------------------------------------
+// Deterministic per-slug variation so that similar landings don't read as
+// identical clones (a mild anti-boilerplate measure) while staying natural.
+function hashSlug(slug: string): number {
+  let x = 0;
+  for (let i = 0; i < slug.length; i++) x = (x * 31 + slug.charCodeAt(i)) >>> 0;
+  return x;
+}
+function pick<T>(slug: string, salt: number, arr: T[]): T {
+  return arr[(hashSlug(slug) + salt) % arr.length]!;
+}
+
+/** Main cities per country, injected to differentiate each market. */
+const COUNTRY_CITIES: Record<string, string[]> = {
+  'chat-argentina': ['Buenos Aires', 'Córdoba', 'Rosario', 'Mendoza'],
+  'chat-brasil': ['São Paulo', 'Río de Janeiro', 'Brasilia', 'Salvador'],
+  'chat-bolivia': ['La Paz', 'Santa Cruz', 'Cochabamba'],
+  'chat-chile': ['Santiago', 'Valparaíso', 'Concepción'],
+  'chat-colombia': ['Bogotá', 'Medellín', 'Cali', 'Barranquilla'],
+  'chat-costa-rica': ['San José', 'Alajuela', 'Cartago'],
+  'chat-cuba': ['La Habana', 'Santiago de Cuba', 'Camagüey'],
+  'chat-ecuador': ['Quito', 'Guayaquil', 'Cuenca'],
+  'chat-el-salvador': ['San Salvador', 'Santa Ana', 'San Miguel'],
+  'chat-espana-pais': ['Madrid', 'Barcelona', 'Valencia', 'Sevilla'],
+  'chat-guatemala': ['Ciudad de Guatemala', 'Quetzaltenango', 'Escuintla'],
+  'chat-honduras': ['Tegucigalpa', 'San Pedro Sula', 'La Ceiba'],
+  'chat-mexico': ['Ciudad de México', 'Guadalajara', 'Monterrey', 'Puebla'],
+  'chat-nicaragua': ['Managua', 'León', 'Masaya'],
+  'chat-republica-dominicana': ['Santo Domingo', 'Santiago', 'La Romana'],
+  'chat-peru': ['Lima', 'Arequipa', 'Trujillo', 'Cusco'],
+  'chat-panama': ['Ciudad de Panamá', 'Colón', 'David'],
+  'chat-paraguay': ['Asunción', 'Ciudad del Este', 'Encarnación'],
+  'chat-puerto-rico': ['San Juan', 'Bayamón', 'Ponce'],
+  'chat-uruguay': ['Montevideo', 'Salto', 'Ciudad de la Costa'],
+  'chat-venezuela': ['Caracas', 'Maracaibo', 'Valencia', 'Barquisimeto'],
+};
+
+/** Build H2-structured, per-market sections for a place `d`. */
+function marketSections(
+  slug: string,
+  d: string,
+  opts: { country?: string; cities?: string[]; capital?: string } = {},
+): SeoSection[] {
+  const country = opts.country ?? d;
+  const secs: SeoSection[] = [];
+
+  const create: string[] = [
+    pick(slug, 2, [
+      `Crear un **chat ${d}** en tiptalk.chat es inmediato: eliges un nombre para la sala, pulsas crear y compartes el enlace. No hay que descargar ninguna app ni dar tu número de teléfono.`,
+      `Para abrir tu **chat ${d}** solo necesitas el navegador. Le pones nombre a la sala, la creas y mandas el enlace a quien quieras; la otra persona entra sin abrir cuenta.`,
+      `Tu **chat ${d}** se monta en segundos desde el móvil o el ordenador: creas la sala, copias el enlace y ya podéis hablar. Sin instalaciones ni registros para empezar.`,
+    ]),
+    pick(slug, 3, [
+      `Funciona en cualquier dispositivo —móvil, tablet u ordenador— y con todos los navegadores modernos (Chrome, Safari, Firefox, Edge).`,
+      `Da igual desde dónde entres: el sistema elige el servidor más cercano para que la conversación vaya fluida, incluso con datos móviles.`,
+      `Puedes abrir tantas salas como necesites, y cada una vale igual para una charla rápida que para una conversación larga.`,
+    ]),
+  ];
+  if (opts.capital) {
+    create.push(
+      `Tanto si estás en ${opts.capital} como en cualquier otro municipio, la experiencia del **chat ${d}** es la misma: basta con el enlace de la sala.`,
+    );
+  }
+  secs.push({
+    h2: pick(slug, 1, [`Cómo crear tu chat en ${d}`, `Abre tu sala de chat en ${d} en segundos`, `Tu chat ${d}, listo al instante`]),
+    body: create,
+  });
+
+  if (opts.cities && opts.cities.length) {
+    secs.push({
+      h2: pick(slug, 4, [`Chat en las principales ciudades de ${country}`, `De ${opts.cities[0]} a cada rincón de ${country}`]),
+      body: [
+        `El **chat ${d}** funciona igual de bien en ${opts.cities.join(', ')} o en cualquier otro punto de ${country}. Como cada sala se comparte por enlace, sirve tanto para hablar con alguien de tu ciudad como con quien está al otro lado del país.`,
+      ],
+    });
+  }
+
+  secs.push({
+    h2: pick(slug, 5, [`Gana dinero chateando en ${d}`, `Cómo ganar dinero con tu chat en ${d}`, `Convierte tus conversaciones en ${d} en ingresos`]),
+    body: [
+      pick(slug, 6, [
+        `Si en tu **chat ${d}** valoran tu tiempo, te envían propinas (Tipsys) que se acumulan en tu monedero en tiempo real, sin cortar la conversación.`,
+        `Cada Tipsys que recibes en tu **chat ${d}** se suma a tu monedero al instante. Es la forma más directa de **ganar dinero chateando** sin montar una web.`,
+        `En un **chat ${d}** con propinas, la gente que quiere agradecerte un buen rato te manda Tipsys que van directos a tu monedero.`,
+      ]),
+      pick(slug, 7, [
+        `Cuando quieras, conviertes esos Tipsys a euros y solicitas la retirada a tu cuenta. Sin permanencias ni mínimos raros.`,
+        `Retiras en euros lo que ganas cuando te venga bien; abrir salas y chatear no cuesta nada, solo se mueve dinero real con las propinas.`,
+        `El saldo es tuyo: lo pasas a euros y lo retiras a tu cuenta con total transparencia, cobrando por tu tiempo de conversación.`,
+      ]),
+    ],
+  });
+
+  secs.push({
+    h2: pick(slug, 8, [`Chat con propinas: cómo funcionan los Tipsys`, `Propinas en directo con Tipsys`, `Así funcionan las propinas`]),
+    body: [
+      pick(slug, 9, [
+        `Las propinas se llaman Tipsys: 1 € equivale a 8 Tipsys al comprarlas, y 10 Tipsys se convierten en 1 € cuando retiras. Crear la sala y chatear es gratis; solo las propinas mueven dinero real.`,
+        `En el **chat ${d}**, quien te apoya compra Tipsys (1 € = 8 Tipsys) y te los envía; tú los conviertes de vuelta a euros (10 Tipsys = 1 €) para retirarlos. Lo demás es gratis.`,
+      ]),
+    ],
+  });
+
+  secs.push({
+    h2: pick(slug, 10, [`Privacidad en tu chat de ${d}`, `Conversaciones privadas en ${d}`, `Tu privacidad, lo primero`]),
+    body: [
+      pick(slug, 11, [
+        `Tu **chat ${d}** es privado de verdad: al cerrar la sala, o pasadas 24 horas, se borra todo —mensajes, fotos y vídeos—. No guardamos grabaciones de tus conversaciones.`,
+        `Nada de lo que ocurre en el **chat ${d}** se queda para siempre: cuando cierras la sala (o expira a las 24 horas) se elimina el contenido. Solo conservamos el registro de propinas por obligación fiscal.`,
+      ]),
+    ],
+  });
+
+  return secs;
+}
+
 const countries: SeoPage[] = countriesRaw.map((c, i) => ({
   slug: c.slug,
   label: c.label,
-  h1: `Chat para ${c.display}`,
+  h1: `Chat ${c.display}: gratis y con propinas`,
   metaTitle: mt(c.label, titleSuffixes[i % titleSuffixes.length]!),
-  metaDescription: `Sala de chat privada para ${c.display}. Texto, voz, vídeo y propinas desde el navegador. Sin registro. Crea tu sala en tiptalk.chat.`,
-  intro: `**Chat ${c.display}** sin descargas, en español y con propinas integradas. La sala se abre desde el navegador, da igual el dispositivo.`,
-  paragraphs: [
-    `Si estás en ${c.display} o quieres una sala de **chat ${c.display}** con gente de allí, tiptalk.chat funciona igual de bien. La sala se crea desde el navegador en cualquier dispositivo: portátil, tablet o móvil.`,
-    `Como cada sala se comparte por enlace, vale tanto para charlar con alguien en la misma ciudad como con alguien que está al otro lado. La latencia se mantiene baja porque elegimos el servidor de llamada más cercano a quien se conecta — algo importante para una región como ${c.region}.`,
-    c.city
-      ? `Para quien está en ${c.city} u otras ciudades de ${c.display}, la experiencia de chat es la misma que desde cualquier otra parte del país. No hace falta una conexión especialmente buena: el sistema baja la calidad del vídeo si la red flojea, manteniendo la voz clara.`
-      : `Para quien está en distintas ciudades de ${c.display}, la experiencia es uniforme. No hace falta una conexión especialmente buena: el sistema baja la calidad del vídeo si la red flojea, manteniendo la voz clara.`,
-    `Si recibes propinas en un **chat ${c.display}**, los Tipsys se acumulan en tu monedero y los retiras a tu cuenta cuando quieras. Vale para creadores, profesionales y para cualquiera que quiera cobrar por su tiempo de conversación. La retirada llega a cuentas internacionales que soporten transferencias en euros.`,
-    `Para uso particular — una llamada con familia que vive en ${c.display}, una clase con alguien que conociste online, una charla larga — el **chat ${c.display}** es lo más cómodo: no obliga a la otra persona a instalar nada. Solo el enlace.`,
-    `Las conversaciones en el **chat ${c.display}** no se almacenan más allá de las 24 horas. Cuando cierras la sala (o cuando expira automáticamente), todo lo que se mandó dentro se borra. Eso incluye fotos, vídeos, mensajes y archivos.`,
-    `Como el servicio es web y no app, no hay versiones que actualizar ni problemas de compatibilidad. Si tu navegador funciona, el **chat ${c.display}** funciona. Y todos los navegadores modernos (Chrome, Safari, Firefox, Edge) son compatibles.`,
-  ],
+  metaDescription: `Chat gratis en ${c.display} con propinas en directo. Crea tu sala privada, habla por texto, voz o vídeo y empieza a ganar dinero chateando. Sin registro.`,
+  intro: `**Chat ${c.display}** gratis, privado y con propinas integradas. Abre tu sala desde el navegador —sin apps— y empieza a hablar con quien quieras en ${c.display}.`,
+  paragraphs: [],
+  sections: marketSections(c.slug, c.display, { country: c.display, cities: COUNTRY_CITIES[c.slug] }),
   faqs: [
     {
       q: `¿El chat ${c.display} funciona bien con conexiones móviles?`,
@@ -754,8 +871,6 @@ interface ProvinceEntry {
   capital: string;
 }
 
-// The 50 provinces of Spain — each renders a /c/<slug> landing via the
-// SEO template below and is linked from the bespoke /c/chat-espana page.
 const provincesRaw: ProvinceEntry[] = [
   { slug: 'chat-alava', label: 'Chat Álava', display: 'Álava', capital: 'Vitoria-Gasteiz' },
   { slug: 'chat-albacete', label: 'Chat Albacete', display: 'Albacete', capital: 'Albacete' },
@@ -812,18 +927,12 @@ const provincesRaw: ProvinceEntry[] = [
 const provinces: SeoPage[] = provincesRaw.map((p, i) => ({
   slug: p.slug,
   label: p.label,
-  h1: `Chat ${p.display}`,
+  h1: `Chat ${p.display} gratis con propinas`,
   metaTitle: mt(p.label, titleSuffixes[i % titleSuffixes.length]!),
   metaDescription: `Chat gratis en ${p.display} con propinas en directo. Crea tu sala privada, habla por texto, voz o vídeo y empieza a ganar dinero chateando. Sin registro.`,
   intro: `**Chat ${p.display}** gratis y privado, con propinas integradas. Abre tu sala desde el navegador y habla con quien quieras en ${p.display}.`,
-  paragraphs: [
-    `Si estás en ${p.display} o en cualquier pueblo de la provincia, en tiptalk.chat tienes un **chat ${p.display}** listo en segundos. La sala se crea desde el navegador —móvil, tablet u ordenador— sin instalar ninguna app.`,
-    `Comparte el enlace y empieza a hablar por texto, voz o vídeo. Vale para reencontrarte con gente de ${p.capital}, conocer a alguien de la zona o mantener una conversación privada sin pasar por las redes sociales.`,
-    `Además es un **chat con propinas**: si la gente valora tu tiempo, te envía Tipsys que se acumulan en tu monedero. Así puedes **ganar dinero chateando** desde ${p.display} y retirarlo a tu cuenta en euros cuando quieras.`,
-    `El **chat ${p.display}** es gratis para empezar: abrir salas y chatear no cuesta nada. Solo se mueve dinero real cuando hay propinas (tips) de por medio, y siempre de forma transparente.`,
-    `La privacidad es real: al cerrar la sala (o pasadas 24 horas) se borra todo —mensajes, fotos y vídeos—. No guardamos grabaciones de tus conversaciones en ${p.display}.`,
-    `Funciona en cualquier navegador moderno (Chrome, Safari, Firefox, Edge) y adapta la calidad del vídeo a tu conexión, así que aguanta bien incluso con datos móviles por la provincia de ${p.display}.`,
-  ],
+  paragraphs: [],
+  sections: marketSections(p.slug, p.display, { country: 'España', capital: p.capital }),
   faqs: [
     {
       q: `¿El chat ${p.display} es gratis?`,
@@ -839,11 +948,8 @@ const provinces: SeoPage[] = provincesRaw.map((p, i) => ({
   ],
 }));
 
-// === Region/subdivision landings (provinces, states, departments…) =====
-// One /c/<slug> landing per country subdivision. Spain reuses its existing
-// province pages, so those slugs are skipped here.
 const preRegionSlugs = new Set(
-  [...features, ...spanish, ...countries, ...provinces].map((p) => p.slug),
+  [...features, ...spanish, ...countries, ...provinces].map((pg) => pg.slug),
 );
 const regionPages: SeoPage[] = [];
 let regionIdx = 0;
@@ -855,18 +961,12 @@ for (const info of Object.values(COUNTRY_REGIONS)) {
     regionPages.push({
       slug: r.slug,
       label: `Chat ${name}`,
-      h1: `Chat ${name}`,
+      h1: `Chat ${name} gratis con propinas`,
       metaTitle: mt(`Chat ${name} (${cd})`, titleSuffixes[regionIdx % titleSuffixes.length]!),
       metaDescription: `Chat gratis en ${name}, ${cd}, con propinas en directo. Crea tu sala privada, habla por texto, voz o vídeo y empieza a ganar dinero chateando. Sin registro.`,
       intro: `**Chat ${name}** gratis y privado, con propinas integradas. Abre tu sala desde el navegador y habla con quien quieras en ${name} (${cd}).`,
-      paragraphs: [
-        `Si estás en ${name} o en cualquier zona de ${cd}, en tiptalk.chat tienes un **chat ${name}** listo en segundos. La sala se crea desde el navegador —móvil, tablet u ordenador— sin instalar ninguna app.`,
-        `Comparte el enlace y empieza a hablar por texto, voz o vídeo con gente de ${name}. Vale para conocer a alguien de la zona, reencontrarte con conocidos o mantener una conversación privada sin pasar por las redes sociales.`,
-        `Además es un **chat con propinas**: si valoran tu tiempo, te envían Tipsys que se acumulan en tu monedero. Así puedes **ganar dinero chateando** desde ${name} y retirarlo a tu cuenta cuando quieras.`,
-        `El **chat ${name}** es gratis para empezar: abrir salas y chatear no cuesta nada. Solo se mueve dinero real cuando hay propinas (tips) de por medio, y siempre de forma transparente.`,
-        `La privacidad es real: al cerrar la sala (o pasadas 24 horas) se borra todo —mensajes, fotos y vídeos—. No guardamos grabaciones de tus conversaciones en ${name}.`,
-        `Funciona en cualquier navegador moderno y adapta la calidad del vídeo a tu conexión, así que el **chat ${name}** aguanta bien incluso con datos móviles por ${cd}.`,
-      ],
+      paragraphs: [],
+      sections: marketSections(r.slug, name, { country: cd }),
       faqs: [
         {
           q: `¿El chat ${name} es gratis?`,
