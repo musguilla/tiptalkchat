@@ -171,38 +171,18 @@ export default function GanarDineroPage(): React.ReactElement {
             </ul>
           </div>
 
-          {/* Visual: chat mockup with a live tip */}
+          {/* Visual: real photo with floating tip + wallet badges */}
           <div className="relative mx-auto w-full max-w-sm">
-            <div className="rounded-[26px] border border-surface-container bg-white p-4 shadow-vivid-strong">
-              <div className="flex items-center justify-between rounded-2xl bg-gradient-to-br from-secondary-500 to-primary-500 px-4 py-3 text-white">
-                <div className="flex items-center gap-2.5">
-                  <span className="grid h-9 w-9 place-items-center rounded-full bg-white/20 font-display font-extrabold">A</span>
-                  <div className="leading-tight">
-                    <p className="text-sm font-bold">Tu sala privada</p>
-                    <p className="inline-flex items-center gap-1 text-[11px] text-white/80">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" /> En directo
-                    </p>
-                  </div>
-                </div>
-                <Video className="h-5 w-5" />
-              </div>
-              <div className="space-y-3 px-1 py-4">
-                <div className="max-w-[80%] rounded-2xl rounded-tl-sm bg-surface-soft px-3.5 py-2 text-sm text-ink">
-                  ¡Hola! Gracias por entrar 💬
-                </div>
-                <div className="ml-auto max-w-[80%] rounded-2xl rounded-tr-sm bg-primary-500 px-3.5 py-2 text-sm text-white">
-                  Me encanta hablar contigo
-                </div>
-                <div className="mx-auto flex w-fit items-center gap-2 rounded-full bg-amber-100 px-3.5 py-1.5 text-sm font-bold text-amber-900 shadow-soft">
-                  <Coins className="h-4 w-4" /> +40 Tipsys de propina
-                </div>
-              </div>
-              <div className="flex items-center gap-2 rounded-2xl border border-surface-container px-3 py-2">
-                <span className="text-sm text-ink-soft">Escribe un mensaje…</span>
-                <span className="ml-auto grid h-8 w-8 place-items-center rounded-full bg-primary-500 text-white">
-                  <ArrowRight className="h-4 w-4" />
-                </span>
-              </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/img/ganar-dinero-chateando.jpg"
+              alt="Chica sonriendo mientras chatea en el móvil y gana dinero con propinas en tiptalk.chat"
+              width={2000}
+              height={1333}
+              className="aspect-[4/5] w-full rounded-[26px] object-cover object-[72%_center] shadow-vivid-strong"
+            />
+            <div className="absolute -left-4 top-8 flex items-center gap-2 rounded-full bg-amber-100 px-3.5 py-1.5 text-sm font-bold text-amber-900 shadow-vivid">
+              <Coins className="h-4 w-4" /> +40 Tipsys
             </div>
             <div className="absolute -right-4 -top-4 rounded-2xl bg-white px-4 py-3 shadow-vivid">
               <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-soft">En tu monedero</p>

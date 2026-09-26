@@ -4,7 +4,6 @@ import {
   ArrowRight,
   MapPin,
   Coins,
-  Video,
   Lock,
   Wallet,
   Smartphone,
@@ -134,9 +133,14 @@ export default function ChatEspanaPage(): React.ReactElement {
                 ))}
               </ul>
             </div>
-            <div className="grid h-56 place-items-center rounded-3xl border border-surface-container bg-gradient-to-br from-secondary-500/10 to-primary-500/10">
-              <Video className="h-16 w-16 text-primary-500" />
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/img/chat-espana.jpg"
+              alt="Chica chateando en el móvil en un chat gratis con propinas en España"
+              width={1000}
+              height={667}
+              className="h-56 w-full rounded-3xl object-cover object-[center_28%]"
+            />
           </div>
           {/* Fila 2 (invertida) */}
           <div className="grid items-center gap-10 md:grid-cols-2">
