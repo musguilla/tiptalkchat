@@ -74,3 +74,18 @@ h6 {
   transform-origin: center;
   animation: msg-progress 2s linear forwards;
 }
+
+/* Animated chat bubbles overlaid on a photo (landing "gana dinero"). Each
+   bubble pops in, holds, and fades out on a 6s loop; stagger with an inline
+   animation-delay so they read as a live conversation. */
+@keyframes tt-chat-in {
+  0%, 100% { opacity: 0; transform: translateY(12px) scale(0.95); }
+  12%, 82% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.tt-chat-bubble {
+  animation: tt-chat-in 6s ease-in-out infinite both;
+  will-change: opacity, transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tt-chat-bubble { animation: none; opacity: 1; transform: none; }
+}

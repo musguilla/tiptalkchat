@@ -171,18 +171,38 @@ export default function GanarDineroPage(): React.ReactElement {
             </ul>
           </div>
 
-          {/* Visual: real photo with floating tip + wallet badges */}
+          {/* Visual: chat mockup with a live tip */}
           <div className="relative mx-auto w-full max-w-sm">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/img/ganar-dinero-chateando.jpg"
-              alt="Chica sonriendo mientras chatea en el móvil y gana dinero con propinas en tiptalk.chat"
-              width={2000}
-              height={1333}
-              className="aspect-[4/5] w-full rounded-[26px] object-cover object-[72%_center] shadow-vivid-strong"
-            />
-            <div className="absolute -left-4 top-8 flex items-center gap-2 rounded-full bg-amber-100 px-3.5 py-1.5 text-sm font-bold text-amber-900 shadow-vivid">
-              <Coins className="h-4 w-4" /> +40 Tipsys
+            <div className="rounded-[26px] border border-surface-container bg-white p-4 shadow-vivid-strong">
+              <div className="flex items-center justify-between rounded-2xl bg-gradient-to-br from-secondary-500 to-primary-500 px-4 py-3 text-white">
+                <div className="flex items-center gap-2.5">
+                  <span className="grid h-9 w-9 place-items-center rounded-full bg-white/20 font-display font-extrabold">A</span>
+                  <div className="leading-tight">
+                    <p className="text-sm font-bold">Tu sala privada</p>
+                    <p className="inline-flex items-center gap-1 text-[11px] text-white/80">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" /> En directo
+                    </p>
+                  </div>
+                </div>
+                <Video className="h-5 w-5" />
+              </div>
+              <div className="space-y-3 px-1 py-4">
+                <div className="max-w-[80%] rounded-2xl rounded-tl-sm bg-surface-soft px-3.5 py-2 text-sm text-ink">
+                  ¡Hola! Gracias por entrar 💬
+                </div>
+                <div className="ml-auto max-w-[80%] rounded-2xl rounded-tr-sm bg-primary-500 px-3.5 py-2 text-sm text-white">
+                  Me encanta hablar contigo
+                </div>
+                <div className="mx-auto flex w-fit items-center gap-2 rounded-full bg-amber-100 px-3.5 py-1.5 text-sm font-bold text-amber-900 shadow-soft">
+                  <Coins className="h-4 w-4" /> +40 Tipsys de propina
+                </div>
+              </div>
+              <div className="flex items-center gap-2 rounded-2xl border border-surface-container px-3 py-2">
+                <span className="text-sm text-ink-soft">Escribe un mensaje…</span>
+                <span className="ml-auto grid h-8 w-8 place-items-center rounded-full bg-primary-500 text-white">
+                  <ArrowRight className="h-4 w-4" />
+                </span>
+              </div>
             </div>
             <div className="absolute -right-4 -top-4 rounded-2xl bg-white px-4 py-3 shadow-vivid">
               <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-soft">En tu monedero</p>
@@ -206,6 +226,82 @@ export default function GanarDineroPage(): React.ReactElement {
               <p className="mt-1 text-sm text-ink-muted">{s.small}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* ============ FOTO + CHAT ANIMADO ============ */}
+      <section className="mx-auto max-w-6xl px-6 py-20">
+        <div className="grid items-center gap-12 md:grid-cols-2">
+          {/* Foto con burbujas de chat animadas encima */}
+          <div className="relative mx-auto w-full max-w-md">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/img/ganar-dinero-chateando.jpg"
+              alt="Chica sonriendo mientras chatea en el móvil y recibe propinas en tiptalk.chat"
+              width={2000}
+              height={1333}
+              className="aspect-[4/5] w-full rounded-[28px] object-cover object-[72%_center] shadow-vivid-strong"
+            />
+            <div
+              className="tt-chat-bubble absolute left-3 top-6 max-w-[68%] rounded-2xl rounded-tl-sm bg-white/95 px-3.5 py-2 text-sm font-medium text-ink shadow-vivid backdrop-blur"
+              style={{ animationDelay: '0s' }}
+            >
+              ¡Hola! ¿Cómo va todo? 💬
+            </div>
+            <div
+              className="tt-chat-bubble absolute right-3 top-28 max-w-[68%] rounded-2xl rounded-tr-sm bg-primary-500 px-3.5 py-2 text-sm font-medium text-white shadow-vivid"
+              style={{ animationDelay: '1.4s' }}
+            >
+              Me encanta hablar contigo 🥰
+            </div>
+            <div
+              className="tt-chat-bubble absolute bottom-24 left-5 inline-flex items-center gap-2 rounded-full bg-amber-100 px-3.5 py-1.5 text-sm font-bold text-amber-900 shadow-vivid"
+              style={{ animationDelay: '2.8s' }}
+            >
+              <Coins className="h-4 w-4" /> +25 Tipsys de propina
+            </div>
+            <div
+              className="tt-chat-bubble absolute bottom-6 right-4 max-w-[60%] rounded-2xl rounded-tr-sm bg-white/95 px-3.5 py-2 text-sm font-medium text-ink shadow-vivid backdrop-blur"
+              style={{ animationDelay: '4.2s' }}
+            >
+              ¡Muchas gracias! ✨
+            </div>
+          </div>
+
+          {/* Texto */}
+          <div>
+            <span className="inline-flex items-center gap-2 rounded-full border border-primary-200 bg-primary-50 px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider text-primary-600">
+              <MessageCircle className="h-3.5 w-3.5" /> Conversaciones que valen
+            </span>
+            <h2 className="mt-5 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
+              Cada conversación puede darte ingresos
+            </h2>
+            <p className="mt-4 text-lg leading-relaxed text-ink-muted">
+              Habla como lo harías en cualquier chat —por texto, voz o vídeo— y deja que las propinas
+              lleguen solas. Cada Tipsys que recibes se suma a tu monedero en tiempo real, sin cortar
+              la conversación ni cambiar de app.
+            </p>
+            <ul className="mt-6 space-y-3 text-sm">
+              {[
+                'Recibe propinas en directo mientras chateas',
+                'Sube fotos y vídeos que se borran al cerrar la sala',
+                'Retira en euros cuando quieras, sin permanencia',
+              ].map((x) => (
+                <li key={x} className="flex items-start gap-3">
+                  <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-emerald-100 text-emerald-600">
+                    <Check className="h-4 w-4" />
+                  </span>
+                  <span className="text-ink-muted">{x}</span>
+                </li>
+              ))}
+            </ul>
+            <Link
+              href="/create"
+              className="btn-tactile mt-8 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-secondary-500 to-primary-500 px-7 py-3.5 text-base font-bold text-white shadow-vivid transition hover:shadow-vivid-strong"
+            >
+              Crear sala gratis <ArrowRight className="h-5 w-5" />
+            </Link>
+          </div>
         </div>
       </section>
 
