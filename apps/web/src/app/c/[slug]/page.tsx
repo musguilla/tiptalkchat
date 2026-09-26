@@ -5,7 +5,7 @@ import type { Metadata } from 'next';
 import { ArrowRight } from 'lucide-react';
 import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
-import { type SeoPage } from '@/lib/seo-pages';
+import { getCountrySubdivisions, type SeoPage } from '@/lib/seo-pages';
 import { getSeoPage, hasSeoCatalog } from '@/lib/seo-i18n';
 import { getServerLocale } from '@/i18n/server';
 import { t } from '@/i18n';
@@ -77,6 +77,7 @@ export default function SeoLandingPage({ params }: { params: { slug: string } })
   const page = getSeoPage(params.slug, locale);
   if (!page) notFound();
   const createHref = localizeHref('/create', locale);
+  const subs = getCountrySubdivisions(params.slug);
 
   return (
     <div className="flex min-h-screen flex-col bg-canvas text-ink">
@@ -129,6 +130,29 @@ export default function SeoLandingPage({ params }: { params: { slug: string } })
             ))}
           </div>
         </section>
+
+        {subs && (
+          <section className="mt-14">
+            <h2 className="font-display text-2xl font-extrabold tracking-tight sm:text-3xl">
+              Chat por {subs.nounPlural} de {subs.countryDisplay}
+            </h2>
+            <p className="mt-2 text-sm text-ink-muted">
+              Entra en el chat de tu zona y empieza a hablar —y a recibir propinas— desde tu {subs.noun}.
+            </p>
+            <ul className="mt-6 grid grid-cols-2 gap-x-6 gap-y-1 text-sm sm:grid-cols-3">
+              {subs.regions.map((r) => (
+                <li key={r.slug}>
+                  <Link
+                    href={localizeHref(`/c/${r.slug}`, locale)}
+                    className="block rounded-lg px-2 py-2 text-ink-muted transition hover:bg-surface-soft hover:text-primary-600"
+                  >
+                    Chat {r.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         <div className="mt-14 rounded-xl border border-surface-container bg-white p-7 text-center shadow-soft">
           <p className="font-display text-lg font-bold">{t(locale, 'seo.cta.bottom.title')}</p>

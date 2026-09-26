@@ -1,3 +1,4 @@
+import { COUNTRY_REGIONS } from './seo-regions';
 /**
  * SEO landing-page catalog. Each entry powers a /c/<slug> route AND a link
  * in the homepage footer.
@@ -838,11 +839,64 @@ const provinces: SeoPage[] = provincesRaw.map((p, i) => ({
   ],
 }));
 
+// === Region/subdivision landings (provinces, states, departments…) =====
+// One /c/<slug> landing per country subdivision. Spain reuses its existing
+// province pages, so those slugs are skipped here.
+const preRegionSlugs = new Set(
+  [...features, ...spanish, ...countries, ...provinces].map((p) => p.slug),
+);
+const regionPages: SeoPage[] = [];
+let regionIdx = 0;
+for (const info of Object.values(COUNTRY_REGIONS)) {
+  const cd = info.countryDisplay;
+  for (const r of info.regions) {
+    if (preRegionSlugs.has(r.slug)) continue;
+    const name = r.name;
+    regionPages.push({
+      slug: r.slug,
+      label: `Chat ${name}`,
+      h1: `Chat ${name}`,
+      metaTitle: mt(`Chat ${name} (${cd})`, titleSuffixes[regionIdx % titleSuffixes.length]!),
+      metaDescription: `Chat gratis en ${name}, ${cd}, con propinas en directo. Crea tu sala privada, habla por texto, voz o vídeo y empieza a ganar dinero chateando. Sin registro.`,
+      intro: `**Chat ${name}** gratis y privado, con propinas integradas. Abre tu sala desde el navegador y habla con quien quieras en ${name} (${cd}).`,
+      paragraphs: [
+        `Si estás en ${name} o en cualquier zona de ${cd}, en tiptalk.chat tienes un **chat ${name}** listo en segundos. La sala se crea desde el navegador —móvil, tablet u ordenador— sin instalar ninguna app.`,
+        `Comparte el enlace y empieza a hablar por texto, voz o vídeo con gente de ${name}. Vale para conocer a alguien de la zona, reencontrarte con conocidos o mantener una conversación privada sin pasar por las redes sociales.`,
+        `Además es un **chat con propinas**: si valoran tu tiempo, te envían Tipsys que se acumulan en tu monedero. Así puedes **ganar dinero chateando** desde ${name} y retirarlo a tu cuenta cuando quieras.`,
+        `El **chat ${name}** es gratis para empezar: abrir salas y chatear no cuesta nada. Solo se mueve dinero real cuando hay propinas (tips) de por medio, y siempre de forma transparente.`,
+        `La privacidad es real: al cerrar la sala (o pasadas 24 horas) se borra todo —mensajes, fotos y vídeos—. No guardamos grabaciones de tus conversaciones en ${name}.`,
+        `Funciona en cualquier navegador moderno y adapta la calidad del vídeo a tu conexión, así que el **chat ${name}** aguanta bien incluso con datos móviles por ${cd}.`,
+      ],
+      faqs: [
+        {
+          q: `¿El chat ${name} es gratis?`,
+          a: `Sí. Crear tu sala y chatear en ${name} (${cd}) es gratis y sin registro. Solo las propinas (tips) mueven dinero real, porque van directas de una persona a otra.`,
+        },
+        {
+          q: `¿Puedo ganar dinero chateando desde ${name}?`,
+          a: `Sí. Si recibes propinas, los Tipsys se acumulan en tu monedero y los conviertes a euros para retirarlos. Es la forma de ganar dinero chateando desde ${name}.`,
+        },
+        FAQ_REGISTRO,
+        FAQ_PRIVACIDAD,
+        FAQ_MOVIL,
+      ],
+    });
+    regionIdx++;
+  }
+}
+
 // === Exports ===========================================================
-const allPages: SeoPage[] = [...features, ...spanish, ...countries, ...provinces];
+const allPages: SeoPage[] = [...features, ...spanish, ...countries, ...provinces, ...regionPages];
 
 /** The 50 Spanish provinces, for the /c/chat-espana province index. */
 export const spainProvinces = provincesRaw;
+
+export { COUNTRY_REGIONS } from './seo-regions';
+
+/** Subdivision links for a country landing (or null if it has none). */
+export function getCountrySubdivisions(slug: string) {
+  return COUNTRY_REGIONS[slug] ?? null;
+}
 
 export const seoPageMap: Record<string, SeoPage> = Object.fromEntries(
   allPages.map((p) => [p.slug, p]),
