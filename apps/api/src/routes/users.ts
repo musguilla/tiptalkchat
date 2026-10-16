@@ -266,7 +266,7 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
     // ever served (protegidas no se muestran), only the fact that they exist,
     // so the profile can show a locked card that invites messaging the owner.
     const photos = await prisma.profilePhoto.findMany({
-      where: { userId: id },
+      where: { userId: id, source: 'gallery', deletedAt: null },
       orderBy: { createdAt: 'desc' },
       select: { id: true, publicUrl: true, isPublic: true, createdAt: true },
     });
@@ -411,7 +411,13 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
     // so a burst of uploads doesn't fan out a burst of emails.
     const sixHoursAgo = new Date(Date.now() - 6 * 3600 * 1000);
     const recentlyPosted = await prisma.profilePhoto.count({
-      where: { userId: me.userId, id: { not: photo.id }, createdAt: { gte: sixHoursAgo } },
+      where: {
+        userId: me.userId,
+        id: { not: photo.id },
+        source: 'gallery',
+        deletedAt: null,
+        createdAt: { gte: sixHoursAgo },
+      },
     });
     if (recentlyPosted === 0) void notifyFollowersOfNewContent(me.userId, req.log);
 
@@ -429,7 +435,7 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
     const id = (req.params as { id: string }).id;
     const body = updatePhotoBody.parse(req.body);
     const owned = await prisma.profilePhoto.findFirst({
-      where: { id, userId: me.userId },
+      where: { id, userId: me.userId, source: 'gallery', deletedAt: null },
     });
     if (!owned) throw app.httpErrors.notFound('Photo not found');
     const updated = await prisma.profilePhoto.update({
@@ -448,12 +454,12 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
     const me = await app.requireUser(req);
     const id = (req.params as { id: string }).id;
     const owned = await prisma.profilePhoto.findFirst({
-      where: { id, userId: me.userId },
+      where: { id, userId: me.userId, source: 'gallery', deletedAt: null },
     });
     if (!owned) throw app.httpErrors.notFound('Photo not found');
-    const storage = getStorage();
-    await storage.deleteObject(owned.storageKey);
-    await prisma.profilePhoto.delete({ where: { id } });
+    // Soft delete: the photo leaves the user's gallery but the file is kept in
+    // Supabase and the row stays visible in the admin Media view (moderation).
+    await prisma.profilePhoto.update({ where: { id }, data: { deletedAt: new Date() } });
     reply.code(204);
     return null;
   });

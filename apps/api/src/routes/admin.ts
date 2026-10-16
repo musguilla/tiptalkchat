@@ -123,6 +123,7 @@ interface AdminMediaItem {
   bytes: number | null;
   createdAt: Date;
   isPublic: boolean | null;
+  deletedByUser?: boolean;
   owner: {
     id: string | null;
     displayName: string;
@@ -885,29 +886,36 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           })
         : Promise.resolve([]),
       wantAvatar
-        ? prisma.user.findMany({
-            where: { avatarUrl: { not: null } },
-            orderBy: { updatedAt: 'desc' },
+        ? prisma.profilePhoto.findMany({
+            where: { source: 'avatar' },
+            orderBy: { createdAt: 'desc' },
             take: window,
-            select: { id: true, displayName: true, avatarUrl: true, updatedAt: true },
+            select: {
+              id: true,
+              publicUrl: true,
+              createdAt: true,
+              user: { select: { id: true, displayName: true, avatarUrl: true } },
+            },
           })
         : Promise.resolve([]),
       wantGallery
         ? prisma.profilePhoto.findMany({
+            where: { source: 'gallery' },
             orderBy: { createdAt: 'desc' },
             take: window,
             select: {
               id: true,
               publicUrl: true,
               isPublic: true,
+              deletedAt: true,
               createdAt: true,
               user: { select: { id: true, displayName: true, avatarUrl: true } },
             },
           })
         : Promise.resolve([]),
       prisma.mediaAsset.count({ where: chatWhere }),
-      prisma.user.count({ where: { avatarUrl: { not: null } } }),
-      prisma.profilePhoto.count(),
+      prisma.profilePhoto.count({ where: { source: 'avatar' } }),
+      prisma.profilePhoto.count({ where: { source: 'gallery' } }),
       prisma.mediaAsset.aggregate({ where: chatWhere, _sum: { bytes: true } }),
     ]);
 
@@ -941,22 +949,24 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       });
     }
 
-    for (const u of avatarRows) {
-      if (!u.avatarUrl) continue;
+    for (const a of avatarRows) {
       items.push({
-        id: `avatar:${u.id}`,
+        id: `avatar:${a.id}`,
         source: 'avatar',
         kind: 'image',
         status: 'ready',
-        url: u.avatarUrl,
-        thumbnailUrl: u.avatarUrl,
+        url: a.publicUrl,
+        thumbnailUrl: a.publicUrl,
         mimeType: null,
         bytes: null,
-        // No timestamp is stored for the avatar itself; updatedAt is the
-        // closest proxy for "when this user last changed their profile".
-        createdAt: u.updatedAt,
+        createdAt: a.createdAt,
         isPublic: null,
-        owner: { id: u.id, displayName: u.displayName, avatarUrl: u.avatarUrl, isGuest: false },
+        owner: {
+          id: a.user.id,
+          displayName: a.user.displayName,
+          avatarUrl: a.user.avatarUrl,
+          isGuest: false,
+        },
         room: null,
       });
     }
@@ -973,6 +983,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         bytes: null,
         createdAt: p.createdAt,
         isPublic: p.isPublic,
+        deletedByUser: p.deletedAt != null,
         owner: {
           id: p.user.id,
           displayName: p.user.displayName,
@@ -1011,7 +1022,8 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
    * sources; removes the file from storage AND the DB reference.
    *   - chat:<mediaAssetId>  -> delete files + MediaAsset row (messages keep
    *                            their row but lose the image via SetNull)
-   *   - avatar:<userId>      -> clear avatarUrl + best-effort delete the file
+   *   - avatar:<profilePhotoId> -> delete the archived avatar file + row
+   *                            (and clear User.avatarUrl if still current)
    *   - gallery:<photoId>    -> delete file (by storageKey) + ProfilePhoto row
    */
   app.delete('/media/:source/:id', async (req, reply) => {
@@ -1042,14 +1054,19 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
     }
 
     if (source === 'avatar') {
-      const user = await prisma.user.findUnique({
+      const photo = await prisma.profilePhoto.findUnique({
         where: { id },
-        select: { id: true, avatarUrl: true },
+        select: { id: true, userId: true, publicUrl: true },
       });
-      if (!user || !user.avatarUrl) throw app.httpErrors.notFound('Avatar no encontrado');
-      const key = storageKeyFromPublicUrl(user.avatarUrl);
+      if (!photo) throw app.httpErrors.notFound('Avatar no encontrado');
+      const key = storageKeyFromPublicUrl(photo.publicUrl);
       if (key) await storage.deleteObject(key).catch(() => undefined);
-      await prisma.user.update({ where: { id }, data: { avatarUrl: null } });
+      // If this archived avatar is still the user's current one, clear it too.
+      await prisma.user.updateMany({
+        where: { id: photo.userId, avatarUrl: photo.publicUrl },
+        data: { avatarUrl: null },
+      });
+      await prisma.profilePhoto.delete({ where: { id } });
       reply.code(204);
       return null;
     }

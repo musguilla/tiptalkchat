@@ -136,6 +136,28 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
       },
       select: { id: true, email: true, displayName: true, avatarUrl: true, role: true },
     });
+
+    // Archive the avatar so it's never lost from the admin Media view, even if
+    // the user later changes or removes it. The file is always kept in Supabase.
+    if (typeof body.avatarUrl === 'string' && body.avatarUrl.length > 0) {
+      try {
+        const url = body.avatarUrl;
+        const already = await prisma.profilePhoto.findFirst({
+          where: { userId, source: 'avatar', publicUrl: url },
+          select: { id: true },
+        });
+        if (!already) {
+          const m = url.match(/\/object\/public\/[^/]+\/(.+)$/);
+          const storageKey = m ? decodeURIComponent(m[1]!) : url;
+          await prisma.profilePhoto.create({
+            data: { userId, publicUrl: url, storageKey, isPublic: false, source: 'avatar' },
+          });
+        }
+      } catch (err) {
+        req.log.warn({ err }, 'avatar archive failed');
+      }
+    }
+
     return user;
   });
 

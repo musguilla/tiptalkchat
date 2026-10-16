@@ -74,10 +74,17 @@ model ProfilePhoto {
   publicUrl  String
   storageKey String
   isPublic   Boolean  @default(false)
+  // 'gallery' = a user gallery photo; 'avatar' = an archived avatar, kept for
+  // admin moderation even after the user changes or removes it.
+  source     String   @default("gallery")
+  // Soft-delete marker: set when the user removes a gallery photo. The file
+  // stays in Supabase and the row stays visible in the admin Media view.
+  deletedAt  DateTime?
   createdAt  DateTime @default(now())
 
   @@index([userId])
   @@index([userId, createdAt])
+  @@index([source])
 }
 
 // Direct user-to-user messages shown in each user's in-app inbox. A message

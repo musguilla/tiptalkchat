@@ -50,6 +50,7 @@ interface MediaItem {
   bytes: number | null;
   createdAt: string;
   isPublic: boolean | null;
+  deletedByUser?: boolean;
   owner: MediaOwner | null;
   room: MediaRoom | null;
 }
@@ -246,6 +247,12 @@ function MediaCard({ item, onDeleted }: { item: MediaItem; onDeleted: () => void
         {processing && (
           <span className="absolute inset-x-1.5 bottom-1.5 rounded bg-amber-500/90 px-2 py-0.5 text-center text-[10px] font-semibold text-white">
             {t('adb.media.processing')}
+          </span>
+        )}
+
+        {item.deletedByUser && (
+          <span className="absolute bottom-1.5 right-1.5 inline-flex items-center gap-1 rounded-full bg-rose-600/90 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm">
+            Borrada por el usuario
           </span>
         )}
 
