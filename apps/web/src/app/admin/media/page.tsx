@@ -1,7 +1,9 @@
 'use client';
-import { Suspense, useState } from 'react';
+import { Suspense, useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
+  ChevronLeft,
+  ChevronRight,
   ExternalLink,
   Eye,
   Film,
@@ -10,6 +12,7 @@ import {
   MessagesSquare,
   Trash2,
   User as UserIcon,
+  X,
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-store';
@@ -99,6 +102,7 @@ function MediaInner() {
   const kind = readKind(searchParams.get('kind'));
   const page = readPage(searchParams);
   const limit = 48;
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
   const query = new URLSearchParams({
     source,
@@ -164,8 +168,13 @@ function MediaInner() {
       ) : (
         <>
           <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-            {data.items.map((item) => (
-              <MediaCard key={item.id} item={item} onDeleted={reload} />
+            {data.items.map((item, idx) => (
+              <MediaCard
+                key={item.id}
+                item={item}
+                onDeleted={reload}
+                onOpen={() => setViewerIndex(idx)}
+              />
             ))}
           </ul>
           <div className="mt-5">
@@ -179,11 +188,28 @@ function MediaInner() {
           </div>
         </>
       )}
+
+      {viewerIndex !== null && data && (
+        <MediaViewer
+          items={data.items}
+          index={viewerIndex}
+          onClose={() => setViewerIndex(null)}
+          onIndex={setViewerIndex}
+        />
+      )}
     </div>
   );
 }
 
-function MediaCard({ item, onDeleted }: { item: MediaItem; onDeleted: () => void }) {
+function MediaCard({
+  item,
+  onDeleted,
+  onOpen,
+}: {
+  item: MediaItem;
+  onDeleted: () => void;
+  onOpen: () => void;
+}) {
   const t = useT();
   const token = useAuth((s) => s.token);
   const [broken, setBroken] = useState(false);
@@ -266,17 +292,16 @@ function MediaCard({ item, onDeleted }: { item: MediaItem; onDeleted: () => void
         </button>
 
         {item.url && (
-          <a
-            href={item.url}
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            type="button"
+            onClick={onOpen}
             className="absolute inset-0 grid place-items-center bg-ink/40 opacity-0 transition group-hover:opacity-100"
-            title={t('adb.media.openOriginal')}
+            title={t('adb.media.open')}
           >
             <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-ink">
-              <ExternalLink className="h-3.5 w-3.5" /> {t('adb.media.open')}
+              <Eye className="h-3.5 w-3.5" /> {t('adb.media.open')}
             </span>
-          </a>
+          </button>
         )}
       </div>
 
@@ -340,5 +365,127 @@ function MediaCard({ item, onDeleted }: { item: MediaItem; onDeleted: () => void
         }}
       />
     </li>
+  );
+}
+
+/**
+ * Full-screen lightbox for the admin media grid: shows the image or video and
+ * lets the admin move prev/next through the loaded items (arrows + keyboard),
+ * instead of opening each file in a new tab.
+ */
+function MediaViewer({
+  items,
+  index,
+  onClose,
+  onIndex,
+}: {
+  items: MediaItem[];
+  index: number;
+  onClose: () => void;
+  onIndex: (i: number) => void;
+}) {
+  const t = useT();
+  const item = items[index];
+
+  const go = useCallback(
+    (delta: number) => {
+      const n = items.length;
+      if (n === 0) return;
+      onIndex(((index + delta) % n + n) % n);
+    },
+    [index, items.length, onIndex],
+  );
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape') onClose();
+      else if (e.key === 'ArrowLeft') go(-1);
+      else if (e.key === 'ArrowRight') go(1);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [go, onClose]);
+
+  if (!item) return null;
+  const owner = item.owner?.displayName;
+
+  return (
+    <div className="fixed inset-0 z-[100] flex flex-col bg-black/90 backdrop-blur-sm" role="dialog" aria-modal="true">
+      <div className="flex items-center justify-between px-4 py-3 text-white">
+        <span className="text-sm tabular-nums text-white/80">
+          {index + 1} / {items.length}
+        </span>
+        <div className="flex items-center gap-3">
+          {item.url && (
+            <a
+              href={item.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-sm text-white/80 transition hover:text-white"
+            >
+              <ExternalLink className="h-4 w-4" /> {t('adb.media.openOriginal')}
+            </a>
+          )}
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Cerrar"
+            className="grid h-9 w-9 place-items-center rounded-full bg-white/10 text-white transition hover:bg-white/20"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+      </div>
+
+      <div
+        className="relative flex flex-1 items-center justify-center overflow-hidden px-4 pb-2"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClose();
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => go(-1)}
+          aria-label="Anterior"
+          className="absolute left-2 z-10 grid h-11 w-11 place-items-center rounded-full bg-white/10 text-white transition hover:bg-white/20"
+        >
+          <ChevronLeft className="h-6 w-6" />
+        </button>
+
+        {item.kind === 'video' ? (
+          <video
+            key={item.id}
+            src={item.url ?? undefined}
+            controls
+            autoPlay
+            className="max-h-[80vh] max-w-full rounded-lg bg-black"
+          />
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            key={item.id}
+            src={item.url ?? item.thumbnailUrl ?? undefined}
+            alt=""
+            className="max-h-[80vh] max-w-full rounded-lg object-contain"
+          />
+        )}
+
+        <button
+          type="button"
+          onClick={() => go(1)}
+          aria-label="Siguiente"
+          className="absolute right-2 z-10 grid h-11 w-11 place-items-center rounded-full bg-white/10 text-white transition hover:bg-white/20"
+        >
+          <ChevronRight className="h-6 w-6" />
+        </button>
+      </div>
+
+      <div className="px-4 pb-4 text-center text-sm text-white/70">
+        {owner && <span className="font-semibold text-white">{owner}</span>}
+        {owner && ' · '}
+        {t(SOURCE_META[item.source].labelKey)} · {formatDate(item.createdAt)}
+        {item.deletedByUser && <span className="text-rose-300"> · Borrada por el usuario</span>}
+      </div>
+    </div>
   );
 }
