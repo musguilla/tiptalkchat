@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { Crown, X as XIcon } from 'lucide-react';
 import type { Identity } from './types';
 import { GalleryPicker } from './GalleryPicker';
+import { useT } from '@/i18n/useLocale';
 
 interface RoomCreator {
   id: string;
@@ -50,6 +51,7 @@ export function Sidebar({
   /** Close the mobile drawer (backdrop click, room action, etc). */
   onMobileClose?: () => void;
 }) {
+  const t = useT();
   // Lock body scroll while the mobile drawer is open.
   useEffect(() => {
     if (typeof document === 'undefined') return;
@@ -70,7 +72,7 @@ export function Sidebar({
         <button
           type="button"
           onClick={onMobileClose}
-          aria-label="Cerrar panel"
+          aria-label={t('cmp.sidebar.closePanel')}
           className="fixed inset-0 z-40 bg-ink/40 backdrop-blur-sm md:hidden"
         />
       )}
@@ -84,7 +86,7 @@ export function Sidebar({
       >
       <div className="flex-1 overflow-y-auto p-3">
         <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-zinc-500">
-          Conectados ({members.length})
+          {t('cmp.sidebar.connected')} ({members.length})
         </h3>
         <ul className="space-y-1">
           {members.map((m) => {
@@ -119,7 +121,7 @@ export function Sidebar({
                     href={`/u/${m.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    title={`Ver perfil de ${m.displayName}`}
+                    title={t('cmp.sidebar.viewProfile', { name: m.displayName })}
                     className="shrink-0 transition hover:opacity-80"
                   >
                     {avatarBlock}
@@ -131,11 +133,11 @@ export function Sidebar({
                 {owner ? (
                   <span className="ml-auto flex items-center gap-1 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-900 dark:bg-amber-900/50 dark:text-amber-100">
                     <Crown className="h-3 w-3" />
-                    propietario
+                    {t('cmp.sidebar.owner')}
                   </span>
                 ) : (
                   m.isGuest && (
-                    <span className="text-[10px] text-zinc-500">(invitado)</span>
+                    <span className="text-[10px] text-zinc-500">({t('cmp.sidebar.guest')})</span>
                   )
                 )}
               </li>
@@ -154,10 +156,10 @@ export function Sidebar({
             type="button"
             onClick={onCloseRoom}
             className="flex w-full items-center justify-center gap-2 rounded-md bg-zinc-100 px-3 py-2 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-200 hover:text-red-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
-            title="Cerrar sala"
+            title={t('cmp.sidebar.closeRoom')}
           >
             <XIcon className="h-3.5 w-3.5" />
-            Cerrar sala
+            {t('cmp.sidebar.closeRoom')}
           </button>
         </div>
       )}

@@ -1,6 +1,12 @@
 // Source dictionary (Spanish). Every other locale mirrors these keys.
 // Keep keys stable; translators only change the values.
 export const es = {
+  'cmp.sidebar.connected': 'Conectados',
+  'cmp.sidebar.owner': 'propietario',
+  'cmp.sidebar.guest': 'invitado',
+  'cmp.sidebar.closeRoom': 'Cerrar sala',
+  'cmp.sidebar.closePanel': 'Cerrar panel',
+  'cmp.sidebar.viewProfile': 'Ver perfil de {name}',
   // --- Common ---
   'common.loading': 'Cargando…',
   'common.save': 'Guardar',
