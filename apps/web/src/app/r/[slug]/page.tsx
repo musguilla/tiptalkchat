@@ -9,6 +9,7 @@ import { TIP_BUTTONS, eurCentsToTipsys, formatEur, formatTipsysAsEur } from '@/l
 import { useAuth } from '@/lib/auth-store';
 import { Sidebar } from '@/components/Sidebar';
 import { Logo } from '@/components/Logo';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { AuthOverlay } from '@/components/AuthOverlay';
 import { WalletOverlay } from '@/components/WalletOverlay';
@@ -587,6 +588,7 @@ export default function RoomPage() {
           <span className="hidden truncate text-sm text-zinc-500 lg:inline">— {room.name}</span>
         </div>
         <div className="flex items-center gap-2">
+          <LanguageSwitcher compact />
           {chatAuth && (
             <>
               <button

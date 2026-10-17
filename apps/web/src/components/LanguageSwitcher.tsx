@@ -4,8 +4,18 @@ import { Globe, Check } from 'lucide-react';
 import { LOCALES, LOCALE_FLAGS, LOCALE_NAMES } from '@/i18n/config';
 import { useLocale, useSwitchLocale } from '@/i18n/useLocale';
 
-/** Dropdown to change the site language. */
-export function LanguageSwitcher({ className = '' }: { className?: string }) {
+/**
+ * Dropdown to change the site language. `compact` shows only the flag (used in
+ * interior views: profile, chat room, inbox); the full variant (globe + flag +
+ * name) is for the landing/home navbar and footer.
+ */
+export function LanguageSwitcher({
+  className = '',
+  compact = false,
+}: {
+  className?: string;
+  compact?: boolean;
+}) {
   const locale = useLocale();
   const switchTo = useSwitchLocale();
   const [open, setOpen] = useState(false);
@@ -25,13 +35,25 @@ export function LanguageSwitcher({ className = '' }: { className?: string }) {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="inline-flex items-center gap-1.5 rounded-full border border-surface-container bg-white px-3 py-1.5 text-sm font-medium text-ink transition hover:bg-surface-soft"
+        className={
+          compact
+            ? 'grid h-9 w-9 place-items-center rounded-full border border-surface-container bg-white text-base leading-none transition hover:bg-surface-soft'
+            : 'inline-flex items-center gap-1.5 rounded-full border border-surface-container bg-white px-3 py-1.5 text-sm font-medium text-ink transition hover:bg-surface-soft'
+        }
         aria-haspopup="listbox"
         aria-expanded={open}
+        aria-label={LOCALE_NAMES[locale]}
+        title={LOCALE_NAMES[locale]}
       >
-        <Globe className="h-4 w-4 text-ink-muted" />
-        <span>{LOCALE_FLAGS[locale]}</span>
-        <span className="hidden sm:inline">{LOCALE_NAMES[locale]}</span>
+        {compact ? (
+          <span>{LOCALE_FLAGS[locale]}</span>
+        ) : (
+          <>
+            <Globe className="h-4 w-4 text-ink-muted" />
+            <span>{LOCALE_FLAGS[locale]}</span>
+            <span className="hidden sm:inline">{LOCALE_NAMES[locale]}</span>
+          </>
+        )}
       </button>
 
       {open && (

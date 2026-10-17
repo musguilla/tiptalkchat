@@ -7,6 +7,7 @@ import { useAuth } from '@/lib/auth-store';
 import { useT } from '@/i18n/useLocale';
 import { Logo } from '@/components/Logo';
 import { UserChip } from '@/components/UserChip';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { SiteFooter } from '@/components/SiteFooter';
 import { AuthOverlay } from '@/components/AuthOverlay';
 import { Avatar } from '@/app/admin/_components/Avatar';
@@ -182,6 +183,7 @@ export default function MensajesPage() {
             <Logo className="text-xl" />
           </Link>
           <div className="flex items-center gap-3">
+            <LanguageSwitcher compact />
             {user && <UserChip user={user} />}
             <Link
               href="/"

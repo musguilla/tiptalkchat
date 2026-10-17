@@ -25,6 +25,7 @@ import { AuthOverlay } from '@/components/AuthOverlay';
 import { FollowButton } from '@/components/FollowButton';
 import { FollowListModal } from '@/components/FollowListModal';
 import { UserChip } from '@/components/UserChip';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 
 interface PublicUser {
   id: string;
@@ -130,6 +131,7 @@ export default function UserProfilePage() {
             <Logo className="text-xl" />
           </Link>
           <div className="flex items-center gap-3">
+            <LanguageSwitcher compact />
             <MessagesBell />
             {me && <UserChip user={me} />}
             <Link
