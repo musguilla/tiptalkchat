@@ -1,4 +1,7 @@
 import { seoSlugs, COUNTRY_REGIONS } from './seo-pages';
+import { LOCALES, type Locale } from '@/i18n/config';
+import { localizeHref } from '@/i18n/routing';
+import { cLocalizedSlug } from './seo-slugs-i18n';
 
 /**
  * Segmented sitemaps: a sitemap index (/sitemap.xml) that points to one child
@@ -63,6 +66,21 @@ function urlEntry(loc: string, lastmod: string, priority: number): string {
   return `  <url>\n    <loc>${loc}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <priority>${priority}</priority>\n  </url>`;
 }
 
+/** hreflang code for a locale (region-qualified where it matters). */
+function hreflang(loc: Locale): string {
+  return loc === 'pt-br' ? 'pt-BR' : loc;
+}
+
+/** A /c page entry with hreflang alternates to every locale's localized slug. */
+function cUrlEntry(slug: string, lastmod: string): string {
+  const links = LOCALES.map((loc) => {
+    const href = `${BASE}${localizeHref(`/c/${cLocalizedSlug(slug, loc)}`, loc)}`;
+    return `    <xhtml:link rel="alternate" hreflang="${hreflang(loc)}" href="${href}"/>`;
+  });
+  links.push(`    <xhtml:link rel="alternate" hreflang="x-default" href="${BASE}/c/${slug}"/>`);
+  return `  <url>\n    <loc>${BASE}/c/${slug}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <priority>0.7</priority>\n${links.join('\n')}\n  </url>`;
+}
+
 export function buildSitemapIndex(): string {
   const now = new Date().toISOString();
   const items = sitemapFileIds()
@@ -82,6 +100,6 @@ export function buildChildSitemap(id: string): string | null {
   if (id === 'core') {
     for (const s of STATIC_PATHS) urls.push(urlEntry(`${BASE}${s.path}`, now, s.priority));
   }
-  for (const slug of group.slugs) urls.push(urlEntry(`${BASE}/c/${slug}`, now, 0.7));
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>\n`;
+  for (const slug of group.slugs) urls.push(cUrlEntry(slug, now));
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${urls.join('\n')}\n</urlset>\n`;
 }

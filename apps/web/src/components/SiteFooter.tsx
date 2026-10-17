@@ -5,6 +5,7 @@ import { Logo } from './Logo';
 import { seoFooterColumns, seoPageMap } from '@/lib/seo-pages';
 import { getSeoFooterLabel } from '@/lib/seo-i18n';
 import { localizedSlug } from '@/i18n/slugs';
+import { cLocalizedSlug } from '@/lib/seo-slugs-i18n';
 import { useLocale, useT, localizeHref, stripLocale } from '@/i18n/useLocale';
 import { LOCALES, LOCALE_FLAGS, LOCALE_NAMES, DEFAULT_LOCALE } from '@/i18n/config';
 
@@ -32,7 +33,7 @@ export function SiteFooter() {
                     if (!page) return null;
                     return (
                       <li key={slug}>
-                        <Link href={L(`/c/${slug}`)} className="transition hover:text-primary-500">
+                        <Link href={L(`/c/${cLocalizedSlug(slug, locale)}`)} className="transition hover:text-primary-500">
                           {getSeoFooterLabel(slug, locale)}
                         </Link>
                       </li>

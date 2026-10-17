@@ -7,6 +7,7 @@ import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
 import { getCountrySubdivisions, type SeoPage } from '@/lib/seo-pages';
 import { getSeoPage, hasSeoCatalog } from '@/lib/seo-i18n';
+import { cLocalizedSlug } from '@/lib/seo-slugs-i18n';
 import { getServerLocale } from '@/i18n/server';
 import { t } from '@/i18n';
 import { localizeHref } from '@/i18n/routing';
@@ -26,21 +27,18 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
   const page = getSeoPage(params.slug, locale);
   if (!page) return {};
 
-  // hreflang: the Spanish canonical + every locale that has translated content.
-  const languages: Record<string, string> = {
-    [DEFAULT_LOCALE]: `${SITE}/c/${page.slug}`,
-  };
+  // hreflang: one entry per locale, each pointing at its localized /c slug
+  // (or the canonical slug where it isn't localized), plus x-default = Spanish.
+  const languages: Record<string, string> = { 'x-default': `${SITE}/c/${page.slug}` };
   for (const loc of LOCALES) {
-    if (loc !== DEFAULT_LOCALE && hasSeoCatalog(loc)) {
-      languages[loc] = `${SITE}${localizeHref(`/c/${page.slug}`, loc)}`;
-    }
+    languages[loc] = `${SITE}${localizeHref(`/c/${cLocalizedSlug(page.slug, loc)}`, loc)}`;
   }
 
   return {
     title: page.metaTitle,
     description: page.metaDescription,
     alternates: {
-      canonical: `${SITE}${localizeHref(`/c/${page.slug}`, locale)}`,
+      canonical: `${SITE}${localizeHref(`/c/${cLocalizedSlug(page.slug, locale)}`, locale)}`,
       languages,
     },
     openGraph: { title: page.metaTitle, description: page.metaDescription, type: 'website' },
@@ -162,7 +160,7 @@ export default function SeoLandingPage({ params }: { params: { slug: string } })
               {subs.regions.map((r) => (
                 <li key={r.slug}>
                   <Link
-                    href={localizeHref(`/c/${r.slug}`, locale)}
+                    href={localizeHref(`/c/${cLocalizedSlug(r.slug, locale)}`, locale)}
                     className="block rounded-lg px-2 py-2 text-ink-muted transition hover:bg-surface-soft hover:text-primary-600"
                   >
                     Chat {r.name}

@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { DEFAULT_LOCALE, LOCALES, type Locale } from './i18n/config';
 import { canonicalFromSlug, localizedSlug } from './i18n/slugs';
+import { cCanonicalSlug, cLocalizedSlug } from './lib/seo-slugs-i18n';
 
 const NON_DEFAULT = LOCALES.filter((l) => l !== DEFAULT_LOCALE);
 
@@ -40,6 +41,27 @@ export function middleware(req: NextRequest): NextResponse {
       }
     }
   }
+
+  // Localized /c SEO landing slugs (/it/c/online-chat → /it/c/chat-online).
+  if (parts[pageIdx] === 'c' && parts[pageIdx + 1]) {
+    const slug = parts[pageIdx + 1] ?? '';
+    const canonical = cCanonicalSlug(slug, locale);
+    if (canonical) {
+      const want = cLocalizedSlug(canonical, locale);
+      // Canonical slug used where a localized one exists → consolidate.
+      if (slug === canonical && want !== canonical) {
+        parts[pageIdx + 1] = want;
+        const r = req.nextUrl.clone();
+        r.pathname = parts.join('/') || '/';
+        return NextResponse.redirect(r, 308);
+      }
+      // Localized slug used → rewrite to the canonical route for rendering.
+      if (slug !== canonical) {
+        parts[pageIdx + 1] = canonical;
+      }
+    }
+  }
+
   const rewritten = parts.join('/') || '/';
 
   // A non-default locale prefix (/en, /fr, /pt-br…) → strip it and forward the
