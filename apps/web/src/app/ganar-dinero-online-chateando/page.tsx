@@ -20,13 +20,25 @@ import { SiteFooter } from '@/components/SiteFooter';
 import { getServerLocale } from '@/i18n/server';
 import { t } from '@/i18n';
 import { localizeHref } from '@/i18n/routing';
+import { localizedSlug } from '@/i18n/slugs';
+import { LOCALES } from '@/i18n/config';
+
+const SITE = 'https://www.tiptalk.chat';
+const CANON_SLUG = 'ganar-dinero-online-chateando';
 
 export function generateMetadata(): Metadata {
   const l = getServerLocale();
+  const languages: Record<string, string> = {};
+  for (const loc of LOCALES) {
+    languages[loc] = SITE + localizeHref(`/${localizedSlug(CANON_SLUG, loc)}`, loc);
+  }
   return {
     title: t(l, 'gd.meta.title'),
     description: t(l, 'gd.meta.desc'),
-    alternates: { canonical: 'https://www.tiptalk.chat/ganar-dinero-online-chateando' },
+    alternates: {
+      canonical: SITE + localizeHref(`/${localizedSlug(CANON_SLUG, l)}`, l),
+      languages,
+    },
   };
 }
 

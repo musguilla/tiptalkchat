@@ -1,0 +1,23 @@
+// uk
+export const uk: Record<string, string> = {
+  "cmp.sidebar.connected": "Підключені",
+  "cmp.sidebar.owner": "власник",
+  "cmp.sidebar.guest": "гість",
+  "cmp.sidebar.closeRoom": "Закрити кімнату",
+  "cmp.sidebar.closePanel": "Закрити панель",
+  "cmp.sidebar.viewProfile": "Переглянути профіль {name}",
+  "auth.email": "Email",
+  "adm.badge.admin": "Admin",
+  "adm.user.kyc": "KYC: {status}",
+  "adm.user.tips": "Чайові",
+  "adm.role.mod": "Mod",
+  "adm.role.admin": "Admin",
+  "adm.payouts.col.id": "ID",
+  "cmp.auth.email": "Email",
+  "pg.room.pin": "PIN",
+  "gd.stat2.big": "8 Tipsys",
+  "gd.stat4.big": "24 h",
+  "gd.eco.li1.lead": "1 € = 8 Tipsys",
+  "gd.eco.li2.lead": "10 Tipsys = 1 €",
+  "gd.eco.ex.row1v": "960 Tipsys",
+};

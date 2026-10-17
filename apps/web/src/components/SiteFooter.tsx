@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import { Logo } from './Logo';
 import { seoFooterColumns, seoPageMap } from '@/lib/seo-pages';
 import { getSeoFooterLabel } from '@/lib/seo-i18n';
+import { localizedSlug } from '@/i18n/slugs';
 import { useLocale, useT, localizeHref, stripLocale } from '@/i18n/useLocale';
 import { LOCALES, LOCALE_FLAGS, LOCALE_NAMES, DEFAULT_LOCALE } from '@/i18n/config';
 
@@ -52,7 +53,7 @@ export function SiteFooter() {
               {t('footer.tagline')}
             </p>
             <Link
-              href={L('/ganar-dinero-online-chateando')}
+              href={L(`/${localizedSlug('ganar-dinero-online-chateando', locale)}`)}
               className="mt-2 inline-block text-sm font-semibold text-primary-600 underline decoration-primary-300 underline-offset-2 transition hover:text-primary-500"
             >
               {t('footer.earnCta')}

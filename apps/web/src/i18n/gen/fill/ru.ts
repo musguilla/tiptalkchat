@@ -1,0 +1,23 @@
+// ru
+export const ru: Record<string, string> = {
+  "cmp.sidebar.connected": "В сети",
+  "cmp.sidebar.owner": "владелец",
+  "cmp.sidebar.guest": "гость",
+  "cmp.sidebar.closeRoom": "Закрыть комнату",
+  "cmp.sidebar.closePanel": "Закрыть панель",
+  "cmp.sidebar.viewProfile": "Посмотреть профиль {name}",
+  "auth.email": "Email",
+  "adm.badge.admin": "Админ",
+  "adm.user.kyc": "KYC: {status}",
+  "adm.user.tips": "Чаевые",
+  "adm.role.mod": "Мод",
+  "adm.role.admin": "Админ",
+  "adm.payouts.col.id": "ID",
+  "cmp.auth.email": "Email",
+  "pg.room.pin": "PIN",
+  "gd.stat2.big": "8 Tipsys",
+  "gd.stat4.big": "24 ч",
+  "gd.eco.li1.lead": "1 € = 8 Tipsys",
+  "gd.eco.li2.lead": "10 Tipsys = 1 €",
+  "gd.eco.ex.row1v": "960 Tipsys",
+};

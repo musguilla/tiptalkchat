@@ -7,11 +7,12 @@ import { seo } from './seo';
 import { home } from './home';
 import { errors } from './errors';
 import { landing } from './landing';
+import { fill } from './fill';
 
 type Dict = Record<string, string>;
 type NS = Partial<Record<Locale, Dict>>;
 
-const NAMESPACES: NS[] = [adminA, adminB, components, pages, seo, home, errors, landing];
+const NAMESPACES: NS[] = [adminA, adminB, components, pages, seo, home, errors, landing, fill];
 
 // Merge every namespace into a single { locale: { key: value } } map.
 export const gen: Record<string, Dict> = (() => {
