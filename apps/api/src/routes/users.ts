@@ -67,28 +67,41 @@ async function notifyFollowersOfNewContent(
 export async function userRoutes(app: FastifyInstance): Promise<void> {
   /**
    * Small, deliberately public discovery list for the home page. This only
-   * exposes the information users have elected to surface through an avatar
-   * (nick + avatar) — never email, rooms, wallets or gallery privacy state.
-   * The two seeded demo identities must not leak into the production social
-   * rail, hence the explicit demo-address exclusion instead of a fragile
-   * "skip the first two rows" rule.
+   * exposes nick + avatar — never email, rooms, wallets or gallery privacy
+   * state. Real members who uploaded a profile photo lead the rail; avatar-less
+   * accounts (seed/filler and brand-new members) only fill the remaining slots
+   * so the page never looks empty. The two seeded demo identities are excluded
+   * explicitly instead of via a fragile "skip the first two rows" rule.
    */
   app.get('/discover', async (req) => {
     const viewerId = req.sessionUser?.userId ?? null;
-    const [users, presence] = await Promise.all([
+    const LIMIT = 18;
+    const base = {
+      blockedAt: null,
+      role: { not: 'admin' },
+      email: { notIn: ['alice@tiptalk.demo', 'bob@tiptalk.demo'] },
+    };
+    const select = { id: true, displayName: true, avatarUrl: true } as const;
+    const [withPhoto, presence] = await Promise.all([
       prisma.user.findMany({
-        where: {
-          avatarUrl: { not: null },
-          blockedAt: null,
-          role: { not: 'admin' },
-          email: { notIn: ['alice@tiptalk.demo', 'bob@tiptalk.demo'] },
-        },
+        where: { ...base, avatarUrl: { not: null } },
         orderBy: { updatedAt: 'desc' },
-        take: 18,
-        select: { id: true, displayName: true, avatarUrl: true },
+        take: LIMIT,
+        select,
       }),
       fetchPresence(),
     ]);
+    let users = withPhoto;
+    if (users.length < LIMIT) {
+      // Top up with avatar-less accounts, newest first.
+      const fill = await prisma.user.findMany({
+        where: { ...base, avatarUrl: null },
+        orderBy: { updatedAt: 'desc' },
+        take: LIMIT - users.length,
+        select,
+      });
+      users = [...users, ...fill];
+    }
     const online = new Set(presence.onlineUserIds);
     let followed = new Set<string>();
     if (viewerId && users.length) {
