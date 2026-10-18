@@ -74,6 +74,11 @@ const roleBody = z.object({
   role: z.enum(USER_ROLES),
 });
 
+const avatarBody = z.object({
+  // Public URL produced by the shared image-upload pipeline, or null to clear.
+  avatarUrl: z.string().url().max(2000).nullable(),
+});
+
 const approvePayoutBody = z.object({
   stripeTransferId: z.string().trim().min(1).max(200).optional(),
 });
@@ -479,6 +484,29 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         select: { role: true },
       });
       return { role: updated.role };
+    } catch (err) {
+      if (isRecordNotFound(err)) throw app.httpErrors.notFound('User not found');
+      throw err;
+    }
+  });
+
+  /**
+   * Set (or clear) a user's profile photo from the admin panel. The admin
+   * uploads the file through the shared image pipeline (/media/image/upload)
+   * and sends the resulting public URL here. The previous file is left in
+   * storage on purpose (media is retained for moderation/record).
+   */
+  app.post('/users/:id/avatar', async (req) => {
+    await app.requireAdmin(req);
+    const id = (req.params as { id: string }).id;
+    const body = avatarBody.parse(req.body);
+    try {
+      const updated = await prisma.user.update({
+        where: { id },
+        data: { avatarUrl: body.avatarUrl },
+        select: { avatarUrl: true },
+      });
+      return { avatarUrl: updated.avatarUrl };
     } catch (err) {
       if (isRecordNotFound(err)) throw app.httpErrors.notFound('User not found');
       throw err;

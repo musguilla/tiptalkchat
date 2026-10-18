@@ -1,24 +1,28 @@
 'use client';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import {
   ArrowLeft,
   Ban,
   Banknote,
+  Camera,
   CheckCircle2,
   Coins,
   DoorClosed,
   ExternalLink,
   Eye,
   Image as ImageIcon,
+  Loader2,
   Lock,
   MessagesSquare,
   ShieldOff,
+  Trash2,
   Wallet,
   XCircle,
 } from 'lucide-react';
 import { api } from '@/lib/api';
+import { uploadAvatar } from '@/lib/upload';
 import { useAuth } from '@/lib/auth-store';
 import { useT } from '@/i18n/useLocale';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
@@ -76,6 +80,46 @@ export default function AdminUserDetailPage() {
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [roleBusy, setRoleBusy] = useState(false);
+  const photoInputRef = useRef<HTMLInputElement | null>(null);
+  const [photoPct, setPhotoPct] = useState<number | null>(null);
+  const [photoBusy, setPhotoBusy] = useState(false);
+
+  async function uploadUserPhoto(file: File): Promise<void> {
+    if (!token || !data) return;
+    setPhotoPct(0);
+    setActionError(null);
+    try {
+      const { publicUrl } = await uploadAvatar(file, token, setPhotoPct);
+      await api<{ avatarUrl: string | null }>(`/admin/users/${data.user.id}/avatar`, {
+        method: 'POST',
+        token,
+        body: JSON.stringify({ avatarUrl: publicUrl }),
+      });
+      reload();
+    } catch (err) {
+      setActionError(describeApiError(err));
+    } finally {
+      setPhotoPct(null);
+    }
+  }
+
+  async function removeUserPhoto(): Promise<void> {
+    if (!token || !data || !data.user.avatarUrl) return;
+    setPhotoBusy(true);
+    setActionError(null);
+    try {
+      await api<{ avatarUrl: string | null }>(`/admin/users/${data.user.id}/avatar`, {
+        method: 'POST',
+        token,
+        body: JSON.stringify({ avatarUrl: null }),
+      });
+      reload();
+    } catch (err) {
+      setActionError(describeApiError(err));
+    } finally {
+      setPhotoBusy(false);
+    }
+  }
 
   async function runPending(): Promise<void> {
     if (!pending || !token || !data) return;
@@ -202,12 +246,58 @@ export default function AdminUserDetailPage() {
         <div className="absolute -bottom-16 -left-8 h-44 w-44 rounded-full bg-white/10 blur-2xl" />
 
         <div className="relative flex flex-col items-center gap-5 text-center sm:flex-row sm:items-center sm:text-left">
-          <Avatar
-            url={user.avatarUrl}
-            name={user.displayName}
-            size="lg"
-            className="ring-4 ring-white/40 shadow-2xl"
-          />
+          <div className="relative shrink-0">
+            <button
+              type="button"
+              onClick={() => photoInputRef.current?.click()}
+              disabled={photoPct !== null}
+              title={t('adm.user.changePhoto')}
+              className="group relative block rounded-full disabled:cursor-wait"
+            >
+              <Avatar
+                url={user.avatarUrl}
+                name={user.displayName}
+                size="lg"
+                className="ring-4 ring-white/40 shadow-2xl"
+              />
+              <span className="absolute inset-0 grid place-items-center rounded-full bg-black/45 text-white opacity-0 transition group-hover:opacity-100">
+                {photoPct !== null ? (
+                  <span className="flex items-center gap-1 text-xs font-semibold">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    {photoPct}%
+                  </span>
+                ) : (
+                  <span className="flex flex-col items-center gap-0.5 text-[11px] font-semibold">
+                    <Camera className="h-5 w-5" />
+                    {t('adm.user.changePhoto')}
+                  </span>
+                )}
+              </span>
+            </button>
+            {user.avatarUrl && photoPct === null && (
+              <button
+                type="button"
+                onClick={() => void removeUserPhoto()}
+                disabled={photoBusy}
+                title={t('adm.user.removePhoto')}
+                aria-label={t('adm.user.removePhoto')}
+                className="btn-tactile absolute -bottom-1 -right-1 grid h-8 w-8 place-items-center rounded-full bg-white text-red-600 shadow-soft transition hover:shadow-vivid disabled:opacity-60"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            )}
+            <input
+              ref={photoInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) void uploadUserPhoto(f);
+                if (photoInputRef.current) photoInputRef.current.value = '';
+              }}
+            />
+          </div>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
               <h1 className="truncate font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
