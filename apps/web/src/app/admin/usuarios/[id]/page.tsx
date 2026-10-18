@@ -13,6 +13,7 @@ import {
   ExternalLink,
   Eye,
   Image as ImageIcon,
+  ImagePlus,
   Loader2,
   Lock,
   MessagesSquare,
@@ -22,7 +23,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import { api } from '@/lib/api';
-import { uploadAvatar } from '@/lib/upload';
+import { uploadAvatar, uploadGalleryPhoto } from '@/lib/upload';
 import { useAuth } from '@/lib/auth-store';
 import { useT } from '@/i18n/useLocale';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
@@ -83,6 +84,8 @@ export default function AdminUserDetailPage() {
   const photoInputRef = useRef<HTMLInputElement | null>(null);
   const [photoPct, setPhotoPct] = useState<number | null>(null);
   const [photoBusy, setPhotoBusy] = useState(false);
+  const galleryInputRef = useRef<HTMLInputElement | null>(null);
+  const [galleryPct, setGalleryPct] = useState<number | null>(null);
 
   async function uploadUserPhoto(file: File): Promise<void> {
     if (!token || !data) return;
@@ -118,6 +121,27 @@ export default function AdminUserDetailPage() {
       setActionError(describeApiError(err));
     } finally {
       setPhotoBusy(false);
+    }
+  }
+
+  async function addGalleryPhotos(files: FileList): Promise<void> {
+    if (!token || !data) return;
+    setActionError(null);
+    try {
+      for (const file of Array.from(files)) {
+        setGalleryPct(0);
+        const { publicUrl, storageKey } = await uploadGalleryPhoto(file, token, setGalleryPct);
+        await api(`/admin/users/${data.user.id}/photos`, {
+          method: 'POST',
+          token,
+          body: JSON.stringify({ publicUrl, storageKey, isPublic: true }),
+        });
+      }
+      reload();
+    } catch (err) {
+      setActionError(describeApiError(err));
+    } finally {
+      setGalleryPct(null);
     }
   }
 
@@ -575,12 +599,44 @@ export default function AdminUserDetailPage() {
         icon={<ImageIcon className="h-4 w-4" />}
         className="mt-6"
         action={
-          <span className="text-xs text-ink-muted">
-            {t('adm.user.photosSummary', {
-              total: formatInt(photos.length),
-              public: formatInt(photos.filter((p) => p.isPublic).length),
-            })}
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="hidden text-xs text-ink-muted sm:inline">
+              {t('adm.user.photosSummary', {
+                total: formatInt(photos.length),
+                public: formatInt(photos.filter((p) => p.isPublic).length),
+              })}
+            </span>
+            <button
+              type="button"
+              onClick={() => galleryInputRef.current?.click()}
+              disabled={galleryPct !== null}
+              className="btn-tactile inline-flex items-center gap-1.5 rounded-full bg-primary-500 px-3 py-1.5 text-xs font-bold text-white shadow-soft transition hover:shadow-vivid disabled:opacity-60"
+            >
+              {galleryPct !== null ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  {galleryPct}%
+                </>
+              ) : (
+                <>
+                  <ImagePlus className="h-3.5 w-3.5" />
+                  {t('adm.user.addPhoto')}
+                </>
+              )}
+            </button>
+            <input
+              ref={galleryInputRef}
+              type="file"
+              multiple
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              className="hidden"
+              onChange={(e) => {
+                const files = e.target.files;
+                if (files && files.length > 0) void addGalleryPhotos(files);
+                if (galleryInputRef.current) galleryInputRef.current.value = '';
+              }}
+            />
+          </div>
         }
       >
         {photos.length === 0 ? (

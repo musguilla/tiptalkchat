@@ -79,6 +79,13 @@ const avatarBody = z.object({
   avatarUrl: z.string().url().max(2000).nullable(),
 });
 
+const galleryPhotoBody = z.object({
+  // Produced by the shared gallery-upload pipeline (/users/me/photos/upload).
+  publicUrl: z.string().url().max(2000),
+  storageKey: z.string().min(1).max(500),
+  isPublic: z.boolean().default(true),
+});
+
 const approvePayoutBody = z.object({
   stripeTransferId: z.string().trim().min(1).max(200).optional(),
 });
@@ -511,6 +518,32 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       if (isRecordNotFound(err)) throw app.httpErrors.notFound('User not found');
       throw err;
     }
+  });
+
+  /**
+   * Add a gallery photo to a user from the admin panel. The admin uploads the
+   * file through the shared gallery pipeline (/users/me/photos/upload) and
+   * sends the resulting publicUrl + storageKey here. Admin-added photos are
+   * public by default so they show on the user's public profile.
+   */
+  app.post('/users/:id/photos', async (req, reply) => {
+    await app.requireAdmin(req);
+    const id = (req.params as { id: string }).id;
+    const body = galleryPhotoBody.parse(req.body);
+    const target = await prisma.user.findUnique({ where: { id }, select: { id: true } });
+    if (!target) throw app.httpErrors.notFound('User not found');
+    const photo = await prisma.profilePhoto.create({
+      data: {
+        userId: id,
+        publicUrl: body.publicUrl,
+        storageKey: body.storageKey,
+        isPublic: body.isPublic,
+        source: 'gallery',
+      },
+      select: { id: true, publicUrl: true, isPublic: true, createdAt: true },
+    });
+    reply.code(201);
+    return { id: photo.id, url: photo.publicUrl, isPublic: photo.isPublic, createdAt: photo.createdAt };
   });
 
   /**
