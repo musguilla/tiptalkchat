@@ -86,6 +86,7 @@ export default function AdminUserDetailPage() {
   const [photoBusy, setPhotoBusy] = useState(false);
   const galleryInputRef = useRef<HTMLInputElement | null>(null);
   const [galleryPct, setGalleryPct] = useState<number | null>(null);
+  const [photoToggleBusy, setPhotoToggleBusy] = useState<string | null>(null);
 
   async function uploadUserPhoto(file: File): Promise<void> {
     if (!token || !data) return;
@@ -142,6 +143,24 @@ export default function AdminUserDetailPage() {
       setActionError(describeApiError(err));
     } finally {
       setGalleryPct(null);
+    }
+  }
+
+  async function togglePhotoVisibility(photo: { id: string; isPublic: boolean }): Promise<void> {
+    if (!token || photoToggleBusy) return;
+    setPhotoToggleBusy(photo.id);
+    setActionError(null);
+    try {
+      await api(`/admin/photos/${photo.id}`, {
+        method: 'PATCH',
+        token,
+        body: JSON.stringify({ isPublic: !photo.isPublic }),
+      });
+      reload();
+    } catch (err) {
+      setActionError(describeApiError(err));
+    } finally {
+      setPhotoToggleBusy(null);
     }
   }
 
@@ -660,14 +679,24 @@ export default function AdminUserDetailPage() {
                     className="h-full w-full object-cover transition group-hover:scale-105"
                   />
                 </a>
-                <span
-                  className={`pointer-events-none absolute left-2 top-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold backdrop-blur-sm ${
+                <button
+                  type="button"
+                  onClick={() => void togglePhotoVisibility(p)}
+                  disabled={photoToggleBusy === p.id}
+                  title={p.isPublic ? t('adm.user.makePrivate') : t('adm.user.makePublic')}
+                  className={`btn-tactile absolute left-2 top-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold backdrop-blur-sm transition hover:brightness-110 disabled:opacity-70 ${
                     p.isPublic ? 'bg-emerald-500/90 text-white' : 'bg-black/60 text-white'
                   }`}
                 >
-                  {p.isPublic ? <Eye className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
+                  {photoToggleBusy === p.id ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : p.isPublic ? (
+                    <Eye className="h-3 w-3" />
+                  ) : (
+                    <Lock className="h-3 w-3" />
+                  )}
                   {p.isPublic ? t('adm.user.public') : t('adm.user.private')}
-                </span>
+                </button>
                 <span className="pointer-events-none absolute bottom-2 right-2 rounded-full bg-black/50 px-2 py-0.5 text-[10px] text-white backdrop-blur-sm">
                   {formatDateShort(p.createdAt)}
                 </span>

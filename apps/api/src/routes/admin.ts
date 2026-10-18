@@ -86,6 +86,10 @@ const galleryPhotoBody = z.object({
   isPublic: z.boolean().default(true),
 });
 
+const photoVisibilityBody = z.object({
+  isPublic: z.boolean(),
+});
+
 const approvePayoutBody = z.object({
   stripeTransferId: z.string().trim().min(1).max(200).optional(),
 });
@@ -544,6 +548,24 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
     });
     reply.code(201);
     return { id: photo.id, url: photo.publicUrl, isPublic: photo.isPublic, createdAt: photo.createdAt };
+  });
+
+  /** Toggle a gallery photo's public/private visibility from the admin panel. */
+  app.patch('/photos/:id', async (req) => {
+    await app.requireAdmin(req);
+    const id = (req.params as { id: string }).id;
+    const body = photoVisibilityBody.parse(req.body);
+    try {
+      const updated = await prisma.profilePhoto.update({
+        where: { id },
+        data: { isPublic: body.isPublic },
+        select: { id: true, isPublic: true },
+      });
+      return { id: updated.id, isPublic: updated.isPublic };
+    } catch (err) {
+      if (isRecordNotFound(err)) throw app.httpErrors.notFound('Photo not found');
+      throw err;
+    }
   });
 
   /**
